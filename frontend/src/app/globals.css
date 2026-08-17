@@ -8075,3 +8075,27 @@ button:disabled {
     max-width: none;
   }
 }
+
+
+.staff-layout {
+  min-height: 100vh;
+  display: flex;
+  width: 100%;
+}
+
+.staff-main-content {
+  flex: 1;
+  min-width: 0;
+  margin-left: 280px;
+  transition: margin-left 0.3s ease;
+}
+
+.staff-main-content .dashboard-page {
+  min-height: 100vh;
+}
+
+@media (max-width: 1024px) {
+  .staff-main-content {
+    margin-left: 0;
+  }
+}

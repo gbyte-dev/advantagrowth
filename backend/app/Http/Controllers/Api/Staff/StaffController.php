@@ -63,10 +63,10 @@ class StaffController extends Controller
     ], 201);
 }
 
-    /**
-     * Update Staff
-     */
-    public function update(Request $request, $id)
+  /**
+ * Update Staff
+ */
+public function update(Request $request, $id)
 {
     $staff = User::where('restaurant_id', $request->user()->restaurant_id)
         ->where('role', 'staff')
@@ -74,14 +74,16 @@ class StaffController extends Controller
 
     $request->validate([
         'owner_name' => 'required|string|max:255',
+        'email' => 'nullable|email|unique:users,email,' . $staff->id,
         'phone' => 'required|string|max:20',
-        'username' => 'required|unique:users,username,' . $staff->id,
+        'username' => 'required|string|max:50|unique:users,username,' . $staff->id,
         'staff_role' => 'required|string',
         'profile_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
     ]);
 
     $data = [
         'owner_name' => $request->owner_name,
+        'email' => $request->email,
         'phone' => $request->phone,
         'username' => $request->username,
         'staff_role' => $request->staff_role,
@@ -96,7 +98,7 @@ class StaffController extends Controller
 
     return response()->json([
         'message' => 'Staff updated successfully.',
-        'staff' => $staff,
+        'staff' => $staff->fresh(),
     ]);
 }
 
@@ -155,51 +157,58 @@ class StaffController extends Controller
             'message' => 'Password updated successfully.'
         ]);
     }
+/**
+ * Staff Login
+ */
+public function login(Request $request)
+{
+    $request->validate([
+        'username' => 'required|string',
+        'password' => 'required|string',
+    ]);
 
-    /**
-     * Staff Login
-     */
-    public function login(Request $request)
-    {
-        $request->validate([
-            'username' => 'required',
-            'password' => 'required',
-        ]);
+    $login = trim($request->username);
 
-        $staff = User::where('username', $request->username)
-            ->where('role', 'staff')
-            ->first();
+    $staff = User::where('role', 'staff')
+        ->where(function ($query) use ($login) {
+            $query->where('username', $login)
+                ->orWhere('email', $login);
+        })
+        ->first();
 
-        if (!$staff) {
-            return response()->json([
-                'message' => 'Staff not found.'
-            ], 404);
-        }
-
-        if (!Hash::check($request->password, $staff->password)) {
-            return response()->json([
-                'message' => 'Invalid Credentials'
-            ], 401);
-        }
-
-        if (!$staff->is_active) {
-            return response()->json([
-                'message' => 'Account is inactive.'
-            ], 403);
-        }
-
-        $staff->tokens()->delete();
-
-        $token = $staff->createToken('staff')->plainTextToken;
-
+    if (!$staff) {
         return response()->json([
-            'success' => true,
-            'token' => $token,
-            'role' => $staff->role,
-            'user' => $staff,
-        ]);
+            'success' => false,
+            'message' => 'Staff account not found.'
+        ], 404);
     }
 
+    if (!Hash::check($request->password, $staff->password)) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Invalid credentials.'
+        ], 401);
+    }
+
+    if (!$staff->is_active) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Staff account is inactive.'
+        ], 403);
+    }
+
+    $staff->tokens()->delete();
+
+    $token = $staff->createToken('staff')->plainTextToken;
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Staff login successful.',
+        'token' => $token,
+        'role' => $staff->role,
+        'user' => $staff,
+    ]);
+}
     /**
      * Logged-in Staff Profile
      */
