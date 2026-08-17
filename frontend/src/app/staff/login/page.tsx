@@ -39,7 +39,7 @@ export default function StaffLoginPage() {
     const newErrors = { username: "", password: "" };
 
     if (!form.username.trim()) {
-      newErrors.username = "Username is required";
+      newErrors.username = "Staff ID or Email is required";
       isValid = false;
     }
 
@@ -95,7 +95,7 @@ export default function StaffLoginPage() {
             </Link>
             <h1>Staff Portal</h1>
             <p>Access your restaurant management dashboard. Manage orders, handle reservations, and serve customers efficiently.</p>
-            
+
             <div className="branding-features">
               <div className="feature-item">
                 <i className="fas fa-clipboard-list"></i>
@@ -132,21 +132,28 @@ export default function StaffLoginPage() {
             <form onSubmit={handleSubmit} className="auth-form">
               {/* Username Field */}
               <div className="form-group">
-                <label htmlFor="username">Username</label>
+                <label htmlFor="username">Staff ID or Email</label>
+
                 <div className="input-wrapper">
                   <i className="fas fa-user input-icon"></i>
+
                   <input
                     id="username"
                     type="text"
                     name="username"
-                    placeholder="Enter your username"
+                    placeholder="Enter Staff ID or Email"
                     value={form.username}
                     onChange={handleChange}
                     className={errors.username ? "input-error" : ""}
                     autoComplete="username"
                   />
                 </div>
-                {errors.username && <span className="error-message">{errors.username}</span>}
+
+                {errors.username && (
+                  <span className="error-message">
+                    {errors.username}
+                  </span>
+                )}
               </div>
 
               {/* Password Field */}
