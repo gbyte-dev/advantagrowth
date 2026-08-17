@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\Owner\OrderController as OwnerOrderController;
 | AUTH ROUTES
 |--------------------------------------------------------------------------
 */
+require base_path('routes/superWeb.php');
 
 Route::prefix('auth')->group(function () {
 
