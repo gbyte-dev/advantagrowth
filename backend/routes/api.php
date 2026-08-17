@@ -23,6 +23,8 @@ use App\Http\Controllers\Api\Owner\OrderController as OwnerOrderController;
 */
 require base_path('routes/superWeb.php');
 
+require base_path('routes/call.php');
+
 Route::prefix('auth')->group(function () {
 
     // Owner Register
