@@ -107,6 +107,15 @@ export default function SuperAdminSidebar() {
 
   return (
     <>
+      {/* Mobile menu trigger — lives outside the sidebar so it stays reachable even when the sidebar is slid off-screen */}
+      <button
+        className="superadmin-mobile-toggle"
+        onClick={toggleSidebar}
+        aria-label={collapsed ? "Open menu" : "Close menu"}
+      >
+        <i className={`fas ${collapsed ? "fa-bars" : "fa-xmark"}`}></i>
+      </button>
+
       {/* Mobile Overlay */}
       <div
         className={`sidebar-overlay ${isMobile && !collapsed ? "sidebar-overlay-visible" : ""}`}
