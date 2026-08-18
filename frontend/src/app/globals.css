@@ -7791,9 +7791,36 @@
    DASHBOARD PAGE CONTAINER
    ============================================ */
 
-.superadmin-main-content .dashboard-page {
-  max-width: 1440px;
-  margin: 0 auto;
+
+@media (max-width: 1024px) {
+  .superadmin-sidebar {
+    position: fixed;
+    top: 42px;
+    left: 0;
+    bottom: 0;
+    width: 260px;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    z-index: 100;
+  }
+
+  .superadmin-sidebar:not(.sidebar-collapsed) {
+    transform: translateX(0);
+  }
+
+  /* Keep the sidebar's own header toggle visible on mobile so the open drawer
+     can be closed from inside it — a shared rule elsewhere hides .sidebar-toggle
+     at this breakpoint for the owner sidebar's tap-outside-to-close pattern. */
+  .superadmin-sidebar .sidebar-toggle {
+    display: flex;
+  }
+
+  .superadmin-main-content,
+  .superadmin-main-content.sidebar-expanded-main,
+  .superadmin-main-content.sidebar-collapsed-main {
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
 }
 
 .superadmin-main-content .dashboard-container {
@@ -8187,10 +8214,26 @@
 }
 
 .sadash-restaurant-name {
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: var(--superadmin-text-primary);
-  margin: 0;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1e293b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sadash-restaurant-plan {
+  display: inline-block;
+  justify-self: center;
+  flex-shrink: 0;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  padding: 0.0625rem 0.4375rem;
+  border-radius: 999px;
 }
 
 .sadash-restaurant-owner {
@@ -8220,25 +8263,59 @@
   color: var(--superadmin-text-secondary);
 }
 
-.sadash-restaurant-revenue {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--superadmin-text-primary);
-  min-width: 80px;
-  text-align: right;
+
+.sadash-restaurant-duration {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #1e293b;
 }
 
-/* ============================================
-   RESPONSIVE DESIGN
-   ============================================ */
-
-/* ----- Tablets (1024px and below) ----- */
-@media (max-width: 1024px) {
-  .superadmin-main-content {
-    margin-left: 0 !important;
-    padding: 1rem 1.2rem;
+/* From tablet width up, lay the list out as a table that spans the full panel width,
+   with Restaurant / Plan / Orders / Duration sharing the row equally */
+@media (min-width: 641px) {
+  .sadash-restaurant-head,
+  .sadash-restaurant-row {
+    grid-template-columns: 28px repeat(4, 1fr);
+    column-gap: 1.5rem;
   }
 
+  .sadash-restaurant-head {
+    display: grid;
+    padding: 0 0.5rem 0.625rem;
+    border-bottom: 1px solid #f1f5f9;
+    margin-bottom: 0.25rem;
+  }
+
+  .sadash-restaurant-head span {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: #94a3b8;
+  }
+
+  .sadash-restaurant-head .sadash-head-center {
+    text-align: center;
+  }
+
+  .sadash-restaurant-row {
+    display: grid;
+    align-items: center;
+  }
+
+  .sadash-restaurant-stats {
+    display: contents;
+  }
+
+  .sadash-restaurant-orders,
+  .sadash-restaurant-duration {
+    text-align: center;
+  }
+}
+
+@media (max-width: 900px) {
   .sadash-kpi-grid {
     grid-template-columns: repeat(2, 1fr);
   }

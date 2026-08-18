@@ -31,11 +31,11 @@ const kpis = [
 ];
 
 const topRestaurants = [
-  { rank: 1, name: "Spice Villa", owner: "Ramesh Kumar", plan: "Premium", orders: 1240, revenue: "₹2,84,600" },
-  { rank: 2, name: "La Bella Italia", owner: "Priya Singh", plan: "Premium", orders: 980, revenue: "₹2,41,300" },
-  { rank: 3, name: "Biryani House", owner: "Arjun Mehta", plan: "Standard", orders: 875, revenue: "₹1,98,000" },
-  { rank: 4, name: "Dragon Bowl", owner: "Sana Khan", plan: "Standard", orders: 620, revenue: "₹1,42,500" },
-  { rank: 5, name: "Cafe Mocha", owner: "Vikram Rao", plan: "Basic", orders: 410, revenue: "₹86,200" },
+  { rank: 1, name: "Spice Villa", owner: "Ramesh Kumar", plan: "Premium", orders: 1240, subscriptionDays: 365 },
+  { rank: 2, name: "La Bella Italia", owner: "Priya Singh", plan: "Premium", orders: 980, subscriptionDays: 365 },
+  { rank: 3, name: "Biryani House", owner: "Arjun Mehta", plan: "Standard", orders: 875, subscriptionDays: 180 },
+  { rank: 4, name: "Dragon Bowl", owner: "Sana Khan", plan: "Standard", orders: 620, subscriptionDays: 180 },
+  { rank: 5, name: "Cafe Mocha", owner: "Vikram Rao", plan: "Basic", orders: 410, subscriptionDays: 30 },
 ];
 
 const planStyles: Record<string, { bg: string; color: string }> = {
@@ -245,9 +245,9 @@ export default function SuperAdminDashboard() {
               <div className="sadash-restaurant-head" aria-hidden="true">
                 <span></span>
                 <span>Restaurant</span>
-                <span>Plan</span>
-                <span className="sadash-head-right">Orders</span>
-                <span className="sadash-head-right">Revenue</span>
+                <span className="sadash-head-center">Plan</span>
+                <span className="sadash-head-center">Orders</span>
+                <span className="sadash-head-center">Duration</span>
               </div>
               <div className="sadash-restaurant-list">
                 {topRestaurants.map((r) => {
@@ -264,7 +264,7 @@ export default function SuperAdminDashboard() {
                       </span>
                       <div className="sadash-restaurant-stats">
                         <span className="sadash-restaurant-orders">{r.orders} orders</span>
-                        <span className="sadash-restaurant-revenue">{r.revenue}</span>
+                        <span className="sadash-restaurant-duration">{r.subscriptionDays} days</span>
                       </div>
                     </div>
                   );
