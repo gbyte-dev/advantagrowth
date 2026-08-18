@@ -31,7 +31,6 @@ class OrderController extends Controller
 
         $orders = Order::with([
             'items',
-            'customer',
         ])
             ->where('restaurant_id', $user->restaurant_id)
             ->latest()
@@ -117,7 +116,6 @@ public function ownerOrders(Request $request)
 
         $order->load([
             'items',
-            'customer',
             'restaurant',
         ]);
 
@@ -167,7 +165,6 @@ public function ownerOrders(Request $request)
 
         $order->load([
             'items',
-            'customer',
         ]);
 
         return response()->json([

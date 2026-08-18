@@ -9,24 +9,25 @@ use Illuminate\Http\Request;
 
 class ReviewController extends Controller
 {
-    /*
-    |--------------------------------------------------------------------------
-    | OWNER
-    |--------------------------------------------------------------------------
-    */
-
     /**
+     * Owner:
      * Get reviews of logged-in owner's restaurant.
      */
     public function index(Request $request)
     {
-        $restaurantId = $request->user()->restaurant_id;
+        $user = $request->user();
+
+        if (!$user || !$user->restaurant_id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthenticated.',
+            ], 401);
+        }
 
         $reviews = Review::where(
             'restaurant_id',
-            $restaurantId
+            $user->restaurant_id
         )
-            ->with('customer:id,name')
             ->orderBy('id', 'desc')
             ->get();
 
@@ -36,17 +37,26 @@ class ReviewController extends Controller
         ]);
     }
 
-
     /**
-     * Owner: Show / Hide review.
+     * Owner:
+     * Show / Hide review.
      */
     public function toggleVisibility(
         Request $request,
         $id
     ) {
+        $user = $request->user();
+
+        if (!$user || !$user->restaurant_id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthenticated.',
+            ], 401);
+        }
+
         $review = Review::where(
             'restaurant_id',
-            $request->user()->restaurant_id
+            $user->restaurant_id
         )->findOrFail($id);
 
         $review->is_visible = !$review->is_visible;
@@ -59,17 +69,26 @@ class ReviewController extends Controller
         ]);
     }
 
-
     /**
-     * Owner: Delete review.
+     * Owner:
+     * Delete review.
      */
     public function destroy(
         Request $request,
         $id
     ) {
+        $user = $request->user();
+
+        if (!$user || !$user->restaurant_id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthenticated.',
+            ], 401);
+        }
+
         $review = Review::where(
             'restaurant_id',
-            $request->user()->restaurant_id
+            $user->restaurant_id
         )->findOrFail($id);
 
         $review->delete();
@@ -80,76 +99,9 @@ class ReviewController extends Controller
         ]);
     }
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | CUSTOMER
-    |--------------------------------------------------------------------------
-    */
-
     /**
-     * Customer submits a review.
-     */
-    public function store(Request $request)
-    {
-        $request->validate([
-            'restaurant_id' => 'required|integer|exists:restaurants,id',
-            'rating' => 'required|integer|min:1|max:5',
-            'review' => 'nullable|string|max:1000',
-        ]);
-
-        $restaurant = Restaurant::where(
-            'id',
-            $request->restaurant_id
-        )
-            ->where('is_active', true)
-            ->first();
-
-        if (!$restaurant) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Restaurant not found.',
-            ], 404);
-        }
-
-        $existingReview = Review::where(
-            'restaurant_id',
-            $restaurant->id
-        )
-            ->where(
-                'customer_id',
-                $request->user()->id
-            )
-            ->first();
-
-        if ($existingReview) {
-            return response()->json([
-                'success' => false,
-                'message' => 'You have already reviewed this restaurant.',
-            ], 422);
-        }
-
-        $review = Review::create([
-            'restaurant_id' => $restaurant->id,
-            'customer_id' => $request->user()->id,
-            'rating' => $request->rating,
-            'review' => $request->review,
-            'is_visible' => true,
-        ]);
-
-        $review->load('customer:id,name');
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Review submitted successfully.',
-            'review' => $review,
-        ], 201);
-    }
-
-
-    /**
-     * Customer:
-     * Get visible reviews by restaurant slug.
+     * Public:
+     * Get visible reviews for a restaurant.
      */
     public function restaurantReviews($slug)
     {
@@ -172,7 +124,6 @@ class ReviewController extends Controller
             $restaurant->id
         )
             ->where('is_visible', true)
-            ->with('customer:id,name')
             ->orderBy('id', 'desc')
             ->get();
 
@@ -181,5 +132,60 @@ class ReviewController extends Controller
             'restaurant' => $restaurant,
             'reviews' => $reviews,
         ]);
+    }
+
+    /**
+     * Public:
+     * Submit a restaurant review.
+     *
+     * Customer account/login is NOT required.
+     */
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'restaurant_id' => [
+                'required',
+                'integer',
+                'exists:restaurants,id',
+            ],
+            'rating' => [
+                'required',
+                'integer',
+                'min:1',
+                'max:5',
+            ],
+            'review' => [
+                'nullable',
+                'string',
+                'max:1000',
+            ],
+        ]);
+
+        $restaurant = Restaurant::where(
+            'id',
+            $validated['restaurant_id']
+        )
+            ->where('is_active', true)
+            ->first();
+
+        if (!$restaurant) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Restaurant not found.',
+            ], 404);
+        }
+
+        $review = Review::create([
+            'restaurant_id' => $restaurant->id,
+            'rating' => $validated['rating'],
+            'review' => $validated['review'] ?? null,
+            'is_visible' => true,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Review submitted successfully.',
+            'review' => $review,
+        ], 201);
     }
 }

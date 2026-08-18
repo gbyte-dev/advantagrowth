@@ -9,17 +9,14 @@ export default function ConditionalFooter() {
   // Pages where footer should be HIDDEN
   const hideFooterPaths = [
     "/login",
-    "/customer/login",
-    "/staff/login",
+    "/owner/login",
     "/owner/login",
     "/superadmin/login",
     "/register",
-    "/customer/register",
     "/owner/register",
     "/dashboard",
     "/staff/dashboard",
     "/superadmin/dashboard",
-    "/customer/dashboard",
     "/forgot-password",
   ];
 

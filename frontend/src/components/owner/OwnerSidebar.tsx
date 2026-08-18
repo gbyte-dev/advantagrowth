@@ -8,50 +8,22 @@ const menus = [
   {
     name: "Dashboard",
     href: "/dashboard",
-    icon: "fa-tachometer-alt",
+    icon: "fa-home",
   },
   {
-    name: "Basic Info & Branding",
+    name: "Restaurant",
     href: "/dashboard/branding",
-    icon: "fa-store",
+    icon: "fa-building",
   },
   {
-    name: "Menu Management",
-    href: "/dashboard/menu",
-    icon: "fa-utensils",
+    name: "Integrations",
+    href: "/dashboard/integrations",
+    icon: "fa-bolt",
   },
   {
-    name: "Staff Management",
-    href: "/dashboard/staff",
-    icon: "fa-users",
-  },
-  {
-    name: "Ordering & Reservations",
-    href: "/dashboard/ordering",
-    icon: "fa-shopping-cart",
-  },
-  {
-    name: "Rating & Reviews",
-    href: "/dashboard/reviews",
-    icon: "fa-star",
-  },
-  {
-    name: "Messages",
-    href: "/dashboard/contact-messages",
-    icon: "fa-envelope",
-  },
-];
-
-const bottomMenus = [
-  {
-    name: "Settings",
-    href: "/dashboard/settings",
-    icon: "fa-cog",
-  },
-  {
-    name: "Help & Support",
-    href: "/dashboard/support",
-    icon: "fa-question-circle",
+    name: "Recommendations",
+    href: "/dashboard/recommendations",
+    icon: "fa-lightbulb",
   },
 ];
 
@@ -135,7 +107,10 @@ export default function OwnerSidebar() {
       return pathname === "/dashboard";
     }
 
-    return pathname.startsWith(href);
+    return (
+      pathname === href ||
+      pathname.startsWith(`${href}/`)
+    );
   };
 
   return (
@@ -162,10 +137,10 @@ export default function OwnerSidebar() {
             className="sidebar-logo"
             onClick={handleMobileLinkClick}
           >
-            <i className="fas fa-crown sidebar-logo-icon"></i>
+            <i className="fas fa-bolt sidebar-logo-icon"></i>
 
             {!collapsed && (
-              <span>Owner Panel</span>
+              <span>Advanta</span>
             )}
           </Link>
 
@@ -197,12 +172,6 @@ export default function OwnerSidebar() {
         {/* Main Navigation */}
         <nav className="sidebar-nav">
           <div className="sidebar-section">
-            {!collapsed && (
-              <span className="sidebar-section-title">
-                Main Menu
-              </span>
-            )}
-
             {menus.map((menu) => {
               const active = isActive(menu.href);
 
@@ -216,7 +185,9 @@ export default function OwnerSidebar() {
                       : ""
                   }`}
                   title={
-                    collapsed ? menu.name : ""
+                    collapsed
+                      ? menu.name
+                      : ""
                   }
                   onClick={
                     handleMobileLinkClick
@@ -238,59 +209,16 @@ export default function OwnerSidebar() {
             })}
           </div>
 
-          {/* Bottom Navigation */}
+          {/* Logout */}
           <div className="sidebar-section sidebar-section-bottom">
-            {!collapsed && (
-              <span className="sidebar-section-title">
-                Other
-              </span>
-            )}
-
-            {bottomMenus.map((menu) => {
-              const active =
-                pathname === menu.href ||
-                pathname.startsWith(
-                  `${menu.href}/`
-                );
-
-              return (
-                <Link
-                  key={menu.href}
-                  href={menu.href}
-                  className={`sidebar-link ${
-                    active
-                      ? "sidebar-link-active"
-                      : ""
-                  }`}
-                  title={
-                    collapsed ? menu.name : ""
-                  }
-                  onClick={
-                    handleMobileLinkClick
-                  }
-                >
-                  <i
-                    className={`fas ${menu.icon} sidebar-link-icon`}
-                  />
-
-                  {!collapsed && (
-                    <span>{menu.name}</span>
-                  )}
-
-                  {active && !collapsed && (
-                    <span className="sidebar-active-indicator" />
-                  )}
-                </Link>
-              );
-            })}
-
-            {/* Logout */}
             <button
               type="button"
               onClick={handleLogout}
               className="sidebar-link sidebar-logout"
               title={
-                collapsed ? "Logout" : ""
+                collapsed
+                  ? "Logout"
+                  : ""
               }
             >
               <i className="fas fa-sign-out-alt sidebar-link-icon" />

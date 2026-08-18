@@ -17,7 +17,6 @@ export default function Navbar() {
 
       if (
         savedRole === "owner" ||
-        savedRole === "customer" ||
         savedRole === "super_admin" ||
         savedRole === "staff"
       ) {
@@ -90,17 +89,9 @@ export default function Navbar() {
                 <i className="fas fa-home nav-link-icon"></i>
                 Home
               </Link>
-              <Link href="/customer/register" className="nav-link nav-link-register">
-                <i className="fas fa-user-plus nav-link-icon"></i>
-                Register
-              </Link>
-              <Link href="/customer/login" className="nav-link nav-link-login">
-                <i className="fas fa-sign-in-alt nav-link-icon"></i>
-                Login
-              </Link>
               <Link href="/owner/login" className="nav-link nav-link-owner">
                 <i className="fas fa-crown nav-link-icon"></i>
-                Owner Portal
+                Login
               </Link>
             </>
           )}
@@ -185,12 +176,6 @@ export default function Navbar() {
             <>
               <Link href="/" className="mobile-nav-link" onClick={closeMobileMenu}>
                 <i className="fas fa-home"></i> Home
-              </Link>
-              <Link href="/customer/register" className="mobile-nav-link register-link" onClick={closeMobileMenu}>
-                <i className="fas fa-user-plus"></i> Register
-              </Link>
-              <Link href="/customer/login" className="mobile-nav-link login-link" onClick={closeMobileMenu}>
-                <i className="fas fa-sign-in-alt"></i> Login
               </Link>
               <Link href="/owner/login" className="mobile-nav-link owner-link" onClick={closeMobileMenu}>
                 <i className="fas fa-crown"></i> Owner Portal

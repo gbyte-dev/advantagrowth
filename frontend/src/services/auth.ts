@@ -1,26 +1,19 @@
 import axios from "@/lib/axios";
 
-// Owner
+// Owner Registration
 export const ownerRegister = (data: any) => {
   return axios.post("/auth/register", data);
 };
 
-export const ownerLogin = (data: any) => {
+// Unified Owner + Staff Login
+export const login = (data: {
+  login: string;
+  password: string;
+}) => {
   return axios.post("/auth/login", data);
 };
 
-// Customer
-export const customerRegister = (data: any) => {
-  return axios.post("/customer/register", data);
-};
-
-export const customerLogin = (data: any) => {
-  return axios.post("/customer/login", data);
-};
-
+// Super Admin Login
 export const superAdminLogin = (data: any) => {
   return axios.post("/auth/superadmin/login", data);
-};
-export const staffLogin = (data: any) => {
-  return axios.post("/auth/staff/login", data);
 };

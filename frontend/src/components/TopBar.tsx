@@ -24,10 +24,6 @@ export default function TopBar() {
           logoutUrl = "/auth/staff/logout";
         }
 
-        if (role === "customer") {
-          logoutUrl = "/customer/logout";
-        }
-
         await api.post(
           logoutUrl,
           {},
@@ -50,9 +46,7 @@ export default function TopBar() {
 
       // Redirect according to role
       if (role === "staff") {
-        router.replace("/staff/login");
-      } else if (role === "customer") {
-        router.replace("/customer/login");
+        router.replace("/owner/login");
       } else if (role === "superadmin") {
         router.replace("/superadmin/login");
       } else {

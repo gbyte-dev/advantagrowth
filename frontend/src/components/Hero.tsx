@@ -36,12 +36,6 @@ export default function Hero() {
               Start Free
             </Link>
 
-            <Link
-              href="/customer/login"
-              className="rounded-xl border px-8 py-4"
-            >
-              Login
-            </Link>
           </div>
         )}
       </div>

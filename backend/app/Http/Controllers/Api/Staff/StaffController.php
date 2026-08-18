@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\Staff;
 
+use App\Models\Order;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -209,6 +210,47 @@ public function login(Request $request)
         'user' => $staff,
     ]);
 }
+
+/**
+ * Staff Orders
+ */
+public function orders(Request $request)
+{
+    $user = $request->user();
+
+    if (!$user) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Unauthenticated.',
+        ], 401);
+    }
+
+    if (
+        $user->role !== 'staff' ||
+        !$user->restaurant_id
+    ) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Unauthorized.',
+        ], 403);
+    }
+
+    $orders = Order::where(
+        'restaurant_id',
+        $user->restaurant_id
+    )
+        ->with([
+            'items:id,order_id,menu_item_id,item_name,unit_price,quantity,total_price',
+        ])
+        ->latest()
+        ->get();
+
+    return response()->json([
+        'success' => true,
+        'orders' => $orders,
+    ]);
+}
+
     /**
      * Logged-in Staff Profile
      */

@@ -62,35 +62,80 @@ class AuthController extends Controller
     }
 
     public function login(Request $request)
-    {
-        $request->validate([
-            'email'    => 'required|email',
-            'password' => 'required',
-        ]);
+{
+    $request->validate([
+        'login' => 'required|string',
+        'password' => 'required|string',
+    ]);
 
-        $user = User::where('email', $request->email)->first();
+    $login = trim($request->login);
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            return response()->json([
-                'message' => 'Invalid Credentials'
-            ], 401);
-        }
+    /*
+    |--------------------------------------------------------------------------
+    | OWNER + STAFF UNIFIED LOGIN
+    |--------------------------------------------------------------------------
+    | Owner:
+    |   - Email
+    |
+    | Staff:
+    |   - Username / Staff ID
+    |   - Email
+    |
+    | Super Admin is intentionally excluded.
+    */
 
-        if (!$user->is_active) {
-            return response()->json([
-                'message' => 'Account is inactive.'
-            ], 403);
-        }
+    $user = User::whereIn('role', ['owner', 'staff'])
+        ->where(function ($query) use ($login) {
+            $query->where('email', $login)
+                  ->orWhere('username', $login);
+        })
+        ->first();
 
-        $token = $user->createToken('auth_token')->plainTextToken;
-
+    if (!$user) {
         return response()->json([
-            'message' => 'Login Successful',
-            'token'   => $token,
-            'role'    => $user->role,
-            'user'    => $user,
-        ]);
+            'success' => false,
+            'message' => 'Invalid login credentials.',
+        ], 401);
     }
+
+    if (!Hash::check($request->password, $user->password)) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Invalid login credentials.',
+        ], 401);
+    }
+
+    if (!$user->is_active) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Account is inactive.',
+        ], 403);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Remove old tokens
+    |--------------------------------------------------------------------------
+    */
+
+    $user->tokens()->delete();
+
+    /*
+    |--------------------------------------------------------------------------
+    | Create new token
+    |--------------------------------------------------------------------------
+    */
+
+    $token = $user->createToken('auth_token')->plainTextToken;
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Login successful.',
+        'token'   => $token,
+        'role'    => $user->role,
+        'user'    => $user,
+    ]);
+}
 
        public function superAdminLogin(Request $request)
 {

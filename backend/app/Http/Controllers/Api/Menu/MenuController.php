@@ -16,31 +16,7 @@ public function index(Request $request)
 {
     $user = $request->user();
 
-    /*
-     * Owner / Staff:
-     * restaurant_id directly user ke account se milega.
-     *
-     * Customer:
-     * Customer table me abhi restaurant_id null ho sakta hai,
-     * isliye single-restaurant setup me first active restaurant
-     * use kar rahe hain.
-     */
-    if ($user instanceof \App\Models\Customer) {
-
-        $restaurantId = \App\Models\Restaurant::where(
-            'is_active',
-            true
-        )->value('id');
-
-    } else {
-
-        $restaurantId = $user->restaurant_id;
-    }
-
-    /*
-     * Agar restaurant nahi mila
-     */
-    if (!$restaurantId) {
+    if (!$user || !$user->restaurant_id) {
         return response()->json([
             'categories' => [],
         ]);
@@ -48,7 +24,7 @@ public function index(Request $request)
 
     $categories = MenuCategory::where(
         'restaurant_id',
-        $restaurantId
+        $user->restaurant_id
     )
         ->where('is_active', true)
         ->with([
@@ -67,7 +43,6 @@ public function index(Request $request)
         'categories' => $categories,
     ]);
 }
-
 
     /**
      * Create Category.

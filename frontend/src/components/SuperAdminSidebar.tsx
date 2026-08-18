@@ -26,11 +26,6 @@ const menus = [
     icon: "fa-users",
   },
   {
-    name: "Customers",
-    href: "/superadmin/customers",
-    icon: "fa-user-friends",
-  },
-  {
     name: "Subscriptions",
     href: "/superadmin/subscriptions",
     icon: "fa-credit-card",

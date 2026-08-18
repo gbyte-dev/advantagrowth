@@ -184,11 +184,6 @@ const roleMenus: Record<StaffRole, MenuItem[]> = {
       icon: "fa-calendar-alt",
     },
     {
-      name: "Customers",
-      href: "/staff/customers",
-      icon: "fa-users",
-    },
-    {
       name: "Notifications",
       href: "/staff/notifications",
       icon: "fa-bell",
@@ -396,7 +391,7 @@ export default function StaffSidebar() {
       new Event("storage")
     );
 
-    router.replace("/staff/login");
+    router.replace("/owner/login");
   };
 
   const isActive = (href: string) => {

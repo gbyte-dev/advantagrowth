@@ -9,6 +9,7 @@ export default function OwnerRegisterPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
 
   const [form, setForm] = useState({
@@ -17,6 +18,7 @@ export default function OwnerRegisterPage() {
     email: "",
     phone: "",
     password: "",
+    confirm_password: "",
   });
 
   const [errors, setErrors] = useState({
@@ -25,6 +27,7 @@ export default function OwnerRegisterPage() {
     email: "",
     phone: "",
     password: "",
+    confirm_password: "",
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -78,6 +81,13 @@ export default function OwnerRegisterPage() {
         newErrors.password = "Minimum 6 characters required";
         isValid = false;
       }
+      if (!form.confirm_password) {
+        newErrors.confirm_password = "Please confirm your password";
+        isValid = false;
+      } else if (form.password !== form.confirm_password) {
+        newErrors.confirm_password = "Passwords do not match";
+        isValid = false;
+      }
     }
 
     setErrors(newErrors);
@@ -113,56 +123,80 @@ export default function OwnerRegisterPage() {
   };
 
   return (
-    <div className="auth-page">
+    <div className="auth-page owner-register-page">
       <div className="auth-wrapper">
-        {/* Left Side - Branding */}
-        <div className="auth-branding owner-branding">
+
+        {/* =========================================================
+            LEFT SIDE - BRANDING
+        ========================================================= */}
+
+        <div className="auth-branding owner-branding balanced-branding">
           <div className="branding-content">
-            <Link href="/" className="branding-logo">
+
+            <Link href="/" className="branding-logo balanced-logo">
               <i className="fas fa-utensils"></i>
               <span>Advanta Growth</span>
             </Link>
+
             <h1>Grow Your Restaurant Business</h1>
-            <p>Join thousands of restaurant owners who trust Advanta Growth for their business management.</p>
-            
-            <div className="branding-features">
-              <div className="feature-item">
+
+            <p>
+              Join thousands of restaurant owners who trust Advanta Growth 
+              for their business management.
+            </p>
+
+            <div className="branding-features balanced-features">
+
+              <div className="feature-item balanced-feature">
                 <i className="fas fa-check-circle"></i>
                 <span>Complete POS System</span>
               </div>
-              <div className="feature-item">
+
+              <div className="feature-item balanced-feature">
                 <i className="fas fa-check-circle"></i>
                 <span>Inventory Management</span>
               </div>
-              <div className="feature-item">
+
+              <div className="feature-item balanced-feature">
                 <i className="fas fa-check-circle"></i>
                 <span>Staff Management</span>
               </div>
-              <div className="feature-item">
+
+              <div className="feature-item balanced-feature">
                 <i className="fas fa-check-circle"></i>
                 <span>Real-time Analytics</span>
               </div>
-              <div className="feature-item">
-                <i className="fas fa-check-circle"></i>
-                <span>24/7 Support</span>
-              </div>
+
             </div>
           </div>
         </div>
 
-        {/* Right Side - Form */}
-        <div className="auth-form-section">
-          <div className="auth-form-container">
-            <div className="auth-form-header">
-              <div className="form-badge">
+        {/* =========================================================
+            RIGHT SIDE - REGISTRATION FORM
+        ========================================================= */}
+
+        <div className="auth-form-section balanced-form-section">
+          <div className="auth-form-container balanced-form-container">
+
+            {/* Header */}
+
+            <div className="auth-form-header balanced-header">
+
+              <div className="form-badge owner-badge-form balanced-badge">
                 <i className="fas fa-crown"></i>
                 <span>Owner Registration</span>
               </div>
+
               <h2>Set Up Your Account</h2>
-              <p>Step {currentStep} of 2</p>
+
+              <p>
+                Step {currentStep} of 2
+              </p>
+
             </div>
 
             {/* Progress Steps */}
+
             <div className="progress-steps">
               <div className={`step ${currentStep >= 1 ? "step-active" : ""} ${currentStep > 1 ? "step-completed" : ""}`}>
                 <div className="step-number">
@@ -170,22 +204,41 @@ export default function OwnerRegisterPage() {
                 </div>
                 <span className="step-label">Business Info</span>
               </div>
+
               <div className="step-connector">
                 <div className={`connector-line ${currentStep > 1 ? "connector-filled" : ""}`}></div>
               </div>
+
               <div className={`step ${currentStep >= 2 ? "step-active" : ""}`}>
                 <div className="step-number">2</div>
                 <span className="step-label">Account Setup</span>
               </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="auth-form">
-              {/* Step 1: Business Information */}
+            {/* =====================================================
+                REGISTRATION FORM
+            ===================================================== */}
+
+            <form onSubmit={handleSubmit} className="auth-form balanced-form">
+
+              {/* ===================================================
+                  STEP 1: BUSINESS INFORMATION
+              =================================================== */}
+
               <div className={`form-step ${currentStep === 1 ? "step-visible" : "step-hidden"}`}>
-                <div className="form-group">
-                  <label htmlFor="restaurant_name">Restaurant Name</label>
-                  <div className="input-wrapper">
+
+                {/* Restaurant Name */}
+
+                <div className="form-group balanced-group">
+
+                  <label htmlFor="restaurant_name">
+                    Restaurant Name
+                  </label>
+
+                  <div className="input-wrapper balanced-input-wrapper">
+
                     <i className="fas fa-store input-icon"></i>
+
                     <input
                       id="restaurant_name"
                       type="text"
@@ -193,16 +246,36 @@ export default function OwnerRegisterPage() {
                       placeholder="Enter your restaurant name"
                       value={form.restaurant_name}
                       onChange={handleChange}
-                      className={errors.restaurant_name ? "input-error" : ""}
+                      className={
+                        errors.restaurant_name
+                          ? "input-error"
+                          : ""
+                      }
                     />
+
                   </div>
-                  {errors.restaurant_name && <span className="error-message">{errors.restaurant_name}</span>}
+
+                  {errors.restaurant_name && (
+                    <span className="error-message balanced-error">
+                      <i className="fas fa-exclamation-circle"></i>{" "}
+                      {errors.restaurant_name}
+                    </span>
+                  )}
+
                 </div>
 
-                <div className="form-group">
-                  <label htmlFor="owner_name">Owner Name</label>
-                  <div className="input-wrapper">
+                {/* Owner Name */}
+
+                <div className="form-group balanced-group">
+
+                  <label htmlFor="owner_name">
+                    Owner Name
+                  </label>
+
+                  <div className="input-wrapper balanced-input-wrapper">
+
                     <i className="fas fa-user-tie input-icon"></i>
+
                     <input
                       id="owner_name"
                       type="text"
@@ -210,24 +283,53 @@ export default function OwnerRegisterPage() {
                       placeholder="Enter your full name"
                       value={form.owner_name}
                       onChange={handleChange}
-                      className={errors.owner_name ? "input-error" : ""}
+                      className={
+                        errors.owner_name
+                          ? "input-error"
+                          : ""
+                      }
                     />
+
                   </div>
-                  {errors.owner_name && <span className="error-message">{errors.owner_name}</span>}
+
+                  {errors.owner_name && (
+                    <span className="error-message balanced-error">
+                      <i className="fas fa-exclamation-circle"></i>{" "}
+                      {errors.owner_name}
+                    </span>
+                  )}
+
                 </div>
 
-                <button type="button" className="submit-btn" onClick={nextStep}>
+                <button
+                  type="button"
+                  className="submit-btn balanced-submit"
+                  onClick={nextStep}
+                >
                   Continue
                   <i className="fas fa-arrow-right"></i>
                 </button>
+
               </div>
 
-              {/* Step 2: Account Details */}
+              {/* ===================================================
+                  STEP 2: ACCOUNT SETUP
+              =================================================== */}
+
               <div className={`form-step ${currentStep === 2 ? "step-visible" : "step-hidden"}`}>
-                <div className="form-group">
-                  <label htmlFor="email">Email Address</label>
-                  <div className="input-wrapper">
+
+                {/* Email */}
+
+                <div className="form-group balanced-group">
+
+                  <label htmlFor="email">
+                    Email Address
+                  </label>
+
+                  <div className="input-wrapper balanced-input-wrapper">
+
                     <i className="fas fa-envelope input-icon"></i>
+
                     <input
                       id="email"
                       type="email"
@@ -235,16 +337,36 @@ export default function OwnerRegisterPage() {
                       placeholder="Enter your email"
                       value={form.email}
                       onChange={handleChange}
-                      className={errors.email ? "input-error" : ""}
+                      className={
+                        errors.email
+                          ? "input-error"
+                          : ""
+                      }
                     />
+
                   </div>
-                  {errors.email && <span className="error-message">{errors.email}</span>}
+
+                  {errors.email && (
+                    <span className="error-message balanced-error">
+                      <i className="fas fa-exclamation-circle"></i>{" "}
+                      {errors.email}
+                    </span>
+                  )}
+
                 </div>
 
-                <div className="form-group">
-                  <label htmlFor="phone">Phone Number</label>
-                  <div className="input-wrapper">
+                {/* Phone */}
+
+                <div className="form-group balanced-group">
+
+                  <label htmlFor="phone">
+                    Phone Number
+                  </label>
+
+                  <div className="input-wrapper balanced-input-wrapper">
+
                     <i className="fas fa-phone input-icon"></i>
+
                     <input
                       id="phone"
                       type="tel"
@@ -252,42 +374,171 @@ export default function OwnerRegisterPage() {
                       placeholder="Enter 10-digit number"
                       value={form.phone}
                       onChange={handleChange}
-                      className={errors.phone ? "input-error" : ""}
+                      className={
+                        errors.phone
+                          ? "input-error"
+                          : ""
+                      }
                     />
+
                   </div>
-                  {errors.phone && <span className="error-message">{errors.phone}</span>}
+
+                  {errors.phone && (
+                    <span className="error-message balanced-error">
+                      <i className="fas fa-exclamation-circle"></i>{" "}
+                      {errors.phone}
+                    </span>
+                  )}
+
                 </div>
 
-                <div className="form-group">
-                  <label htmlFor="password">Password</label>
-                  <div className="input-wrapper">
+                {/* Password */}
+
+                <div className="form-group balanced-group">
+
+                  <label htmlFor="password">
+                    Password
+                  </label>
+
+                  <div className="input-wrapper balanced-input-wrapper">
+
                     <i className="fas fa-lock input-icon"></i>
+
                     <input
                       id="password"
-                      type={showPassword ? "text" : "password"}
+                      type={
+                        showPassword
+                          ? "text"
+                          : "password"
+                      }
                       name="password"
                       placeholder="Create a strong password"
                       value={form.password}
                       onChange={handleChange}
-                      className={errors.password ? "input-error" : ""}
+                      className={
+                        errors.password
+                          ? "input-error"
+                          : ""
+                      }
                     />
+
                     <button
                       type="button"
                       className="password-toggle"
-                      onClick={() => setShowPassword(!showPassword)}
+                      onClick={() =>
+                        setShowPassword(
+                          !showPassword
+                        )
+                      }
+                      aria-label={
+                        showPassword
+                          ? "Hide password"
+                          : "Show password"
+                      }
                     >
-                      <i className={`fas ${showPassword ? "fa-eye-slash" : "fa-eye"}`}></i>
+                      <i
+                        className={`fas ${
+                          showPassword
+                            ? "fa-eye-slash"
+                            : "fa-eye"
+                        }`}
+                      ></i>
                     </button>
+
                   </div>
-                  {errors.password && <span className="error-message">{errors.password}</span>}
+
+                  {errors.password && (
+                    <span className="error-message balanced-error">
+                      <i className="fas fa-exclamation-circle"></i>{" "}
+                      {errors.password}
+                    </span>
+                  )}
+
                 </div>
 
+                {/* Confirm Password */}
+
+                <div className="form-group balanced-group">
+
+                  <label htmlFor="confirm_password">
+                    Confirm Password
+                  </label>
+
+                  <div className="input-wrapper balanced-input-wrapper">
+
+                    <i className="fas fa-shield-alt input-icon"></i>
+
+                    <input
+                      id="confirm_password"
+                      type={
+                        showConfirmPassword
+                          ? "text"
+                          : "password"
+                      }
+                      name="confirm_password"
+                      placeholder="Confirm your password"
+                      value={form.confirm_password}
+                      onChange={handleChange}
+                      className={
+                        errors.confirm_password
+                          ? "input-error"
+                          : ""
+                      }
+                    />
+
+                    <button
+                      type="button"
+                      className="password-toggle"
+                      onClick={() =>
+                        setShowConfirmPassword(
+                          !showConfirmPassword
+                        )
+                      }
+                      aria-label={
+                        showConfirmPassword
+                          ? "Hide password"
+                          : "Show password"
+                      }
+                    >
+                      <i
+                        className={`fas ${
+                          showConfirmPassword
+                            ? "fa-eye-slash"
+                            : "fa-eye"
+                        }`}
+                      ></i>
+                    </button>
+
+                  </div>
+
+                  {errors.confirm_password && (
+                    <span className="error-message balanced-error">
+                      <i className="fas fa-exclamation-circle"></i>{" "}
+                      {errors.confirm_password}
+                    </span>
+                  )}
+
+                </div>
+
+                {/* Step 2 Buttons */}
+
                 <div className="form-step-buttons">
-                  <button type="button" className="back-btn" onClick={prevStep}>
+
+                  <button
+                    type="button"
+                    className="back-btn balanced-back-btn"
+                    onClick={prevStep}
+                  >
                     <i className="fas fa-arrow-left"></i>
                     Back
                   </button>
-                  <button type="submit" className="submit-btn" disabled={loading}>
+
+                  <button
+                    type="submit"
+                    className="submit-btn balanced-submit"
+                    disabled={loading}
+                  >
+
                     {loading ? (
                       <>
                         <i className="fas fa-spinner fa-spin"></i>
@@ -299,38 +550,36 @@ export default function OwnerRegisterPage() {
                         Create Account
                       </>
                     )}
+
                   </button>
+
                 </div>
+
               </div>
+
             </form>
 
             {/* Divider */}
-            <div className="auth-divider">
+
+            <div className="auth-divider balanced-divider">
               <span>OR</span>
             </div>
 
-            {/* Customer Section */}
-            <div className="owner-section customer-section">
-              <div className="owner-section-header">
-                <i className="fas fa-user"></i>
-                <div>
-                  <h3>Looking to Dine?</h3>
-                  <p>Create a customer account for reservations & orders</p>
-                </div>
-              </div>
-              <Link href="/register" className="owner-register-btn customer-register-btn">
-                <i className="fas fa-user-plus"></i>
-                Register as Customer
-              </Link>
-            </div>
-
             {/* Login Link */}
-            <p className="auth-switch">
+
+            <p className="auth-switch balanced-switch">
+
               Already have an account?{" "}
-              <Link href="/owner/login">Sign In</Link>
+
+              <Link href="/owner/login">
+                Sign In
+              </Link>
+
             </p>
+
           </div>
         </div>
+
       </div>
     </div>
   );

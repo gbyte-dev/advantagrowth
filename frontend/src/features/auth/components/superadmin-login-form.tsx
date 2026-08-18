@@ -201,32 +201,6 @@ export default function SuperAdminLoginPage() {
               </button>
             </form>
 
-            {/* Divider */}
-            <div className="auth-divider">
-              <span>OR</span>
-            </div>
-
-            {/* Owner Section */}
-            <div className="owner-section owner-switch-section">
-              <div className="owner-section-header">
-                <i className="fas fa-crown"></i>
-                <div>
-                  <h3>Restaurant Owner?</h3>
-                  <p>Access your restaurant management dashboard</p>
-                </div>
-              </div>
-              <Link href="/owner/login" className="owner-register-btn owner-switch-btn">
-                <i className="fas fa-crown"></i>
-                Owner Login
-              </Link>
-            </div>
-
-            {/* Back to Home */}
-            <p className="auth-switch">
-              <Link href="/">
-                <i className="fas fa-arrow-left"></i> Back to Home
-              </Link>
-            </p>
           </div>
         </div>
       </div>

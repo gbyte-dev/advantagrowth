@@ -3,7 +3,6 @@
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Api\Auth\AuthController;
-use App\Http\Controllers\Api\Auth\CustomerAuthController;
 use App\Http\Controllers\Api\Staff\StaffController;
 use App\Http\Controllers\Api\Menu\MenuController;
 use App\Http\Controllers\Api\Restaurant\RestaurantController;
@@ -14,7 +13,6 @@ use App\Http\Controllers\Api\Owner\RestaurantStoryController;
 use App\Http\Controllers\Api\Owner\RestaurantAboutController;
 use App\Http\Controllers\Api\Restaurant\MarqueeController;
 use App\Http\Controllers\Api\Restaurant\OwnerHeroController;
-use App\Http\Controllers\Api\Customer\OrderController;
 use App\Http\Controllers\Api\Owner\OrderController as OwnerOrderController;
 /*
 |--------------------------------------------------------------------------
@@ -246,53 +244,6 @@ Route::middleware('auth:sanctum')
     });
 
 
-/*
-|--------------------------------------------------------------------------
-| CUSTOMER AUTH ROUTES
-|--------------------------------------------------------------------------
-*/
-
-Route::prefix('customer')->group(function () {
-
-    // Customer Register
-    Route::post('/register', [
-        CustomerAuthController::class,
-        'register'
-    ]);
-
-    // Customer Login
-    Route::post('/login', [
-        CustomerAuthController::class,
-        'login'
-    ]);
-
-    /*
-    |--------------------------------------------------------------------------
-    | CUSTOMER AUTHENTICATED ROUTES
-    |--------------------------------------------------------------------------
-    */
-
-    Route::middleware('auth:sanctum')->group(function () {
-
-        // Customer Logout
-        Route::post('/logout', [
-            CustomerAuthController::class,
-            'logout'
-        ]);
-
-        // Customer Profile
-        Route::get('/me', [
-            CustomerAuthController::class,
-            'me'
-        ]);
-
-        // Customer Submit Review
-        Route::post('/reviews', [
-            ReviewController::class,
-            'store'
-        ]);
-    });
-});
 
 
 /*
@@ -329,6 +280,12 @@ Route::get('/restaurants/{slug}/marquee', [
 Route::get('/restaurants/{slug}/reviews', [
     ReviewController::class,
     'restaurantReviews'
+]);
+
+// Public customer review submission
+Route::post('/restaurants/reviews', [
+    ReviewController::class,
+    'store'
 ]);
 
 // Restaurant staff
@@ -469,24 +426,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
 
-Route::post('/orders', [OrderController::class, 'store']);
-
-Route::get('/orders/{order}', [OrderController::class, 'show']);
-Route::post('/orders/{order}/payment', [
-    \App\Http\Controllers\Api\Customer\OrderController::class,
-    'createPayment',
-]);
-
-Route::post('/orders/{order}/payment/verify', [
-    \App\Http\Controllers\Api\Customer\OrderController::class,
-    'verifyPayment',
-]);
-
-
 
 Route::middleware('auth:sanctum')->prefix('owner')->group(function () {
     Route::get('/orders', [OwnerOrderController::class, 'index']);
     Route::get('/orders/{order}', [OwnerOrderController::class, 'show']);
     Route::patch('/orders/{order}/status', [OwnerOrderController::class, 'updateStatus']);
-    Route::get('/owner/orders', [OrderController::class, 'ownerOrders']);
 });

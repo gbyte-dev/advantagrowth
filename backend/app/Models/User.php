@@ -12,9 +12,6 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     */
     protected $fillable = [
         'restaurant_id',
         'owner_name',
@@ -28,17 +25,11 @@ class User extends Authenticatable
         'is_active',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * The attributes that should be cast.
-     */
     protected function casts(): array
     {
         return [
@@ -46,17 +37,11 @@ class User extends Authenticatable
         ];
     }
 
-    /**
-     * Restaurant Relationship
-     */
     public function restaurant()
     {
         return $this->belongsTo(Restaurant::class);
     }
 
-    /**
-     * Role Helpers
-     */
     public function isSuperAdmin(): bool
     {
         return $this->role === UserRole::SUPER_ADMIN->value;
@@ -70,10 +55,5 @@ class User extends Authenticatable
     public function isStaff(): bool
     {
         return $this->role === UserRole::STAFF->value;
-    }
-
-    public function isCustomer(): bool
-    {
-        return $this->role === UserRole::CUSTOMER->value;
     }
 }
