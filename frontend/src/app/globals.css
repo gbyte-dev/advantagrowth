@@ -6334,6 +6334,13 @@ button:disabled {
     transform: translateX(0);
   }
 
+  /* Keep the sidebar's own header toggle visible on mobile so the open drawer
+     can be closed from inside it — a shared rule elsewhere hides .sidebar-toggle
+     at this breakpoint for the owner sidebar's tap-outside-to-close pattern. */
+  .superadmin-sidebar .sidebar-toggle {
+    display: flex;
+  }
+
   .superadmin-main-content,
   .superadmin-main-content.sidebar-expanded-main,
   .superadmin-main-content.sidebar-collapsed-main {
@@ -6764,6 +6771,8 @@ button:disabled {
 }
 
 .sadash-restaurant-plan {
+  display: inline-block;
+  justify-self: center;
   flex-shrink: 0;
   font-family: 'Inter', sans-serif;
   font-size: 0.625rem;
@@ -6795,21 +6804,24 @@ button:disabled {
   color: #64748b;
 }
 
-.sadash-restaurant-revenue {
+.sadash-restaurant-duration {
   font-family: 'Inter', sans-serif;
   font-size: 0.875rem;
   font-weight: 700;
   color: #1e293b;
 }
 
-/* From tablet width up, lay the list out as an aligned table so the
-   restaurant/plan/orders/revenue columns don't leave a dead gap in the middle */
+/* From tablet width up, lay the list out as a table that spans the full panel width,
+   with Restaurant / Plan / Orders / Duration sharing the row equally */
 @media (min-width: 641px) {
+  .sadash-restaurant-head,
+  .sadash-restaurant-row {
+    grid-template-columns: 28px repeat(4, 1fr);
+    column-gap: 1.5rem;
+  }
+
   .sadash-restaurant-head {
     display: grid;
-    grid-template-columns: 26px minmax(0, 320px) 96px 90px 120px;
-    max-width: 720px;
-    gap: 0.875rem;
     padding: 0 0.5rem 0.625rem;
     border-bottom: 1px solid #f1f5f9;
     margin-bottom: 0.25rem;
@@ -6824,14 +6836,12 @@ button:disabled {
     color: #94a3b8;
   }
 
-  .sadash-restaurant-head .sadash-head-right {
-    text-align: right;
+  .sadash-restaurant-head .sadash-head-center {
+    text-align: center;
   }
 
   .sadash-restaurant-row {
     display: grid;
-    grid-template-columns: 26px minmax(0, 320px) 96px 90px 120px;
-    max-width: 720px;
     align-items: center;
   }
 
@@ -6840,8 +6850,8 @@ button:disabled {
   }
 
   .sadash-restaurant-orders,
-  .sadash-restaurant-revenue {
-    text-align: right;
+  .sadash-restaurant-duration {
+    text-align: center;
   }
 }
 
