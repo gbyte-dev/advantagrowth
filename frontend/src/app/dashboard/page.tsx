@@ -1,540 +1,303 @@
 "use client";
 
-import Link from "next/link";
+import { useState } from "react";
 
 // =========================================================
-// DASHBOARD STATS
+// REVENUE TREND DATA
 // =========================================================
 
-const statsData = [
-  {
-    title: "Total Sales",
-    value: "2,478",
-    change: "+16.5%",
-    changeType: "positive",
-    vsChange: "-1.6%",
-    vsType: "negative",
-    icon: "fa-chart-line",
-    color: "#6c5ce7",
-  },
-  {
-    title: "Orders",
-    value: "368",
-    change: "+12.7%",
-    changeType: "positive",
-    vsChange: "+0.9%",
-    vsType: "positive",
-    icon: "fa-shopping-bag",
-    color: "#00b894",
-  },
-  {
-    title: "Revenue",
-    value: "€6,842",
-    change: "+12.3%",
-    changeType: "positive",
-    vsChange: "+1.8%",
-    vsType: "positive",
-    icon: "fa-euro-sign",
-    color: "#0984e3",
-  },
-  {
-    title: "Avg Order Value",
-    value: "€18.59",
-    change: "+1.2%",
-    changeType: "positive",
-    vsChange: "-1.4%",
-    vsType: "negative",
-    icon: "fa-receipt",
-    color: "#fdcb6e",
-  },
+const revenueTrendData = {
+  day: [
+    { date: "Today", revenue: 311.41 },
+    { date: "Yesterday", revenue: 730.40 },
+    { date: "2 days ago", revenue: 1156.76 },
+    { date: "3 days ago", revenue: 1157.64 },
+  ],
+  week: [
+    { date: "Mon", revenue: 2450.50 },
+    { date: "Tue", revenue: 1890.30 },
+    { date: "Wed", revenue: 2150.80 },
+    { date: "Thu", revenue: 2350.20 },
+    { date: "Fri", revenue: 3120.60 },
+    { date: "Sat", revenue: 2890.40 },
+    { date: "Sun", revenue: 2150.90 },
+  ],
+  month: [
+    { date: "Week 1", revenue: 8750.20 },
+    { date: "Week 2", revenue: 9210.50 },
+    { date: "Week 3", revenue: 10340.80 },
+    { date: "Week 4", revenue: 11250.30 },
+  ],
+};
+
+// =========================================================
+// TOP PRODUCTS DATA
+// =========================================================
+
+const topProducts = [
+  { name: "Grilled Salmon", revenue: 906.50 },
+  { name: "Pasta Carbonara", revenue: 490.10 },
+  { name: "Caesar Wrap", revenue: 347.50 },
+  { name: "Caesar Salad", revenue: 337.50 },
+  { name: "Beef Burger", revenue: 321.30 },
 ];
 
 // =========================================================
-// TOP ITEMS
+// AI RECOMMENDATIONS DATA
 // =========================================================
 
-const topItems = [
+const recommendations = [
   {
-    name: "Tofu Pasta",
-    price: "€15",
-    orders: 245,
-    revenue: "€3,675",
-  },
-  {
-    name: "Chicken Tikka Masala",
-    price: "€14",
-    orders: 210,
-    revenue: "€2,940",
-  },
-  {
-    name: "Chicken Biryani",
-    price: "€13",
-    orders: 189,
-    revenue: "€2,457",
-  },
-  {
-    name: "Chicken Korma",
-    price: "€12",
-    orders: 167,
-    revenue: "€2,004",
-  },
-  {
-    name: "Chicken Tikka",
-    price: "€11",
-    orders: 145,
-    revenue: "€1,595",
-  },
-];
-
-// =========================================================
-// TRAFFIC DATA
-// =========================================================
-
-const trafficData = [
-  { month: "Jan", value: 1200 },
-  { month: "Feb", value: 1400 },
-  { month: "Mar", value: 1800 },
-  { month: "Apr", value: 2200 },
-  { month: "May", value: 2100 },
-  { month: "Jun", value: 2500 },
-  { month: "Jul", value: 2800 },
-  { month: "Aug", value: 3000 },
-  { month: "Sep", value: 3200 },
-  { month: "Oct", value: 2800 },
-  { month: "Nov", value: 3400 },
-  { month: "Dec", value: 3800 },
-];
-
-const maxTraffic = Math.max(
-  ...trafficData.map((item) => item.value)
-);
-
-// =========================================================
-// TRAFFIC SOURCES
-// =========================================================
-
-const trafficSources = [
-  {
-    name: "Google Ads",
-    value: 45,
-    color: "#6c5ce7",
-  },
-  {
-    name: "Facebook Ads",
-    value: 28,
-    color: "#0984e3",
-  },
-  {
-    name: "Instagram Ads",
-    value: 18,
-    color: "#e17055",
-  },
-  {
-    name: "YouTube Ads",
-    value: 9,
-    color: "#00b894",
-  },
-];
-
-// =========================================================
-// QUICK ACTIONS
-// =========================================================
-
-const dashboardCards = [
-  {
-    title: "Restaurant",
+    title: "Uneven weekly demand pattern",
+    confidence: "medium",
     description:
-      "Manage restaurant business and operational information.",
-    icon: "fa-building",
-    href: "/dashboard/restaurant",
-    color: "blue",
+      "Orders vary significantly by day of week, with Friday being the busiest and Tuesday the slowest.",
+    action:
+      "Consider offering special promotions on slow days to smooth demand and improve staff utilization.",
+    impact:
+      "Balancing demand across the week can increase overall revenue and efficiency.",
   },
   {
-    title: "Integrations",
+    title: "Top performer: Grilled Salmon",
+    confidence: "high",
     description:
-      "Manage connected restaurant services and integrations.",
-    icon: "fa-bolt",
-    href: "/dashboard/integrations",
-    color: "purple",
+      "Grilled Salmon is your top-selling item with 38 units sold, generating €931 in revenue.",
+    action:
+      "Consider featuring this item more prominently, creating combo deals, or ensuring consistent availability.",
+    impact:
+      "Leveraging your best-seller can increase average order value and customer satisfaction.",
   },
   {
-    title: "Recommendations",
+    title: "Uneven weekly demand pattern",
+    confidence: "medium",
     description:
-      "View smart recommendations for your restaurant.",
-    icon: "fa-lightbulb",
-    href: "/dashboard/recommendations",
-    color: "yellow",
+      "Orders vary significantly by day of week, with Friday being the busiest and Tuesday the slowest.",
+    action:
+      "Consider offering special promotions on slow days to smooth demand and improve staff utilization.",
+    impact:
+      "Balancing demand across the week can increase overall revenue and efficiency.",
+  },
+  {
+    title: "Top performer: Grilled Salmon",
+    confidence: "high",
+    description:
+      "Grilled Salmon is your top-selling item with 38 units sold, generating €931 in revenue.",
+    action:
+      "Consider featuring this item more prominently, creating combo deals, or ensuring consistent availability.",
+    impact:
+      "Leveraging your best-seller can increase average order value and customer satisfaction.",
+  },
+  {
+    title: "Uneven weekly demand pattern",
+    confidence: "medium",
+    description:
+      "Orders vary significantly by day of week, with Friday being the busiest and Tuesday the slowest.",
+    action:
+      "Consider offering special promotions on slow days to smooth demand and improve staff utilization.",
+    impact:
+      "Balancing demand across the week can increase overall revenue and efficiency.",
+  },
+  {
+    title: "Top performer: Grilled Salmon",
+    confidence: "high",
+    description:
+      "Grilled Salmon is your top-selling item with 38 units sold, generating €931 in revenue.",
+    action:
+      "Consider featuring this item more prominently, creating combo deals, or ensuring consistent availability.",
+    impact:
+      "Leveraging your best-seller can increase average order value and customer satisfaction.",
   },
 ];
+
+// =========================================================
+// STATS DATA BY PERIOD
+// =========================================================
+
+const statsData = {
+  day: {
+    revenue: 4696.34,
+    revenueChange: 6.7,
+    orders: 103,
+    avgOrderValue: 45.60,
+    avgOrderChange: 9.6,
+  },
+  week: {
+    revenue: 32750.80,
+    revenueChange: 12.3,
+    orders: 720,
+    avgOrderValue: 45.49,
+    avgOrderChange: 8.2,
+  },
+  month: {
+    revenue: 142850.60,
+    revenueChange: 18.5,
+    orders: 3140,
+    avgOrderValue: 45.49,
+    avgOrderChange: 10.1,
+  },
+};
 
 // =========================================================
 // DASHBOARD PAGE
 // =========================================================
 
 export default function DashboardPage() {
-  const today = new Date().toLocaleDateString(
-    "en-US",
-    {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    }
-  );
+  const [activeTab, setActiveTab] = useState<"day" | "week" | "month">("day");
+
+  const currentStats = statsData[activeTab];
+  const currentRevenueData = revenueTrendData[activeTab];
 
   return (
     <div className="dashboard-page">
       <div className="dashboard-container">
-
         {/* =====================================================
-            WELCOME
+            HEADER
         ===================================================== */}
 
-        <div className="dashboard-welcome">
-          <div className="welcome-content">
+        <div className="dashboard-header">
+          <div>
+            <h1 className="dashboard-title">Dashboard</h1>
+            <p className="dashboard-subtitle">
+              Welcome back! Here's how your restaurant is performing.
+            </p>
+          </div>
 
-            <div className="welcome-left">
-              <div className="page-badge">
-                <i className="fas fa-tachometer-alt"></i>
-                <span>Dashboard</span>
-              </div>
-
-              <h1>Good Morning, Owner!</h1>
-
-              <p>
-                Here's what's happening with your
-                restaurant today.
-              </p>
-            </div>
-
-            <div className="welcome-right">
-              <span className="welcome-date">
-                <i className="far fa-calendar-alt"></i>
-                {today}
-              </span>
-            </div>
-
+          <div className="dashboard-tabs">
+            <span
+              className={`tab ${activeTab === "day" ? "active" : ""}`}
+              onClick={() => setActiveTab("day")}
+            >
+              Day
+            </span>
+            <span
+              className={`tab ${activeTab === "week" ? "active" : ""}`}
+              onClick={() => setActiveTab("week")}
+            >
+              Week
+            </span>
+            <span
+              className={`tab ${activeTab === "month" ? "active" : ""}`}
+              onClick={() => setActiveTab("month")}
+            >
+              Month
+            </span>
           </div>
         </div>
 
         {/* =====================================================
-            STATS
+            STATS CARDS
         ===================================================== */}
 
         <div className="stats-grid">
+          <div className="stat-card">
+            <div className="stat-label">Revenue</div>
+            <div className="stat-value">
+              €{currentStats.revenue.toFixed(2)}
+            </div>
+            <div className={`stat-change ${currentStats.revenueChange >= 0 ? "positive" : "negative"}`}>
+              {currentStats.revenueChange >= 0 ? "↑" : "↓"} {Math.abs(currentStats.revenueChange)}%
+            </div>
+          </div>
 
-          {statsData.map((stat) => (
-            <div
-              key={stat.title}
-              className="stat-card"
-            >
-              <div className="stat-card-header">
+          <div className="stat-card">
+            <div className="stat-label">Orders</div>
+            <div className="stat-value">{currentStats.orders}</div>
+          </div>
 
-                <span className="stat-title">
-                  {stat.title}
-                </span>
+          <div className="stat-card">
+            <div className="stat-label">Avg. Order Value</div>
+            <div className="stat-value">
+              €{currentStats.avgOrderValue.toFixed(2)}
+            </div>
+            <div className={`stat-change ${currentStats.avgOrderChange >= 0 ? "positive" : "negative"}`}>
+              {currentStats.avgOrderChange >= 0 ? "↑" : "↓"} {Math.abs(currentStats.avgOrderChange)}%
+            </div>
+          </div>
+        </div>
 
-                <div
-                  className="stat-icon"
-                  style={{
-                    background: `${stat.color}15`,
-                  }}
-                >
-                  <i
-                    className={`fas ${stat.icon}`}
-                    style={{
-                      color: stat.color,
-                    }}
-                  ></i>
+        {/* =====================================================
+            REVENUE TREND & TOP PRODUCTS
+        ===================================================== */}
+
+        <div className="dashboard-row">
+          {/* Revenue Trend */}
+          <div className="dashboard-col">
+            <div className="card">
+              <h3 className="card-title">Revenue Trend</h3>
+
+              <div className="revenue-table">
+                <div className="revenue-table-header">
+                  <span>Date</span>
+                  <span>Revenue</span>
                 </div>
 
+                {currentRevenueData.map((item) => (
+                  <div className="revenue-table-row" key={item.date}>
+                    <span>{item.date}</span>
+                    <span>€{item.revenue.toFixed(2)}</span>
+                  </div>
+                ))}
               </div>
+            </div>
+          </div>
 
-              <div className="stat-value">
-                {stat.value}
+          {/* Top Products */}
+          <div className="dashboard-col">
+            <div className="card">
+              <h3 className="card-title">Top Products</h3>
+
+              <div className="top-products-table">
+                <div className="top-products-header">
+                  <span>Product</span>
+                  <span>Revenue</span>
+                </div>
+
+                {topProducts.map((product) => (
+                  <div className="top-products-row" key={product.name}>
+                    <span>{product.name}</span>
+                    <span>€{product.revenue.toFixed(2)}</span>
+                  </div>
+                ))}
               </div>
+            </div>
+          </div>
+        </div>
 
-              <div className="stat-changes">
+        {/* =====================================================
+            AI RECOMMENDATIONS - FULL WIDTH
+        ===================================================== */}
 
-                <span
-                  className={`stat-change ${stat.changeType}`}
-                >
-                  <i
-                    className={`fas ${
-                      stat.changeType === "positive"
-                        ? "fa-arrow-up"
-                        : "fa-arrow-down"
-                    }`}
-                  ></i>
+        <div className="ai-recommendations-section">
+          <div className="ai-recommendations-header">
+            <h2 className="section-title">AI Recommendations</h2>
+            <span className="ai-badge">AI Powered</span>
+          </div>
 
-                  {stat.change}
-                </span>
-
-                <span className="stat-vs">
-                  vs YoY{" "}
-
-                  <span
-                    className={stat.vsType}
-                  >
-                    {stat.vsChange}
+          <div className="recommendations-grid-full">
+            {recommendations.map((rec, index) => (
+              <div className="recommendation-card-full" key={index}>
+                <div className="recommendation-header">
+                  <h4 className="recommendation-title">{rec.title}</h4>
+                  <span className={`confidence-badge ${rec.confidence}`}>
+                    {rec.confidence} confidence
                   </span>
-                </span>
-
-              </div>
-            </div>
-          ))}
-
-        </div>
-
-        {/* =====================================================
-            TRAFFIC + TOP ITEMS
-        ===================================================== */}
-
-        <div className="dashboard-row">
-
-          {/* TRAFFIC */}
-
-          <div className="dashboard-col">
-
-            <div className="dashboard-card">
-
-              <div className="card-header">
-                <h3>
-                  <i className="fas fa-chart-area"></i>
-                  Traffic Over Time
-                </h3>
-
-                <span className="card-badge">
-                  Last 12 Months
-                </span>
-              </div>
-
-              <div className="chart-container">
-
-                <div className="chart-bars">
-
-                  {trafficData.map((item) => {
-                    const height =
-                      (item.value / maxTraffic) * 100;
-
-                    return (
-                      <div
-                        key={item.month}
-                        className="chart-bar-wrapper"
-                      >
-                        <div
-                          className="chart-bar"
-                          style={{
-                            height: `${height}%`,
-                          }}
-                        >
-                          <span className="chart-bar-tooltip">
-                            {item.value}
-                          </span>
-                        </div>
-
-                        <span className="chart-label">
-                          {item.month}
-                        </span>
-                      </div>
-                    );
-                  })}
-
                 </div>
 
-              </div>
-            </div>
+                <p className="recommendation-description">
+                  {rec.description}
+                </p>
 
-          </div>
-
-          {/* TOP ITEMS */}
-
-          <div className="dashboard-col">
-
-            <div className="dashboard-card">
-
-              <div className="card-header">
-                <h3>
-                  <i className="fas fa-fire"></i>
-                  Top 5 Items
-                </h3>
-
-                <span className="card-badge">
-                  Popular
-                </span>
-              </div>
-
-              <div className="top-items-list">
-
-                {topItems.map((item, index) => (
-                  <div
-                    className="top-item"
-                    key={item.name}
-                  >
-
-                    <div className="top-item-rank">
-                      #{index + 1}
-                    </div>
-
-                    <div className="top-item-info">
-
-                      <span className="top-item-name">
-                        {item.name}
-                      </span>
-
-                      <div className="top-item-meta">
-                        <span className="top-item-price">
-                          {item.price}
-                        </span>
-
-                        <span className="top-item-orders">
-                          {item.orders} orders
-                        </span>
-                      </div>
-
-                    </div>
-
-                    <span className="top-item-revenue">
-                      {item.revenue}
-                    </span>
-
-                  </div>
-                ))}
-
-              </div>
-            </div>
-
-          </div>
-
-        </div>
-
-        {/* =====================================================
-            TRAFFIC SOURCES
-        ===================================================== */}
-
-        <div className="dashboard-row">
-
-          <div className="dashboard-col full-width">
-
-            <div className="dashboard-card">
-
-              <div className="card-header">
-                <h3>
-                  <i className="fas fa-chart-pie"></i>
-                  Traffic Sources
-                </h3>
-
-                <span className="card-badge">
-                  Current
-                </span>
-              </div>
-
-              <div className="sources-container">
-
-                {trafficSources.map((source) => (
-                  <div
-                    className="source-item"
-                    key={source.name}
-                  >
-
-                    <div className="source-info">
-                      <span className="source-name">
-                        {source.name}
-                      </span>
-
-                      <span className="source-value">
-                        {source.value}%
-                      </span>
-                    </div>
-
-                    <div className="source-bar-track">
-
-                      <div
-                        className="source-bar-fill"
-                        style={{
-                          width: `${source.value}%`,
-                          background: source.color,
-                        }}
-                      ></div>
-
-                    </div>
-
-                  </div>
-                ))}
-
-              </div>
-
-            </div>
-
-          </div>
-
-        </div>
-
-        {/* =====================================================
-            QUICK ACTIONS
-        ===================================================== */}
-
-        <div className="dashboard-section">
-
-          <div className="section-header-row">
-            <div>
-              <h2>Quick Actions</h2>
-
-              <p>
-                Manage your restaurant from one
-                place.
-              </p>
-            </div>
-          </div>
-
-          <div className="dashboard-cards-grid">
-
-            {dashboardCards.map((card) => (
-              <Link
-                href={card.href}
-                key={card.href}
-                className="dashboard-card-link"
-              >
-
-                <div className="dashboard-card">
-
-                  <div
-                    className={`card-icon card-icon-${card.color}`}
-                  >
-                    <i
-                      className={`fas ${card.icon}`}
-                    ></i>
-                  </div>
-
-                  <div className="card-content">
-
-                    <h3>{card.title}</h3>
-
-                    <p>
-                      {card.description}
-                    </p>
-
-                  </div>
-
-                  <div className="card-footer">
-
-                    <span className="card-action">
-                      Open
-                    </span>
-
-                    <i className="fas fa-arrow-right card-arrow"></i>
-
-                  </div>
-
+                <div className="recommendation-action">
+                  <strong>Suggested Action:</strong> {rec.action}
                 </div>
 
-              </Link>
+                <div className="recommendation-impact">
+                  <strong>Expected Impact:</strong> {rec.impact}
+                </div>
+              </div>
             ))}
-
           </div>
-
         </div>
-
       </div>
     </div>
   );

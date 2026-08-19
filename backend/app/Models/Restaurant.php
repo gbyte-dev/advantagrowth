@@ -48,4 +48,20 @@ class Restaurant extends Model
     {
         return $this->hasMany(ContactMessage::class);
     }
+
+public function posConnections(): HasMany
+{
+    return $this->hasMany(PosConnection::class);
+}
+
+public function posLocations(): HasMany
+{
+    return $this->hasMany(PosLocation::class);
+}
+
+public function posSyncLogs(): HasMany
+{
+    return $this->hasMany(PosSyncLog::class);
+}
+
 }

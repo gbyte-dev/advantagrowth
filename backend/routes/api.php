@@ -10,6 +10,12 @@ use App\Http\Controllers\Api\Review\ReviewController;
 use App\Http\Controllers\Api\Contact\ContactController;
 use App\Http\Controllers\Api\ReservationController;
 use App\Http\Controllers\Api\Owner\OrderController as OwnerOrderController;
+use App\Http\Controllers\Api\POS\PosConnectionController;
+use App\Http\Controllers\Api\POS\MockPosController;
+
+
+
+
 /*
 |--------------------------------------------------------------------------
 | AUTH ROUTES
@@ -193,6 +199,7 @@ Route::prefix('auth')->group(function () {
 
         
     });
+    
 });
 
 
@@ -344,4 +351,23 @@ Route::middleware('auth:sanctum')->prefix('owner')->group(function () {
     Route::get('/orders', [OwnerOrderController::class, 'index']);
     Route::get('/orders/{order}', [OwnerOrderController::class, 'show']);
     Route::patch('/orders/{order}/status', [OwnerOrderController::class, 'updateStatus']);
+    Route::post(
+    '/pos-connections/test',
+    [PosConnectionController::class, 'testConnection']
+);
+Route::prefix('mock-pos')->group(function () {
+    Route::get(
+        '/restaurant',
+        [MockPosController::class, 'restaurant']
+    );
+
+    Route::get(
+        '/locations',
+        [MockPosController::class, 'locations']
+    );
+});
+Route::post(
+    '/pos-connections',
+    [PosConnectionController::class, 'store']
+);
 });

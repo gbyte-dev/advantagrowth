@@ -47,6 +47,16 @@ const initialForm: RestaurantProfileForm = {
   closing_time: "",
 };
 
+const normalizeTime = (
+  value: string | null | undefined
+) => {
+  if (!value) {
+    return "";
+  }
+
+  return value.slice(0, 5);
+};
+
 export default function RestaurantProfilePage() {
   const [form, setForm] =
     useState<RestaurantProfileForm>(initialForm);
@@ -61,6 +71,7 @@ export default function RestaurantProfilePage() {
     try {
       setLoading(true);
       setError("");
+      setSuccess("");
 
       const token = localStorage.getItem("token");
 
@@ -81,39 +92,63 @@ export default function RestaurantProfilePage() {
       const restaurant =
         response.data?.restaurant;
 
-      if (restaurant) {
-        setForm({
-          name: restaurant.name ?? "",
-          legal_name:
-            restaurant.legal_name ?? "",
-          business_category:
-            restaurant.business_category ?? "",
-          vat_number:
-            restaurant.vat_number ?? "",
-
-          address_line_1:
-            restaurant.address_line_1 ?? "",
-          address_line_2:
-            restaurant.address_line_2 ?? "",
-          city: restaurant.city ?? "",
-          postal_code:
-            restaurant.postal_code ?? "",
-          country: restaurant.country ?? "",
-
-          phone: restaurant.phone ?? "",
-          email: restaurant.email ?? "",
-          website: restaurant.website ?? "",
-
-          currency:
-            restaurant.currency ?? "",
-          timezone:
-            restaurant.timezone ?? "",
-          opening_time:
-            restaurant.opening_time ?? "",
-          closing_time:
-            restaurant.closing_time ?? "",
-        });
+      if (!restaurant) {
+        setError(
+          "Restaurant profile information was not found."
+        );
+        return;
       }
+
+      setForm({
+        name: restaurant.name ?? "",
+
+        legal_name:
+          restaurant.legal_name ?? "",
+
+        business_category:
+          restaurant.business_category ?? "",
+
+        vat_number:
+          restaurant.vat_number ?? "",
+
+        address_line_1:
+          restaurant.address_line_1 ?? "",
+
+        address_line_2:
+          restaurant.address_line_2 ?? "",
+
+        city:
+          restaurant.city ?? "",
+
+        postal_code:
+          restaurant.postal_code ?? "",
+
+        country:
+          restaurant.country ?? "",
+
+        phone:
+          restaurant.phone ?? "",
+
+        email:
+          restaurant.email ?? "",
+
+        website:
+          restaurant.website ?? "",
+
+        currency:
+          restaurant.currency ?? "",
+
+        timezone:
+          restaurant.timezone ?? "",
+
+        opening_time: normalizeTime(
+          restaurant.opening_time
+        ),
+
+        closing_time: normalizeTime(
+          restaurant.closing_time
+        ),
+      });
     } catch (err: any) {
       console.error(
         "Restaurant profile load error:",
@@ -122,7 +157,7 @@ export default function RestaurantProfilePage() {
 
       setError(
         err?.response?.data?.message ||
-          "Unable to load restaurant profile."
+        "Unable to load restaurant profile."
       );
     } finally {
       setLoading(false);
@@ -144,6 +179,14 @@ export default function RestaurantProfilePage() {
       ...current,
       [name]: value,
     }));
+
+    if (error) {
+      setError("");
+    }
+
+    if (success) {
+      setSuccess("");
+    }
   };
 
   const handleSave = async (
@@ -163,9 +206,34 @@ export default function RestaurantProfilePage() {
         return;
       }
 
+      /*
+       * Send clean HH:MM values to Laravel.
+       *
+       * MySQL may return:
+       * 09:00:00
+       *
+       * Laravel validation requires:
+       * 09:00
+       */
+      const payload: RestaurantProfileForm = {
+        ...form,
+
+        opening_time: normalizeTime(
+          form.opening_time
+        ),
+
+        closing_time: normalizeTime(
+          form.closing_time
+        ),
+
+        website: form.website.trim(),
+        email: form.email.trim(),
+        phone: form.phone.trim(),
+      };
+
       const response = await api.put(
         "/restaurant/profile",
-        form,
+        payload,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -183,37 +251,55 @@ export default function RestaurantProfilePage() {
 
         if (restaurant) {
           setForm({
-            name: restaurant.name ?? "",
+            name:
+              restaurant.name ?? "",
+
             legal_name:
               restaurant.legal_name ?? "",
+
             business_category:
               restaurant.business_category ?? "",
+
             vat_number:
               restaurant.vat_number ?? "",
 
             address_line_1:
               restaurant.address_line_1 ?? "",
+
             address_line_2:
               restaurant.address_line_2 ?? "",
-            city: restaurant.city ?? "",
+
+            city:
+              restaurant.city ?? "",
+
             postal_code:
               restaurant.postal_code ?? "",
+
             country:
               restaurant.country ?? "",
 
-            phone: restaurant.phone ?? "",
-            email: restaurant.email ?? "",
+            phone:
+              restaurant.phone ?? "",
+
+            email:
+              restaurant.email ?? "",
+
             website:
               restaurant.website ?? "",
 
             currency:
               restaurant.currency ?? "",
+
             timezone:
               restaurant.timezone ?? "",
-            opening_time:
-              restaurant.opening_time ?? "",
-            closing_time:
-              restaurant.closing_time ?? "",
+
+            opening_time: normalizeTime(
+              restaurant.opening_time
+            ),
+
+            closing_time: normalizeTime(
+              restaurant.closing_time
+            ),
           });
         }
       }
@@ -223,20 +309,27 @@ export default function RestaurantProfilePage() {
         err
       );
 
+      console.error(
+        "Validation response:",
+        err?.response?.data
+      );
+
       if (err?.response?.status === 422) {
         const validationErrors =
           err?.response?.data?.errors;
 
         if (validationErrors) {
-          const firstError = Object.values(
-            validationErrors
-          )[0];
+          const firstError =
+            Object.values(validationErrors)[0];
 
           if (
             Array.isArray(firstError) &&
             firstError.length > 0
           ) {
-            setError(String(firstError[0]));
+            setError(
+              String(firstError[0])
+            );
+
             return;
           }
         }
@@ -244,7 +337,7 @@ export default function RestaurantProfilePage() {
 
       setError(
         err?.response?.data?.message ||
-          "Unable to update restaurant profile."
+        "Unable to update restaurant profile."
       );
     } finally {
       setSaving(false);
@@ -253,13 +346,16 @@ export default function RestaurantProfilePage() {
 
   if (loading) {
     return (
-      
-  <div className="dashboard-page restaurant-profile-page">
+      <div className="dashboard-page restaurant-profile-page">
         <div className="dashboard-container">
           <div className="dashboard-section">
             <div className="empty-state">
               <i className="fas fa-spinner fa-spin"></i>
-              <h3>Loading Restaurant Profile</h3>
+
+              <h3>
+                Loading Restaurant Profile
+              </h3>
+
               <p>
                 Please wait while we load your
                 restaurant information.
@@ -272,37 +368,39 @@ export default function RestaurantProfilePage() {
   }
 
   return (
-    <div className="dashboard-page">
+    <div className="dashboard-page restaurant-profile-page">
       <div className="dashboard-container">
 
-        {/* Page Header */}
+        {/* =====================================================
+    RESTAURANT PROFILE HEADER
+===================================================== */}
 
-        <div className="dashboard-welcome">
-          <div className="welcome-content">
-            <div className="welcome-left">
+        <div className="restaurant-profile-header">
 
-              <div className="page-badge">
-                <i className="fas fa-store"></i>
-                <span>Restaurant</span>
-              </div>
+          <div className="restaurant-profile-header-left">
 
-              <h1>Restaurant Profile</h1>
-
-              <p>
-                Manage your restaurant business,
-                location, contact and operational
-                information.
-              </p>
-
+            <div className="restaurant-profile-eyebrow">
+              <i className="fas fa-store"></i>
+              <span>Restaurant Management</span>
             </div>
 
-            <div className="welcome-illustration">
-              <i className="fas fa-building"></i>
-            </div>
+            <h1>Restaurant Profile</h1>
+
+            <p>
+              Manage your restaurant business, location,
+              contact and operational information.
+            </p>
+
           </div>
-        </div>
 
-        {/* Success */}
+          <div className="restaurant-profile-header-icon">
+            <i className="fas fa-building"></i>
+          </div>
+
+        </div>
+        {/* =====================================================
+            SUCCESS
+        ===================================================== */}
 
         {success && (
           <div
@@ -317,14 +415,18 @@ export default function RestaurantProfilePage() {
           >
             <i
               className="fas fa-check-circle"
-              style={{ marginRight: "8px" }}
+              style={{
+                marginRight: "8px",
+              }}
             ></i>
 
             {success}
           </div>
         )}
 
-        {/* Error */}
+        {/* =====================================================
+            ERROR
+        ===================================================== */}
 
         {error && (
           <div
@@ -339,7 +441,9 @@ export default function RestaurantProfilePage() {
           >
             <i
               className="fas fa-exclamation-circle"
-              style={{ marginRight: "8px" }}
+              style={{
+                marginRight: "8px",
+              }}
             ></i>
 
             {error}
@@ -348,12 +452,18 @@ export default function RestaurantProfilePage() {
 
         <form onSubmit={handleSave}>
 
-          {/* Basic Information */}
+          {/* ===================================================
+              BASIC INFORMATION
+          =================================================== */}
 
           <div className="dashboard-section">
+
             <div className="section-header-row">
               <div>
-                <h2>Basic Information</h2>
+                <h2>
+                  Basic Information
+                </h2>
+
                 <p>
                   General business information for
                   your restaurant.
@@ -362,9 +472,11 @@ export default function RestaurantProfilePage() {
             </div>
 
             <div className="form-section">
+
               <div className="form-grid">
 
                 <div className="form-group">
+
                   <label>
                     Restaurant Name
                     <span className="required">
@@ -373,6 +485,7 @@ export default function RestaurantProfilePage() {
                   </label>
 
                   <div className="input-wrapper">
+
                     <i className="fas fa-store input-icon"></i>
 
                     <input
@@ -383,13 +496,18 @@ export default function RestaurantProfilePage() {
                       placeholder="Restaurant name"
                       required
                     />
+
                   </div>
                 </div>
 
                 <div className="form-group">
-                  <label>Legal Name</label>
+
+                  <label>
+                    Legal Name
+                  </label>
 
                   <div className="input-wrapper">
+
                     <i className="fas fa-file-signature input-icon"></i>
 
                     <input
@@ -399,15 +517,18 @@ export default function RestaurantProfilePage() {
                       onChange={handleChange}
                       placeholder="Registered legal name"
                     />
+
                   </div>
                 </div>
 
                 <div className="form-group">
+
                   <label>
                     Business Category
                   </label>
 
                   <div className="input-wrapper">
+
                     <i className="fas fa-briefcase input-icon"></i>
 
                     <input
@@ -419,13 +540,18 @@ export default function RestaurantProfilePage() {
                       onChange={handleChange}
                       placeholder="e.g. Restaurant"
                     />
+
                   </div>
                 </div>
 
                 <div className="form-group">
-                  <label>VAT Number</label>
+
+                  <label>
+                    VAT Number
+                  </label>
 
                   <div className="input-wrapper">
+
                     <i className="fas fa-receipt input-icon"></i>
 
                     <input
@@ -435,6 +561,7 @@ export default function RestaurantProfilePage() {
                       onChange={handleChange}
                       placeholder="VAT number"
                     />
+
                   </div>
                 </div>
 
@@ -442,12 +569,16 @@ export default function RestaurantProfilePage() {
             </div>
           </div>
 
-          {/* Location */}
+          {/* ===================================================
+              LOCATION
+          =================================================== */}
 
           <div className="dashboard-section">
+
             <div className="section-header-row">
               <div>
                 <h2>Location</h2>
+
                 <p>
                   Restaurant physical location and
                   address details.
@@ -456,14 +587,17 @@ export default function RestaurantProfilePage() {
             </div>
 
             <div className="form-section">
+
               <div className="form-grid">
 
                 <div className="form-group full-width">
+
                   <label>
                     Address Line 1
                   </label>
 
                   <div className="input-wrapper">
+
                     <i className="fas fa-map-marker-alt input-icon"></i>
 
                     <input
@@ -475,15 +609,18 @@ export default function RestaurantProfilePage() {
                       onChange={handleChange}
                       placeholder="Street address"
                     />
+
                   </div>
                 </div>
 
                 <div className="form-group full-width">
+
                   <label>
                     Address Line 2
                   </label>
 
                   <div className="input-wrapper">
+
                     <i className="fas fa-map-pin input-icon"></i>
 
                     <input
@@ -495,13 +632,16 @@ export default function RestaurantProfilePage() {
                       onChange={handleChange}
                       placeholder="Apartment, suite, unit, etc."
                     />
+
                   </div>
                 </div>
 
                 <div className="form-group">
+
                   <label>City</label>
 
                   <div className="input-wrapper">
+
                     <i className="fas fa-city input-icon"></i>
 
                     <input
@@ -511,13 +651,18 @@ export default function RestaurantProfilePage() {
                       onChange={handleChange}
                       placeholder="City"
                     />
+
                   </div>
                 </div>
 
                 <div className="form-group">
-                  <label>Postal Code</label>
+
+                  <label>
+                    Postal Code
+                  </label>
 
                   <div className="input-wrapper">
+
                     <i className="fas fa-mail-bulk input-icon"></i>
 
                     <input
@@ -527,13 +672,18 @@ export default function RestaurantProfilePage() {
                       onChange={handleChange}
                       placeholder="Postal code"
                     />
+
                   </div>
                 </div>
 
                 <div className="form-group">
-                  <label>Country</label>
+
+                  <label>
+                    Country
+                  </label>
 
                   <div className="input-wrapper">
+
                     <i className="fas fa-globe input-icon"></i>
 
                     <input
@@ -543,6 +693,7 @@ export default function RestaurantProfilePage() {
                       onChange={handleChange}
                       placeholder="Country"
                     />
+
                   </div>
                 </div>
 
@@ -550,11 +701,15 @@ export default function RestaurantProfilePage() {
             </div>
           </div>
 
-          {/* Contact Information */}
+          {/* ===================================================
+              CONTACT INFORMATION
+          =================================================== */}
 
           <div className="dashboard-section">
+
             <div className="section-header-row">
               <div>
+
                 <h2>
                   Contact Information
                 </h2>
@@ -563,16 +718,22 @@ export default function RestaurantProfilePage() {
                   Public and business contact
                   information.
                 </p>
+
               </div>
             </div>
 
             <div className="form-section">
+
               <div className="form-grid">
 
                 <div className="form-group">
-                  <label>Phone</label>
+
+                  <label>
+                    Phone
+                  </label>
 
                   <div className="input-wrapper">
+
                     <i className="fas fa-phone input-icon"></i>
 
                     <input
@@ -582,13 +743,18 @@ export default function RestaurantProfilePage() {
                       onChange={handleChange}
                       placeholder="Phone number"
                     />
+
                   </div>
                 </div>
 
                 <div className="form-group">
-                  <label>Email</label>
+
+                  <label>
+                    Email
+                  </label>
 
                   <div className="input-wrapper">
+
                     <i className="fas fa-envelope input-icon"></i>
 
                     <input
@@ -598,13 +764,18 @@ export default function RestaurantProfilePage() {
                       onChange={handleChange}
                       placeholder="Restaurant email"
                     />
+
                   </div>
                 </div>
 
                 <div className="form-group full-width">
-                  <label>Website</label>
+
+                  <label>
+                    Website
+                  </label>
 
                   <div className="input-wrapper">
+
                     <i className="fas fa-link input-icon"></i>
 
                     <input
@@ -614,6 +785,7 @@ export default function RestaurantProfilePage() {
                       onChange={handleChange}
                       placeholder="https://example.com"
                     />
+
                   </div>
                 </div>
 
@@ -621,11 +793,15 @@ export default function RestaurantProfilePage() {
             </div>
           </div>
 
-          {/* Operational Settings */}
+          {/* ===================================================
+              OPERATIONAL SETTINGS
+          =================================================== */}
 
           <div className="dashboard-section">
+
             <div className="section-header-row">
               <div>
+
                 <h2>
                   Operational Settings
                 </h2>
@@ -634,16 +810,22 @@ export default function RestaurantProfilePage() {
                   Configure restaurant currency,
                   timezone and business hours.
                 </p>
+
               </div>
             </div>
 
             <div className="form-section">
+
               <div className="form-grid">
 
                 <div className="form-group">
-                  <label>Currency</label>
+
+                  <label>
+                    Currency
+                  </label>
 
                   <div className="input-wrapper">
+
                     <i className="fas fa-money-bill-wave input-icon"></i>
 
                     <select
@@ -654,29 +836,39 @@ export default function RestaurantProfilePage() {
                       <option value="">
                         Select currency
                       </option>
+
                       <option value="INR">
                         INR - Indian Rupee
                       </option>
+
                       <option value="USD">
                         USD - US Dollar
                       </option>
+
                       <option value="EUR">
                         EUR - Euro
                       </option>
+
                       <option value="GBP">
                         GBP - British Pound
                       </option>
+
                       <option value="AED">
                         AED - UAE Dirham
                       </option>
                     </select>
+
                   </div>
                 </div>
 
                 <div className="form-group">
-                  <label>Timezone</label>
+
+                  <label>
+                    Timezone
+                  </label>
 
                   <div className="input-wrapper">
+
                     <i className="fas fa-clock input-icon"></i>
 
                     <select
@@ -708,15 +900,18 @@ export default function RestaurantProfilePage() {
                         America/Los_Angeles
                       </option>
                     </select>
+
                   </div>
                 </div>
 
                 <div className="form-group">
+
                   <label>
                     Opening Time
                   </label>
 
                   <div className="input-wrapper">
+
                     <i className="fas fa-door-open input-icon"></i>
 
                     <input
@@ -725,15 +920,18 @@ export default function RestaurantProfilePage() {
                       value={form.opening_time}
                       onChange={handleChange}
                     />
+
                   </div>
                 </div>
 
                 <div className="form-group">
+
                   <label>
                     Closing Time
                   </label>
 
                   <div className="input-wrapper">
+
                     <i className="fas fa-door-closed input-icon"></i>
 
                     <input
@@ -742,6 +940,7 @@ export default function RestaurantProfilePage() {
                       value={form.closing_time}
                       onChange={handleChange}
                     />
+
                   </div>
                 </div>
 
@@ -749,9 +948,12 @@ export default function RestaurantProfilePage() {
             </div>
           </div>
 
-          {/* Save */}
+          {/* ===================================================
+              ACTIONS
+          =================================================== */}
 
           <div className="form-actions">
+
             <button
               type="button"
               className="secondary-btn"
@@ -779,9 +981,11 @@ export default function RestaurantProfilePage() {
                 </>
               )}
             </button>
+
           </div>
 
         </form>
+
       </div>
     </div>
   );
