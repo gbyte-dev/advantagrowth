@@ -28,9 +28,22 @@ class RestaurantsController extends Controller
     public function store(Request $req)
     {
         $validate=$req->validate([
-            'name'=>'required|string',
-            'phone'=>'required',
-            'email'=>'required',
+            'name' => 'required|string|max:255',
+            'legal_name' => 'nullable|string|max:255',
+            'business_category' => 'nullable|string|max:255',
+            'vat_number' => 'nullable|string|max:255',
+            'address_line_1' => 'nullable|string|max:255',
+            'address_line_2' => 'nullable|string|max:255',
+            'city' => 'nullable|string|max:255',
+            'postal_code' => 'nullable|string|max:30',
+            'country' => 'nullable|string|max:100',
+            'phone' => 'required|string|max:20',
+            'email' => 'required|email|max:255|unique:restaurants,email',
+            'website' => 'nullable|string|max:255',
+            'currency' => 'nullable|string|max:10',
+            'timezone' => 'nullable|string|max:100',
+            'opening_time' => 'nullable|date_format:H:i',
+            'closing_time' => 'nullable|date_format:H:i',
         ]);
         $validate['slug'] = Str::slug($validate['name']) . '-' . time();
         $restaurant=Restaurant::create($validate);
@@ -74,9 +87,22 @@ class RestaurantsController extends Controller
         }
 
           $validate=$req->validate([
-            'name'=>'required|string',
-            'phone'=>'required',
-            'email'=>'required',
+            'name' => 'required|string|max:255',
+            'legal_name' => 'nullable|string|max:255',
+            'business_category' => 'nullable|string|max:255',
+            'vat_number' => 'nullable|string|max:255',
+            'address_line_1' => 'nullable|string|max:255',
+            'address_line_2' => 'nullable|string|max:255',
+            'city' => 'nullable|string|max:255',
+            'postal_code' => 'nullable|string|max:30',
+            'country' => 'nullable|string|max:100',
+            'phone' => 'required|string|max:20',
+            'email' => 'required|email|max:255|unique:restaurants,email,' . $id,
+            'website' => 'nullable|string|max:255',
+            'currency' => 'nullable|string|max:10',
+            'timezone' => 'nullable|string|max:100',
+            'opening_time' => 'nullable|date_format:H:i',
+            'closing_time' => 'nullable|date_format:H:i',
         ]);
         $restaurant->update($validate);
 

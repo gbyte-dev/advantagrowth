@@ -1,3 +1,9 @@
+/* Tailwind utilities only — preflight is intentionally skipped so it doesn't
+   reset/override the hand-written CSS the rest of this file (and every other
+   page) already relies on. */
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+
 /* ============================================
    NAVBAR - Advanta GROWTH Theme
    Colors: #140a4d, #040a17, #fbfaff
@@ -8203,6 +8209,7 @@
 
 .superadmin-main-content {
   flex: 1;
+  min-width: 0;
   margin-left: 280px;
   transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   min-height: calc(100vh - 48px);

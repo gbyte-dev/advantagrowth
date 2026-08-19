@@ -10,13 +10,11 @@ export default function ConditionalFooter() {
   const hideFooterPaths = [
     "/login",
     "/owner/login",
-    "/owner/login",
-    "/superadmin/login",
     "/register",
     "/owner/register",
     "/dashboard",
     "/staff/dashboard",
-    "/superadmin/dashboard",
+    "/superadmin",
     "/forgot-password",
   ];
 
