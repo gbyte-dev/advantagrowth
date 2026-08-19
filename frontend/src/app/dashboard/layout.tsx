@@ -9,7 +9,9 @@ export default function DashboardLayout({
     <div className="owner-layout">
       <OwnerSidebar />
 
-      <main className="owner-content">{children}</main>
+      <main className="owner-main-content">
+        {children}
+      </main>
     </div>
   );
 }

@@ -5114,21 +5114,6 @@
 }
 
 /* ============================================
-   DASHBOARD CONTAINER
-   ============================================ */
-
-.dashboard-page {
-  max-width: 1440px;
-  margin: 0 auto;
-}
-
-.dashboard-container {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-/* ============================================
    WELCOME SECTION
    ============================================ */
 
@@ -7477,9 +7462,8 @@
     transform: translateY(-50%) scale(1);
   }
 }
-
 /* ============================================
-   RESPONSIVE DESIGN
+   SUPER ADMIN SIDEBAR - RESPONSIVE FIX
    ============================================ */
 
 /* ----- Tablet / Desktop (1024px and below) ----- */
@@ -7489,27 +7473,41 @@
   }
 
   .superadmin-sidebar {
+    position: fixed;
     top: 44px;
+    left: 0;
+    bottom: 0;
+    width: var(--superadmin-sidebar-width, 280px);
     transform: translateX(-100%);
-    width: var(--superadmin-sidebar-width);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1000;
     box-shadow: 4px 0 40px rgba(4, 10, 23, 0.6);
   }
 
-  .superadmin-sidebar.sidebar-collapsed {
-    transform: translateX(0);
-    width: var(--superadmin-sidebar-width);
-  }
-
+  /* Mobile par sidebar tabhi visible jab overlay visible ho */
   .sidebar-overlay-visible + .superadmin-sidebar {
     transform: translateX(0);
   }
 
+  /* Jab sidebar collapsed ho, toh mobile par hidden rahe */
   .sidebar-overlay-visible + .superadmin-sidebar.sidebar-collapsed {
     transform: translateX(0);
   }
 
+  /* Jab overlay na ho, toh sidebar hidden rahe */
+  .superadmin-sidebar.sidebar-collapsed:not(.sidebar-overlay-visible + .superadmin-sidebar) {
+    transform: translateX(-100%);
+  }
+
   .superadmin-sidebar .sidebar-toggle {
     display: flex;
+  }
+
+  .superadmin-main-content,
+  .superadmin-main-content.sidebar-expanded-main,
+  .superadmin-main-content.sidebar-collapsed-main {
+    margin-left: 0 !important;
+    width: 100% !important;
   }
 }
 
@@ -7525,10 +7523,6 @@
 
   .superadmin-sidebar {
     top: 44px;
-    width: 280px;
-  }
-
-  .superadmin-sidebar.sidebar-collapsed {
     width: 280px;
   }
 }
@@ -7548,13 +7542,7 @@
     width: 100%;
     max-width: 300px;
   }
-
-  .superadmin-sidebar.sidebar-collapsed {
-    width: 100%;
-    max-width: 300px;
-  }
 }
-
 /* ============================================
    SIDEBAR OVERLAY (Shared with owner sidebar)
    ============================================ */
@@ -7786,31 +7774,32 @@
 .superadmin-main-content.sidebar-collapsed-main {
   margin-left: 72px;
 }
-
-/* ============================================
-   DASHBOARD PAGE CONTAINER
-   ============================================ */
-
-
 @media (max-width: 1024px) {
-  .superadmin-sidebar {
-    position: fixed;
-    top: 42px;
-    left: 0;
-    bottom: 0;
-    width: 260px;
-    transform: translateX(-100%);
-    transition: transform 0.3s ease;
-    z-index: 100;
+  .superadmin-mobile-toggle {
+    display: flex;
   }
 
-  .superadmin-sidebar:not(.sidebar-collapsed) {
+  .superadmin-sidebar {
+    position: fixed;
+    top: 44px;
+    left: 0;
+    bottom: 0;
+    width: var(--superadmin-sidebar-width, 280px);
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1000;
+    box-shadow: 4px 0 40px rgba(4, 10, 23, 0.6);
+  }
+
+  /* Mobile par sidebar tabhi visible jab overlay visible ho */
+  .sidebar-overlay-visible + .superadmin-sidebar {
     transform: translateX(0);
   }
 
-  /* Keep the sidebar's own header toggle visible on mobile so the open drawer
-     can be closed from inside it — a shared rule elsewhere hides .sidebar-toggle
-     at this breakpoint for the owner sidebar's tap-outside-to-close pattern. */
+  .sidebar-overlay-visible + .superadmin-sidebar.sidebar-collapsed {
+    transform: translateX(0);
+  }
+
   .superadmin-sidebar .sidebar-toggle {
     display: flex;
   }
@@ -7822,7 +7811,6 @@
     width: 100% !important;
   }
 }
-
 .superadmin-main-content .dashboard-container {
   display: flex;
   flex-direction: column;
@@ -8609,4 +8597,1773 @@
 
 @media (prefers-color-scheme: light) {
   /* Already using light colors */
+}
+
+
+
+/* ============================================
+   RESTAURANT PROFILE PAGE - Advanta GROWTH Theme
+   Background: #f6f5fa
+   Colors: #140a4d, #040a17, #fbfaff
+   ============================================ */
+
+/* ----- ROOT VARIABLES ----- */
+:root {
+  --profile-bg: #f6f5fa;
+  --profile-card-bg: #ffffff;
+  --profile-text-primary: #140a4d;
+  --profile-text-secondary: rgba(20, 10, 77, 0.6);
+  --profile-text-muted: rgba(20, 10, 77, 0.4);
+  --profile-border: rgba(20, 10, 77, 0.06);
+  --profile-shadow: 0 2px 16px rgba(20, 10, 77, 0.06);
+  --profile-shadow-hover: 0 8px 32px rgba(20, 10, 77, 0.1);
+  --profile-radius: 16px;
+  --profile-radius-sm: 10px;
+  --profile-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --profile-accent: #6c5ce7;
+  --profile-accent-light: #a29bfe;
+  --profile-success: #00b894;
+  --profile-error: #ff6b6b;
+}
+
+/* ============================================
+   PAGE LAYOUT - FIX SIDEBAR ISSUE
+   ============================================ */
+
+.owner-layout {
+  display: flex;
+  min-height: calc(100vh - 48px);
+  background: var(--profile-bg);
+}
+
+.owner-main-content {
+  flex: 1;
+  margin-left: 260px;
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  min-height: calc(100vh - 48px);
+  padding: 1.5rem 2rem 2rem;
+  background: var(--profile-bg);
+  width: calc(100% - 260px);
+}
+
+/* When sidebar is collapsed */
+.sidebar-collapsed-main {
+  margin-left: 72px;
+  width: calc(100% - 72px);
+}
+
+/* ============================================
+   DASHBOARD PAGE CONTAINER
+   ============================================ */
+
+.dashboard-page {
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+.dashboard-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* ============================================
+   WELCOME SECTION
+   ============================================ */
+
+.dashboard-welcome {
+  background: linear-gradient(135deg, #140a4d, #040a17);
+  border-radius: var(--profile-radius);
+  padding: 2rem 2.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.dashboard-welcome::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 500px;
+  height: 500px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(108, 92, 231, 0.15), transparent 70%);
+  pointer-events: none;
+}
+
+.dashboard-welcome::after {
+  content: '';
+  position: absolute;
+  bottom: -30%;
+  left: -10%;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(162, 155, 254, 0.05), transparent 70%);
+  pointer-events: none;
+}
+
+.welcome-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+.welcome-left {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.page-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.8rem;
+  background: rgba(108, 92, 231, 0.15);
+  border-radius: 50px;
+  color: #a29bfe;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  width: fit-content;
+}
+
+.welcome-left h1 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #fbfaff;
+  margin: 0;
+}
+
+.welcome-left p {
+  color: rgba(251, 250, 255, 0.6);
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+/* Welcome Illustration */
+.welcome-illustration {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  background: rgba(108, 92, 231, 0.1);
+  border-radius: 50%;
+  border: 1px solid rgba(108, 92, 231, 0.15);
+  flex-shrink: 0;
+}
+
+.welcome-illustration i {
+  font-size: 2rem;
+  color: #a29bfe;
+  opacity: 0.7;
+}
+
+/* ============================================
+   FORM SECTION
+   ============================================ */
+
+.form-section {
+  background: var(--profile-card-bg);
+  border-radius: var(--profile-radius);
+  padding: 1.5rem 2rem;
+  border: 1px solid var(--profile-border);
+  box-shadow: var(--profile-shadow);
+  transition: var(--profile-transition);
+}
+
+.form-section:hover {
+  box-shadow: var(--profile-shadow-hover);
+}
+
+/* ============================================
+   FORM GRID
+   ============================================ */
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.2rem 1.8rem;
+}
+
+.form-grid .full-width {
+  grid-column: 1 / -1;
+}
+
+/* ============================================
+   FORM GROUP
+   ============================================ */
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.form-group label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--profile-text-primary);
+}
+
+.form-group label .required {
+  color: var(--profile-error);
+  margin-left: 0.2rem;
+}
+
+/* ============================================
+   INPUT WRAPPER
+   ============================================ */
+
+.form-group .input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.form-group .input-wrapper .input-icon {
+  position: absolute;
+  left: 0.8rem;
+  color: var(--profile-text-muted);
+  font-size: 0.9rem;
+  pointer-events: none;
+  z-index: 1;
+  transition: var(--profile-transition);
+}
+
+.form-group .input-wrapper input,
+.form-group .input-wrapper select {
+  width: 100%;
+  padding: 0.7rem 1rem 0.7rem 2.8rem;
+  background: rgba(20, 10, 77, 0.02);
+  border: 1px solid var(--profile-border);
+  border-radius: var(--profile-radius-sm);
+  color: var(--profile-text-primary);
+  font-size: 0.9rem;
+  transition: var(--profile-transition);
+  outline: none;
+  font-family: inherit;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.form-group .input-wrapper input::placeholder {
+  color: var(--profile-text-muted);
+}
+
+.form-group .input-wrapper input:focus,
+.form-group .input-wrapper select:focus {
+  border-color: var(--profile-accent);
+  background: rgba(108, 92, 231, 0.02);
+  box-shadow: 0 0 0 4px rgba(108, 92, 231, 0.04);
+}
+
+.form-group .input-wrapper input:focus ~ .input-icon,
+.form-group .input-wrapper select:focus ~ .input-icon {
+  color: var(--profile-accent);
+}
+
+.form-group .input-wrapper select {
+  padding-right: 2.5rem;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23999' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+}
+
+.form-group .input-wrapper select option {
+  background: #ffffff;
+  color: var(--profile-text-primary);
+}
+
+.form-group .input-wrapper input[type="time"] {
+  padding: 0.7rem 1rem 0.7rem 2.8rem;
+}
+
+/* ============================================
+   FORM ACTIONS
+   ============================================ */
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--profile-border);
+}
+
+.form-actions .secondary-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1.5rem;
+  background: transparent;
+  color: var(--profile-text-secondary);
+  border: 1px solid var(--profile-border);
+  border-radius: var(--profile-radius-sm);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--profile-transition);
+  text-decoration: none;
+}
+
+.form-actions .secondary-btn:hover {
+  background: rgba(20, 10, 77, 0.03);
+  border-color: rgba(20, 10, 77, 0.12);
+  color: var(--profile-text-primary);
+}
+
+.form-actions .primary-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1.8rem;
+  background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+  color: #fbfaff;
+  border: none;
+  border-radius: var(--profile-radius-sm);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--profile-transition);
+}
+
+.form-actions .primary-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(108, 92, 231, 0.3);
+}
+
+.form-actions .primary-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.form-actions .primary-btn i {
+  font-size: 0.9rem;
+}
+
+/* ============================================
+   SUCCESS & ERROR MESSAGES
+   ============================================ */
+
+.profile-success {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.8rem 1.2rem;
+  background: rgba(0, 184, 148, 0.06);
+  border: 1px solid rgba(0, 184, 148, 0.12);
+  border-radius: var(--profile-radius-sm);
+  color: #00b894;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.profile-success i {
+  color: #00b894;
+  font-size: 1rem;
+}
+
+.profile-error {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.8rem 1.2rem;
+  background: rgba(255, 107, 107, 0.06);
+  border: 1px solid rgba(255, 107, 107, 0.1);
+  border-radius: var(--profile-radius-sm);
+  color: #ff6b6b;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.profile-error i {
+  color: #ff6b6b;
+  font-size: 1rem;
+}
+
+/* ============================================
+   SECTION HEADER
+   ============================================ */
+
+.section-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.2rem;
+}
+
+.section-header-row h2 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--profile-text-primary);
+  margin: 0;
+}
+
+.section-header-row p {
+  color: var(--profile-text-secondary);
+  font-size: 0.9rem;
+  margin: 0.2rem 0 0;
+}
+
+/* ============================================
+   EMPTY STATE / LOADING
+   ============================================ */
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+}
+
+.empty-state i {
+  font-size: 3rem;
+  color: var(--profile-accent-light);
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.empty-state h3 {
+  font-size: 1.2rem;
+  color: var(--profile-text-primary);
+  margin: 0 0 0.3rem;
+}
+
+.empty-state p {
+  color: var(--profile-text-secondary);
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+/* ----- Tablets (1024px and below) ----- */
+@media (max-width: 1024px) {
+  .owner-main-content {
+    margin-left: 0 !important;
+    padding: 1rem 1.2rem;
+    width: 100% !important;
+  }
+
+  .sidebar-collapsed-main {
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+}
+
+/* ----- Mobile (768px and below) ----- */
+@media (max-width: 768px) {
+  .owner-main-content {
+    padding: 0.8rem 1rem;
+    min-height: calc(100vh - 44px);
+  }
+
+  .dashboard-welcome {
+    padding: 1.5rem;
+  }
+
+  .welcome-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.8rem;
+  }
+
+  .welcome-left h1 {
+    font-size: 1.4rem;
+  }
+
+  .welcome-left p {
+    font-size: 0.85rem;
+  }
+
+  .welcome-illustration {
+    display: none;
+  }
+
+  .form-section {
+    padding: 1.2rem 1.2rem;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 0.8rem;
+  }
+
+  .form-grid .full-width {
+    grid-column: 1;
+  }
+
+  .form-actions {
+    flex-direction: column-reverse;
+    gap: 0.6rem;
+  }
+
+  .form-actions .secondary-btn,
+  .form-actions .primary-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .form-group .input-wrapper input,
+  .form-group .input-wrapper select {
+    padding: 0.6rem 1rem 0.6rem 2.5rem;
+    font-size: 0.85rem;
+  }
+
+  .form-group .input-wrapper .input-icon {
+    left: 0.6rem;
+    font-size: 0.8rem;
+  }
+
+  .form-group label {
+    font-size: 0.8rem;
+  }
+
+  .section-header-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.3rem;
+  }
+
+  .section-header-row h2 {
+    font-size: 1.2rem;
+  }
+
+  .section-header-row p {
+    font-size: 0.8rem;
+  }
+}
+
+/* ----- Small Mobile (480px and below) ----- */
+@media (max-width: 480px) {
+  .owner-main-content {
+    padding: 0.6rem 0.8rem;
+  }
+
+  .dashboard-welcome {
+    padding: 1.2rem;
+  }
+
+  .welcome-left h1 {
+    font-size: 1.2rem;
+  }
+
+  .welcome-left p {
+    font-size: 0.8rem;
+  }
+
+  .page-badge {
+    font-size: 0.6rem;
+  }
+
+  .form-section {
+    padding: 0.8rem 0.8rem;
+  }
+
+  .form-actions {
+    flex-direction: column-reverse;
+    gap: 0.5rem;
+  }
+
+  .form-actions .secondary-btn,
+  .form-actions .primary-btn {
+    padding: 0.6rem 1rem;
+    font-size: 0.8rem;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .form-group .input-wrapper input,
+  .form-group .input-wrapper select {
+    padding: 0.5rem 0.8rem 0.5rem 2.2rem;
+    font-size: 0.8rem;
+  }
+
+  .form-group .input-wrapper .input-icon {
+    left: 0.5rem;
+    font-size: 0.7rem;
+  }
+
+  .profile-success,
+  .profile-error {
+    font-size: 0.8rem;
+    padding: 0.6rem 1rem;
+  }
+
+  .empty-state {
+    padding: 2rem 1rem;
+  }
+
+  .empty-state i {
+    font-size: 2rem;
+  }
+
+  .empty-state h3 {
+    font-size: 1rem;
+  }
+
+  .empty-state p {
+    font-size: 0.8rem;
+  }
+
+  .section-header-row h2 {
+    font-size: 1rem;
+  }
+
+  .section-header-row p {
+    font-size: 0.75rem;
+  }
+}
+
+/* ============================================
+   ACCESSIBILITY
+   ============================================ */
+
+.form-group .input-wrapper input:focus-visible,
+.form-group .input-wrapper select:focus-visible,
+.form-actions .primary-btn:focus-visible,
+.form-actions .secondary-btn:focus-visible {
+  outline: 2px solid var(--profile-accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .form-section,
+  .form-actions .primary-btn,
+  .form-actions .secondary-btn,
+  .form-group .input-wrapper input,
+  .form-group .input-wrapper select {
+    transition: none !important;
+  }
+
+  .form-actions .primary-btn:hover:not(:disabled) {
+    transform: none !important;
+  }
+}
+
+/* ============================================
+   ADDITIONAL: Custom Select Arrow
+   ============================================ */
+
+.form-group .input-wrapper select:-moz-focusring {
+  color: transparent;
+  text-shadow: 0 0 0 var(--profile-text-primary);
+}
+
+.form-group .input-wrapper select::-ms-expand {
+  display: none;
+}
+
+/* ============================================
+   ADDITIONAL: Input Type Time Styling
+   ============================================ */
+
+.form-group .input-wrapper input[type="time"]::-webkit-calendar-picker-indicator {
+  opacity: 0.4;
+  cursor: pointer;
+  padding: 0.2rem;
+}
+
+.form-group .input-wrapper input[type="time"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 0.8;
+}
+
+/* ============================================
+   ADDITIONAL: Disabled State
+   ============================================ */
+
+.form-group .input-wrapper input:disabled,
+.form-group .input-wrapper select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: rgba(20, 10, 77, 0.02);
+}
+
+/* ============================================
+   ADDITIONAL: Focus Within Support
+   ============================================ */
+
+.form-group .input-wrapper:focus-within .input-icon {
+  color: var(--profile-accent);
+}
+
+/* ============================================
+   FIX: OWNER LAYOUT - SIDEBAR BACKGROUND ISSUE
+   ============================================ */
+
+
+/* ----- COLLAPSED STATE ----- */
+.sidebar-collapsed-main {
+  margin-left: 72px;
+  /* ← Collapsed sidebar width */
+  width: calc(100% - 72px);
+}
+
+/* ============================================
+   RESPONSIVE: TABLET & MOBILE (1024px and below)
+   ============================================ */
+
+@media (max-width: 1024px) {
+  .owner-main-content {
+    margin-left: 0 !important;
+    padding: 1rem 1.2rem;
+    width: 100% !important;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Jab sidebar open ho (overlay visible), toh content ko shift karo */
+  .sidebar-overlay-visible ~ .owner-main-content,
+  .sidebar-overlay-visible + .owner-main-content {
+    transform: translateX(260px);
+    /* ← Shift content to right when sidebar opens */
+    width: calc(100% - 260px) !important;
+  }
+
+  /* Jab sidebar collapsed ho (mobile par hidden), toh content normal rahe */
+  .sidebar-collapsed-main {
+    margin-left: 0 !important;
+    width: 100% !important;
+    transform: translateX(0) !important;
+  }
+
+  .sidebar-collapsed-main.sidebar-overlay-visible ~ .owner-main-content,
+  .sidebar-collapsed-main.sidebar-overlay-visible + .owner-main-content {
+    transform: translateX(0) !important;
+    width: 100% !important;
+  }
+}
+
+/* ----- Mobile (768px and below) ----- */
+@media (max-width: 768px) {
+  .owner-main-content {
+    padding: 0.8rem 1rem;
+    min-height: calc(100vh - 44px);
+  }
+
+  .sidebar-overlay-visible ~ .owner-main-content,
+  .sidebar-overlay-visible + .owner-main-content {
+    transform: translateX(280px);
+    width: calc(100% - 280px) !important;
+  }
+}
+
+/* ----- Small Mobile (480px and below) ----- */
+@media (max-width: 480px) {
+  .owner-main-content {
+    padding: 0.6rem 0.8rem;
+  }
+
+  .sidebar-overlay-visible ~ .owner-main-content,
+  .sidebar-overlay-visible + .owner-main-content {
+    transform: translateX(300px);
+    width: calc(100% - 300px) !important;
+  }
+}
+/* =========================================================
+   RESTAURANT PROFILE PAGE
+   Scoped styles - do not affect other dashboard pages
+   ========================================================= */
+
+.restaurant-profile-page {
+  width: 100%;
+  min-width: 0;
+  min-height: calc(100vh - 48px);
+  padding: 0;
+  margin: 0;
+  background: #f7f8fc;
+  box-sizing: border-box;
+}
+
+/* =========================================================
+   MAIN CONTAINER
+   ========================================================= */
+
+.restaurant-profile-page .dashboard-container {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+
+  margin: 0 !important;
+  padding: 28px 30px 48px !important;
+
+  box-sizing: border-box;
+}
+
+/* =========================================================
+   PAGE HEADER
+   ========================================================= */
+
+.restaurant-profile-page .dashboard-welcome {
+  width: 100% !important;
+  max-width: none !important;
+
+  min-height: 150px;
+
+  margin: 0 0 24px !important;
+  padding: 0 !important;
+
+  position: relative;
+
+  border: 1px solid #e7e5f1;
+  border-radius: 18px;
+
+  overflow: hidden;
+
+  background:
+    linear-gradient(
+      135deg,
+      #11102f 0%,
+      #171446 55%,
+      #20195c 100%
+    );
+
+  box-shadow:
+    0 8px 30px rgba(25, 20, 70, 0.08);
+
+  box-sizing: border-box;
+}
+
+.restaurant-profile-page
+  .dashboard-welcome
+  .welcome-content {
+  width: 100%;
+
+  min-height: 150px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 30px;
+
+  padding: 28px 32px;
+
+  box-sizing: border-box;
+}
+
+.restaurant-profile-page
+  .dashboard-welcome
+  .welcome-left {
+  flex: 1;
+  min-width: 0;
+}
+
+.restaurant-profile-page .page-badge {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 8px;
+
+  width: fit-content;
+
+  margin: 0 0 11px;
+
+  padding: 6px 11px;
+
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 999px;
+
+  background: rgba(255, 255, 255, 0.08);
+
+  color: #dddafe;
+
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.restaurant-profile-page
+  .dashboard-welcome h1 {
+  margin: 0 0 8px !important;
+
+  color: #ffffff !important;
+
+  font-size: 28px !important;
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+.restaurant-profile-page
+  .dashboard-welcome p {
+  max-width: 650px;
+
+  margin: 0 !important;
+
+  color: #c9c6dc !important;
+
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.restaurant-profile-page
+  .welcome-illustration {
+  width: 78px;
+  height: 78px;
+
+  flex: 0 0 78px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+
+  background: rgba(255, 255, 255, 0.07);
+
+  color: #9e94ff;
+
+  font-size: 30px;
+}
+
+/* =========================================================
+   FORM
+   ========================================================= */
+
+.restaurant-profile-page form {
+  display: block;
+
+  width: 100%;
+  min-width: 0;
+
+  margin: 0;
+  padding: 0;
+}
+
+/* =========================================================
+   SECTION CARDS
+   ========================================================= */
+
+.restaurant-profile-page
+  form
+  .dashboard-section {
+  display: block !important;
+
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+
+  margin: 0 0 22px !important;
+  padding: 0 !important;
+
+  border: 1px solid #e5e5ee;
+  border-radius: 16px;
+
+  background: #ffffff;
+
+  overflow: hidden;
+
+  box-shadow:
+    0 4px 16px rgba(22, 22, 55, 0.04);
+
+  box-sizing: border-box;
+}
+
+/* =========================================================
+   SECTION HEADER
+   ========================================================= */
+
+.restaurant-profile-page
+  form
+  .section-header-row {
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin: 0 !important;
+
+  padding: 20px 24px !important;
+
+  border-bottom: 1px solid #eeeeF4;
+
+  box-sizing: border-box;
+}
+
+.restaurant-profile-page
+  form
+  .section-header-row h2 {
+  margin: 0 0 5px !important;
+
+  color: #18182a !important;
+
+  font-size: 17px !important;
+  line-height: 1.3;
+
+  font-weight: 700;
+}
+
+.restaurant-profile-page
+  form
+  .section-header-row p {
+  margin: 0 !important;
+
+  color: #777789 !important;
+
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* =========================================================
+   INNER FORM SECTION
+   ========================================================= */
+
+.restaurant-profile-page
+  form
+  .form-section {
+  width: 100% !important;
+  max-width: none !important;
+
+  margin: 0 !important;
+
+  padding: 24px !important;
+
+  background: #ffffff;
+
+  box-sizing: border-box;
+}
+
+/* =========================================================
+   FORM GRID
+   ========================================================= */
+
+.restaurant-profile-page
+  form
+  .form-grid {
+  width: 100% !important;
+
+  display: grid !important;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr)) !important;
+
+  column-gap: 24px !important;
+  row-gap: 20px !important;
+
+  margin: 0 !important;
+
+  box-sizing: border-box;
+}
+
+/* =========================================================
+   FORM GROUP
+   ========================================================= */
+
+.restaurant-profile-page
+  form
+  .form-group {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
+
+  display: flex !important;
+  flex-direction: column;
+
+  gap: 0;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  box-sizing: border-box;
+}
+
+.restaurant-profile-page
+  form
+  .form-group.full-width {
+  grid-column: 1 / -1 !important;
+}
+
+.restaurant-profile-page
+  form
+  .form-group label {
+  display: block;
+
+  margin: 0 0 8px !important;
+
+  color: #303043 !important;
+
+  font-size: 13px;
+  line-height: 1.4;
+
+  font-weight: 600;
+}
+
+.restaurant-profile-page .required {
+  margin-left: 3px;
+  color: #e04755;
+}
+
+/* =========================================================
+   INPUT WRAPPER
+   ========================================================= */
+
+.restaurant-profile-page
+  form
+  .input-wrapper {
+  position: relative !important;
+
+  display: block !important;
+
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
+
+  margin: 0 !important;
+
+  box-sizing: border-box;
+}
+
+/* icon */
+
+.restaurant-profile-page
+  form
+  .input-wrapper
+  .input-icon {
+  position: absolute;
+
+  z-index: 2;
+
+  top: 50%;
+  left: 15px;
+
+  width: 16px;
+
+  transform: translateY(-50%);
+
+  color: #9797aa;
+
+  font-size: 13px;
+
+  text-align: center;
+
+  pointer-events: none;
+}
+
+/* =========================================================
+   INPUT + SELECT
+   ========================================================= */
+
+.restaurant-profile-page
+  form
+  .input-wrapper input,
+.restaurant-profile-page
+  form
+  .input-wrapper select {
+  display: block !important;
+
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+
+  height: 46px !important;
+
+  margin: 0 !important;
+
+  padding:
+    0
+    14px
+    0
+    43px !important;
+
+  border:
+    1px solid
+    #dedee8 !important;
+
+  border-radius:
+    10px !important;
+
+  outline: none !important;
+
+  background:
+    #ffffff !important;
+
+  color:
+    #262638 !important;
+
+  font-family: inherit;
+
+  font-size: 14px !important;
+  font-weight: 400;
+
+  line-height: normal;
+
+  box-shadow: none !important;
+
+  box-sizing: border-box !important;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.restaurant-profile-page
+  form
+  input::placeholder {
+  color: #aaaabb !important;
+
+  opacity: 1;
+}
+
+/* hover */
+
+.restaurant-profile-page
+  form
+  .input-wrapper input:hover,
+.restaurant-profile-page
+  form
+  .input-wrapper select:hover {
+  border-color:
+    #c7c5d7 !important;
+}
+
+/* focus */
+
+.restaurant-profile-page
+  form
+  .input-wrapper input:focus,
+.restaurant-profile-page
+  form
+  .input-wrapper select:focus {
+  border-color:
+    #7164df !important;
+
+  background:
+    #ffffff !important;
+
+  box-shadow:
+    0 0 0 3px
+    rgba(113, 100, 223, 0.10)
+    !important;
+}
+
+.restaurant-profile-page
+  form
+  .input-wrapper:focus-within
+  .input-icon {
+  color: #7164df;
+}
+
+/* select */
+
+.restaurant-profile-page
+  form
+  select {
+  cursor: pointer;
+}
+
+/* time */
+
+.restaurant-profile-page
+  form
+  input[type="time"] {
+  color-scheme: light;
+}
+
+/* =========================================================
+   ACTION BUTTONS
+   ========================================================= */
+
+.restaurant-profile-page
+  form
+  .form-actions {
+  width: 100%;
+
+  display: flex !important;
+  align-items: center;
+  justify-content: flex-end;
+
+  gap: 12px;
+
+  margin: 0 !important;
+
+  padding: 5px 0 30px !important;
+
+  border: 0 !important;
+
+  background: transparent !important;
+
+  box-sizing: border-box;
+}
+
+.restaurant-profile-page
+  form
+  .primary-btn,
+.restaurant-profile-page
+  form
+  .secondary-btn {
+  width: auto !important;
+
+  min-width: 135px;
+
+  height: 44px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  margin: 0 !important;
+
+  padding: 0 18px !important;
+
+  border-radius: 10px !important;
+
+  font-family: inherit;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  box-sizing: border-box;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.restaurant-profile-page
+  form
+  .secondary-btn {
+  border:
+    1px solid
+    #ddddE8 !important;
+
+  background:
+    #ffffff !important;
+
+  color:
+    #515163 !important;
+}
+
+.restaurant-profile-page
+  form
+  .secondary-btn:hover:not(:disabled) {
+  background:
+    #f6f6f9 !important;
+
+  border-color:
+    #c8c8d5 !important;
+}
+
+.restaurant-profile-page
+  form
+  .primary-btn {
+  border:
+    1px solid
+    #6658db !important;
+
+  background:
+    #6658db !important;
+
+  color:
+    #ffffff !important;
+
+  box-shadow:
+    0 4px 14px
+    rgba(102, 88, 219, 0.20);
+}
+
+.restaurant-profile-page
+  form
+  .primary-btn:hover:not(:disabled) {
+  border-color:
+    #574bc8 !important;
+
+  background:
+    #574bc8 !important;
+
+  transform:
+    translateY(-1px);
+}
+
+.restaurant-profile-page
+  button:disabled {
+  cursor: not-allowed !important;
+  opacity: 0.6;
+}
+
+/* =========================================================
+   LOADING STATE
+   ========================================================= */
+
+.restaurant-profile-page
+  .empty-state {
+  width: 100%;
+
+  padding: 70px 20px;
+
+  text-align: center;
+
+  color: #666677;
+}
+
+.restaurant-profile-page
+  .empty-state > i {
+  margin-bottom: 14px;
+
+  color: #6658db;
+
+  font-size: 28px;
+}
+
+.restaurant-profile-page
+  .empty-state h3 {
+  margin: 0 0 7px;
+
+  color: #222235;
+
+  font-size: 18px;
+}
+
+/* =========================================================
+   TABLET / MOBILE
+   Sidebar is overlay on these widths, therefore NO margin.
+   ========================================================= */
+
+@media (max-width: 1024px) {
+  .restaurant-profile-page {
+    width: 100% !important;
+
+    margin-left: 0 !important;
+  }
+
+  .restaurant-profile-page
+    .dashboard-container {
+    padding:
+      24px
+      20px
+      42px !important;
+  }
+
+  .restaurant-profile-page
+    form
+    .form-grid {
+    grid-template-columns:
+      1fr !important;
+  }
+
+  .restaurant-profile-page
+    form
+    .form-group.full-width {
+    grid-column: auto !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .restaurant-profile-page
+    .dashboard-container {
+    padding:
+      16px
+      14px
+      32px !important;
+  }
+
+  .restaurant-profile-page
+    .dashboard-welcome {
+    min-height: auto;
+
+    border-radius: 14px;
+  }
+
+  .restaurant-profile-page
+    .dashboard-welcome
+    .welcome-content {
+    min-height: auto;
+
+    padding:
+      22px
+      19px;
+  }
+
+  .restaurant-profile-page
+    .dashboard-welcome h1 {
+    font-size:
+      23px !important;
+  }
+
+  .restaurant-profile-page
+    .welcome-illustration {
+    display: none;
+  }
+
+  .restaurant-profile-page
+    form
+    .section-header-row {
+    padding:
+      18px !important;
+  }
+
+  .restaurant-profile-page
+    form
+    .form-section {
+    padding:
+      18px !important;
+  }
+
+  .restaurant-profile-page
+    form
+    .form-actions {
+    flex-direction:
+      column-reverse;
+
+    padding-bottom:
+      22px !important;
+  }
+
+  .restaurant-profile-page
+    form
+    .primary-btn,
+  .restaurant-profile-page
+    form
+    .secondary-btn {
+    width:
+      100% !important;
+  }
+}
+/* =========================================================
+   OWNER DASHBOARD LAYOUT - FINAL OVERRIDE
+   ========================================================= */
+
+.owner-layout {
+  display: block !important;
+  width: 100% !important;
+  min-height: calc(100vh - 48px) !important;
+  background: #f6f5fa !important;
+}
+
+.owner-main-content {
+  display: block !important;
+  width: calc(100% - var(--sidebar-width)) !important;
+  min-width: 0 !important;
+
+  margin-left: var(--sidebar-width) !important;
+  padding: 28px 30px 48px !important;
+
+  min-height: calc(100vh - 48px) !important;
+
+  position: relative !important;
+  z-index: 1 !important;
+
+  background: #f6f5fa !important;
+
+  box-sizing: border-box !important;
+
+  transition:
+    margin-left 0.3s ease,
+    width 0.3s ease !important;
+}
+
+/* Sidebar collapsed */
+body:has(.owner-sidebar.sidebar-collapsed)
+  .owner-main-content {
+  margin-left: var(--sidebar-collapsed-width) !important;
+  width: calc(
+    100% - var(--sidebar-collapsed-width)
+  ) !important;
+}
+
+/* =========================================================
+   RESTAURANT PROFILE - NO SIDEBAR OFFSET HERE
+   ========================================================= */
+
+.restaurant-profile-page {
+  display: block !important;
+
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  background: transparent !important;
+
+  box-sizing: border-box !important;
+}
+
+.restaurant-profile-page .dashboard-container {
+  display: block !important;
+
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  box-sizing: border-box !important;
+}
+
+/* Header */
+.restaurant-profile-page .dashboard-welcome {
+  display: block !important;
+
+  width: 100% !important;
+  max-width: none !important;
+
+  margin: 0 0 24px !important;
+
+  border-radius: 18px !important;
+
+  box-sizing: border-box !important;
+}
+
+/* Form */
+.restaurant-profile-page form {
+  display: block !important;
+
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+
+  margin: 0 !important;
+}
+
+/* Cards */
+.restaurant-profile-page
+  form
+  .dashboard-section {
+  display: block !important;
+
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+
+  margin: 0 0 22px !important;
+
+  box-sizing: border-box !important;
+}
+
+/* Form section */
+.restaurant-profile-page
+  form
+  .form-section {
+  display: block !important;
+
+  width: 100% !important;
+  max-width: none !important;
+
+  padding: 24px !important;
+
+  box-sizing: border-box !important;
+}
+
+/* Two-column desktop form */
+.restaurant-profile-page
+  form
+  .form-grid {
+  display: grid !important;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr)) !important;
+
+  gap: 20px 24px !important;
+
+  width: 100% !important;
+  min-width: 0 !important;
+
+  margin: 0 !important;
+
+  box-sizing: border-box !important;
+}
+
+.restaurant-profile-page
+  form
+  .form-group {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
+
+  margin: 0 !important;
+}
+
+.restaurant-profile-page
+  form
+  .form-group.full-width {
+  grid-column: 1 / -1 !important;
+}
+
+.restaurant-profile-page
+  form
+  .input-wrapper {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
+}
+
+.restaurant-profile-page
+  form
+  .input-wrapper input,
+.restaurant-profile-page
+  form
+  .input-wrapper select {
+  width: 100% !important;
+  max-width: none !important;
+
+  box-sizing: border-box !important;
+}
+
+/* =========================================================
+   TABLET / MOBILE
+   ========================================================= */
+
+@media (max-width: 1024px) {
+  .owner-main-content,
+  body:has(.owner-sidebar.sidebar-collapsed)
+    .owner-main-content {
+    width: 100% !important;
+
+    margin-left: 0 !important;
+
+    padding: 22px 20px 40px !important;
+  }
+
+  .restaurant-profile-page
+    form
+    .form-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .restaurant-profile-page
+    form
+    .form-group.full-width {
+    grid-column: auto !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .owner-main-content,
+  body:has(.owner-sidebar.sidebar-collapsed)
+    .owner-main-content {
+    padding: 16px 14px 32px !important;
+  }
+
+  .restaurant-profile-page
+    form
+    .form-section {
+    padding: 18px !important;
+  }
 }

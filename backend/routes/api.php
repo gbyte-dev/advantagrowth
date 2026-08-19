@@ -9,10 +9,6 @@ use App\Http\Controllers\Api\Restaurant\RestaurantController;
 use App\Http\Controllers\Api\Review\ReviewController;
 use App\Http\Controllers\Api\Contact\ContactController;
 use App\Http\Controllers\Api\ReservationController;
-use App\Http\Controllers\Api\Owner\RestaurantStoryController;
-use App\Http\Controllers\Api\Owner\RestaurantAboutController;
-use App\Http\Controllers\Api\Restaurant\MarqueeController;
-use App\Http\Controllers\Api\Restaurant\OwnerHeroController;
 use App\Http\Controllers\Api\Owner\OrderController as OwnerOrderController;
 /*
 |--------------------------------------------------------------------------
@@ -195,21 +191,7 @@ Route::prefix('auth')->group(function () {
             ]);
         });
 
-        /*
-        |--------------------------------------------------------------------------
-        | OWNER - CONTACT MESSAGES
-        |--------------------------------------------------------------------------
-        */
-
-        Route::get(
-            '/owner/restaurant/about',
-            [RestaurantAboutController::class, 'show']
-        );
-
-        Route::post(
-            '/owner/restaurant/about',
-            [RestaurantAboutController::class, 'update']
-        );
+        
     });
 });
 
@@ -268,12 +250,6 @@ Route::get('/restaurants/{slug}', [
 Route::get('/restaurants/{slug}/menu', [
     RestaurantController::class,
     'menu'
-]);
-
-// Restaurant marquee - PUBLIC
-Route::get('/restaurants/{slug}/marquee', [
-    RestaurantController::class,
-    'marquee'
 ]);
 
 // Restaurant visible reviews
@@ -335,30 +311,6 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 
-/*
-|--------------------------------------------------------------------------
-| OWNER - RESTAURANT STORY / ABOUT
-|--------------------------------------------------------------------------
-*/
-
-Route::middleware('auth:sanctum')->group(function () {
-
-    Route::get(
-        '/owner/restaurant/story',
-        [RestaurantStoryController::class, 'show']
-    );
-
-    Route::post(
-        '/owner/restaurant/story',
-        [RestaurantStoryController::class, 'update']
-    );
-
-    Route::post(
-        '/restaurant/about',
-        [RestaurantController::class, 'updateAbout']
-    );
-});
-
 
 /*
 |--------------------------------------------------------------------------
@@ -370,53 +322,14 @@ Route::middleware('auth:sanctum')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | OWNER MARQUEE
-    |--------------------------------------------------------------------------
-    */
-
-    Route::get(
-        '/owner/marquee',
-        [MarqueeController::class, 'index']
-    );
-
-    Route::post(
-        '/owner/marquee',
-        [MarqueeController::class, 'store']
-    );
-
-    Route::put(
-        '/owner/marquee/{marquee}',
-        [MarqueeController::class, 'update']
-    );
-
-    Route::delete(
-        '/owner/marquee/{marquee}',
-        [MarqueeController::class, 'destroy']
-    );
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | OWNER HERO
-    |--------------------------------------------------------------------------
-    */
-
-    Route::get(
-        '/owner/hero',
-        [OwnerHeroController::class, 'show']
-    );
-
-    Route::post(
-        '/owner/hero',
-        [OwnerHeroController::class, 'update']
-    );
-
-
-    /*
-    |--------------------------------------------------------------------------
     | RESTAURANT PROFILE
     |--------------------------------------------------------------------------
     */
+
+    Route::get(
+    '/restaurant/profile',
+    [RestaurantController::class, 'profile']
+);
 
     Route::put(
         '/restaurant/profile',

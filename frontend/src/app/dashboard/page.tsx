@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import Link from "next/link";
 
-// Dashboard Stats Data
+// =========================================================
+// DASHBOARD STATS
+// =========================================================
+
 const statsData = [
   {
     title: "Total Sales",
@@ -47,16 +49,47 @@ const statsData = [
   },
 ];
 
-// Top Menu Items
+// =========================================================
+// TOP ITEMS
+// =========================================================
+
 const topItems = [
-  { name: "Tofu Pasta", price: "€15", orders: 245, revenue: "€3,675" },
-  { name: "Chicken Tikka Masala", price: "€14", orders: 210, revenue: "€2,940" },
-  { name: "Chicken Biryani", price: "€13", orders: 189, revenue: "€2,457" },
-  { name: "Chicken Korma", price: "€12", orders: 167, revenue: "€2,004" },
-  { name: "Chicken Tikka", price: "€11", orders: 145, revenue: "€1,595" },
+  {
+    name: "Tofu Pasta",
+    price: "€15",
+    orders: 245,
+    revenue: "€3,675",
+  },
+  {
+    name: "Chicken Tikka Masala",
+    price: "€14",
+    orders: 210,
+    revenue: "€2,940",
+  },
+  {
+    name: "Chicken Biryani",
+    price: "€13",
+    orders: 189,
+    revenue: "€2,457",
+  },
+  {
+    name: "Chicken Korma",
+    price: "€12",
+    orders: 167,
+    revenue: "€2,004",
+  },
+  {
+    name: "Chicken Tikka",
+    price: "€11",
+    orders: 145,
+    revenue: "€1,595",
+  },
 ];
 
-// Traffic Data
+// =========================================================
+// TRAFFIC DATA
+// =========================================================
+
 const trafficData = [
   { month: "Jan", value: 1200 },
   { month: "Feb", value: 1400 },
@@ -72,263 +105,437 @@ const trafficData = [
   { month: "Dec", value: 3800 },
 ];
 
-const maxTraffic = Math.max(...trafficData.map(d => d.value));
+const maxTraffic = Math.max(
+  ...trafficData.map((item) => item.value)
+);
 
-// Traffic Sources
+// =========================================================
+// TRAFFIC SOURCES
+// =========================================================
+
 const trafficSources = [
-  { name: "Google Ads", value: 45, color: "#6c5ce7" },
-  { name: "Facebook Ads", value: 28, color: "#0984e3" },
-  { name: "Instagram Ads", value: 18, color: "#e17055" },
-  { name: "YouTube Ads", value: 9, color: "#00b894" },
+  {
+    name: "Google Ads",
+    value: 45,
+    color: "#6c5ce7",
+  },
+  {
+    name: "Facebook Ads",
+    value: 28,
+    color: "#0984e3",
+  },
+  {
+    name: "Instagram Ads",
+    value: 18,
+    color: "#e17055",
+  },
+  {
+    name: "YouTube Ads",
+    value: 9,
+    color: "#00b894",
+  },
 ];
+
+// =========================================================
+// QUICK ACTIONS
+// =========================================================
 
 const dashboardCards = [
   {
-    title: "Restaurant Info",
-    description: "Update restaurant information, logo and branding.",
-    icon: "fa-store",
-    href: "/dashboard/branding",
+    title: "Restaurant",
+    description:
+      "Manage restaurant business and operational information.",
+    icon: "fa-building",
+    href: "/dashboard/restaurant",
     color: "blue",
   },
   {
-    title: "Menu Management",
-    description: "Create categories, menu items and pricing.",
-    icon: "fa-utensils",
-    href: "/dashboard/menu",
-    color: "green",
-  },
-  {
-    title: "Staff Management",
-    description: "Add chefs, waiters and cashiers.",
-    icon: "fa-users",
-    href: "/dashboard/staff",
+    title: "Integrations",
+    description:
+      "Manage connected restaurant services and integrations.",
+    icon: "fa-bolt",
+    href: "/dashboard/integrations",
     color: "purple",
   },
   {
-    title: "Orders & Reservations",
-    description: "Track online orders and reservations.",
-    icon: "fa-shopping-cart",
-    href: "/dashboard/ordering",
-    color: "orange",
-  },
-  {
-    title: "Ratings & Reviews",
-    description: "Monitor ratings and customer feedback.",
-    icon: "fa-star",
-    href: "/dashboard/reviews",
+    title: "Recommendations",
+    description:
+      "View smart recommendations for your restaurant.",
+    icon: "fa-lightbulb",
+    href: "/dashboard/recommendations",
     color: "yellow",
-  },
-  {
-    title: "Contact & Social",
-    description: "Update phone numbers, address and social media.",
-    icon: "fa-address-book",
-    href: "/dashboard/contact",
-    color: "red",
   },
 ];
 
+// =========================================================
+// DASHBOARD PAGE
+// =========================================================
+
 export default function DashboardPage() {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-
-  useEffect(() => {
-    const saved = localStorage.getItem("sidebarCollapsed");
-    if (saved === "true") {
-      setSidebarCollapsed(true);
+  const today = new Date().toLocaleDateString(
+    "en-US",
+    {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     }
-
-    const handleSidebarToggle = (e: CustomEvent) => {
-      setSidebarCollapsed(e.detail.collapsed);
-    };
-
-    window.addEventListener("sidebarToggle", handleSidebarToggle as EventListener);
-    return () => {
-      window.removeEventListener("sidebarToggle", handleSidebarToggle as EventListener);
-    };
-  }, []);
+  );
 
   return (
-    <div className="owner-layout">
-      <main className={`owner-main-content ${sidebarCollapsed ? "sidebar-collapsed-main" : "sidebar-expanded-main"}`}>
-        <div className="dashboard-page">
-          <div className="dashboard-container">
-            
-            {/* ==================== WELCOME SECTION ==================== */}
-            <div className="dashboard-welcome">
-              <div className="welcome-content">
-                <div className="welcome-left">
-                  <div className="page-badge">
-                    <i className="fas fa-tachometer-alt"></i>
-                    <span>Dashboard</span>
-                  </div>
-                  <h1>Good Morning, Owner! </h1>
-                  <p>Here's what's happening with your restaurant today.</p>
-                </div>
-                <div className="welcome-right">
-                  <span className="welcome-date">
-                    <i className="far fa-calendar-alt"></i>
-                    {new Date().toLocaleDateString('en-US', { 
-                      weekday: 'long', 
-                      year: 'numeric', 
-                      month: 'long', 
-                      day: 'numeric' 
-                    })}
-                  </span>
-                </div>
+    <div className="dashboard-page">
+      <div className="dashboard-container">
+
+        {/* =====================================================
+            WELCOME
+        ===================================================== */}
+
+        <div className="dashboard-welcome">
+          <div className="welcome-content">
+
+            <div className="welcome-left">
+              <div className="page-badge">
+                <i className="fas fa-tachometer-alt"></i>
+                <span>Dashboard</span>
               </div>
+
+              <h1>Good Morning, Owner!</h1>
+
+              <p>
+                Here's what's happening with your
+                restaurant today.
+              </p>
             </div>
 
-            {/* ==================== STATS CARDS ==================== */}
-            <div className="stats-grid">
-              {statsData.map((stat, index) => (
-                <div key={index} className="stat-card">
-                  <div className="stat-card-header">
-                    <span className="stat-title">{stat.title}</span>
-                    <div className="stat-icon" style={{ background: `${stat.color}15` }}>
-                      <i className={`fas ${stat.icon}`} style={{ color: stat.color }}></i>
-                    </div>
-                  </div>
-                  <div className="stat-value">{stat.value}</div>
-                  <div className="stat-changes">
-                    <span className={`stat-change ${stat.changeType}`}>
-                      <i className={`fas fa-${stat.changeType === 'positive' ? 'arrow-up' : 'arrow-down'}`}></i>
-                      {stat.change}
-                    </span>
-                    <span className="stat-vs">
-                      vs YoY <span className={`${stat.vsType}`}>{stat.vsChange}</span>
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* ==================== CHART & TOP ITEMS SECTION ==================== */}
-            <div className="dashboard-row">
-              {/* Traffic Chart */}
-              <div className="dashboard-col chart-col">
-                <div className="dashboard-card chart-card">
-                  <div className="card-header">
-                    <h3>
-                      <i className="fas fa-chart-area"></i>
-                      Traffic Over Time
-                    </h3>
-                    <span className="card-badge">Last 12 Months</span>
-                  </div>
-                  <div className="chart-container">
-                    <div className="chart-bars">
-                      {trafficData.map((item, index) => (
-                        <div key={index} className="chart-bar-wrapper">
-                          <div 
-                            className="chart-bar" 
-                            style={{ 
-                              height: `${(item.value / maxTraffic) * 100}%`,
-                              animationDelay: `${index * 0.05}s`
-                            }}
-                          >
-                            <span className="chart-bar-tooltip">{item.value}</span>
-                          </div>
-                          <span className="chart-label">{item.month}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Top Items */}
-              <div className="dashboard-col top-items-col">
-                <div className="dashboard-card top-items-card">
-                  <div className="card-header">
-                    <h3>
-                      <i className="fas fa-fire"></i>
-                      Top 5 Items
-                    </h3>
-                    <span className="card-badge">Popular</span>
-                  </div>
-                  <div className="top-items-list">
-                    {topItems.map((item, index) => (
-                      <div key={index} className="top-item">
-                        <div className="top-item-rank">#{index + 1}</div>
-                        <div className="top-item-info">
-                          <div className="top-item-name">{item.name}</div>
-                          <div className="top-item-meta">
-                            <span className="top-item-price">{item.price}</span>
-                            <span className="top-item-orders">{item.orders} orders</span>
-                          </div>
-                        </div>
-                        <div className="top-item-revenue">{item.revenue}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* ==================== TRAFFIC SOURCES ==================== */}
-            <div className="dashboard-row">
-              <div className="dashboard-col full-width">
-                <div className="dashboard-card sources-card">
-                  <div className="card-header">
-                    <h3>
-                      <i className="fas fa-globe"></i>
-                      Top Traffic Sources
-                    </h3>
-                    <span className="card-badge">Current</span>
-                  </div>
-                  <div className="sources-container">
-                    {trafficSources.map((source, index) => (
-                      <div key={index} className="source-item">
-                        <div className="source-info">
-                          <span className="source-name">{source.name}</span>
-                          <span className="source-value">{source.value}%</span>
-                        </div>
-                        <div className="source-bar-track">
-                          <div 
-                            className="source-bar-fill" 
-                            style={{ 
-                              width: `${source.value}%`,
-                              background: source.color,
-                              animationDelay: `${index * 0.1}s`
-                            }}
-                          ></div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* ==================== QUICK ACTIONS CARDS ==================== */}
-            <div className="dashboard-section">
-              <div className="section-header-row">
-                <div>
-                  <h2>Quick Actions</h2>
-                  <p>Manage your restaurant from a single dashboard</p>
-                </div>
-              </div>
-
-              <div className="dashboard-cards-grid">
-                {dashboardCards.map((card, index) => (
-                  <Link href={card.href} key={index} className="dashboard-card">
-                    <div className={`card-icon card-icon-${card.color}`}>
-                      <i className={`fas ${card.icon}`}></i>
-                    </div>
-                    <div className="card-content">
-                      <h3>{card.title}</h3>
-                      <p>{card.description}</p>
-                    </div>
-                    <div className="card-footer">
-                      <span className="card-action">Manage</span>
-                      <i className="fas fa-arrow-right card-arrow"></i>
-                    </div>
-                  </Link>
-                ))}
-              </div>
+            <div className="welcome-right">
+              <span className="welcome-date">
+                <i className="far fa-calendar-alt"></i>
+                {today}
+              </span>
             </div>
 
           </div>
         </div>
-      </main>
+
+        {/* =====================================================
+            STATS
+        ===================================================== */}
+
+        <div className="stats-grid">
+
+          {statsData.map((stat) => (
+            <div
+              key={stat.title}
+              className="stat-card"
+            >
+              <div className="stat-card-header">
+
+                <span className="stat-title">
+                  {stat.title}
+                </span>
+
+                <div
+                  className="stat-icon"
+                  style={{
+                    background: `${stat.color}15`,
+                  }}
+                >
+                  <i
+                    className={`fas ${stat.icon}`}
+                    style={{
+                      color: stat.color,
+                    }}
+                  ></i>
+                </div>
+
+              </div>
+
+              <div className="stat-value">
+                {stat.value}
+              </div>
+
+              <div className="stat-changes">
+
+                <span
+                  className={`stat-change ${stat.changeType}`}
+                >
+                  <i
+                    className={`fas ${
+                      stat.changeType === "positive"
+                        ? "fa-arrow-up"
+                        : "fa-arrow-down"
+                    }`}
+                  ></i>
+
+                  {stat.change}
+                </span>
+
+                <span className="stat-vs">
+                  vs YoY{" "}
+
+                  <span
+                    className={stat.vsType}
+                  >
+                    {stat.vsChange}
+                  </span>
+                </span>
+
+              </div>
+            </div>
+          ))}
+
+        </div>
+
+        {/* =====================================================
+            TRAFFIC + TOP ITEMS
+        ===================================================== */}
+
+        <div className="dashboard-row">
+
+          {/* TRAFFIC */}
+
+          <div className="dashboard-col">
+
+            <div className="dashboard-card">
+
+              <div className="card-header">
+                <h3>
+                  <i className="fas fa-chart-area"></i>
+                  Traffic Over Time
+                </h3>
+
+                <span className="card-badge">
+                  Last 12 Months
+                </span>
+              </div>
+
+              <div className="chart-container">
+
+                <div className="chart-bars">
+
+                  {trafficData.map((item) => {
+                    const height =
+                      (item.value / maxTraffic) * 100;
+
+                    return (
+                      <div
+                        key={item.month}
+                        className="chart-bar-wrapper"
+                      >
+                        <div
+                          className="chart-bar"
+                          style={{
+                            height: `${height}%`,
+                          }}
+                        >
+                          <span className="chart-bar-tooltip">
+                            {item.value}
+                          </span>
+                        </div>
+
+                        <span className="chart-label">
+                          {item.month}
+                        </span>
+                      </div>
+                    );
+                  })}
+
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+
+          {/* TOP ITEMS */}
+
+          <div className="dashboard-col">
+
+            <div className="dashboard-card">
+
+              <div className="card-header">
+                <h3>
+                  <i className="fas fa-fire"></i>
+                  Top 5 Items
+                </h3>
+
+                <span className="card-badge">
+                  Popular
+                </span>
+              </div>
+
+              <div className="top-items-list">
+
+                {topItems.map((item, index) => (
+                  <div
+                    className="top-item"
+                    key={item.name}
+                  >
+
+                    <div className="top-item-rank">
+                      #{index + 1}
+                    </div>
+
+                    <div className="top-item-info">
+
+                      <span className="top-item-name">
+                        {item.name}
+                      </span>
+
+                      <div className="top-item-meta">
+                        <span className="top-item-price">
+                          {item.price}
+                        </span>
+
+                        <span className="top-item-orders">
+                          {item.orders} orders
+                        </span>
+                      </div>
+
+                    </div>
+
+                    <span className="top-item-revenue">
+                      {item.revenue}
+                    </span>
+
+                  </div>
+                ))}
+
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+        {/* =====================================================
+            TRAFFIC SOURCES
+        ===================================================== */}
+
+        <div className="dashboard-row">
+
+          <div className="dashboard-col full-width">
+
+            <div className="dashboard-card">
+
+              <div className="card-header">
+                <h3>
+                  <i className="fas fa-chart-pie"></i>
+                  Traffic Sources
+                </h3>
+
+                <span className="card-badge">
+                  Current
+                </span>
+              </div>
+
+              <div className="sources-container">
+
+                {trafficSources.map((source) => (
+                  <div
+                    className="source-item"
+                    key={source.name}
+                  >
+
+                    <div className="source-info">
+                      <span className="source-name">
+                        {source.name}
+                      </span>
+
+                      <span className="source-value">
+                        {source.value}%
+                      </span>
+                    </div>
+
+                    <div className="source-bar-track">
+
+                      <div
+                        className="source-bar-fill"
+                        style={{
+                          width: `${source.value}%`,
+                          background: source.color,
+                        }}
+                      ></div>
+
+                    </div>
+
+                  </div>
+                ))}
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        {/* =====================================================
+            QUICK ACTIONS
+        ===================================================== */}
+
+        <div className="dashboard-section">
+
+          <div className="section-header-row">
+            <div>
+              <h2>Quick Actions</h2>
+
+              <p>
+                Manage your restaurant from one
+                place.
+              </p>
+            </div>
+          </div>
+
+          <div className="dashboard-cards-grid">
+
+            {dashboardCards.map((card) => (
+              <Link
+                href={card.href}
+                key={card.href}
+                className="dashboard-card-link"
+              >
+
+                <div className="dashboard-card">
+
+                  <div
+                    className={`card-icon card-icon-${card.color}`}
+                  >
+                    <i
+                      className={`fas ${card.icon}`}
+                    ></i>
+                  </div>
+
+                  <div className="card-content">
+
+                    <h3>{card.title}</h3>
+
+                    <p>
+                      {card.description}
+                    </p>
+
+                  </div>
+
+                  <div className="card-footer">
+
+                    <span className="card-action">
+                      Open
+                    </span>
+
+                    <i className="fas fa-arrow-right card-arrow"></i>
+
+                  </div>
+
+                </div>
+
+              </Link>
+            ))}
+
+          </div>
+
+        </div>
+
+      </div>
     </div>
   );
 }

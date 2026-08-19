@@ -12,7 +12,7 @@ const menus = [
   },
   {
     name: "Restaurant",
-    href: "/dashboard/branding",
+    href: "/dashboard/restaurant",
     icon: "fa-building",
   },
   {
