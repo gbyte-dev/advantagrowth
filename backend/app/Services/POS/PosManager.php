@@ -2,6 +2,9 @@
 
 namespace App\Services\POS;
 
+use App\Services\POS\Custom\CustomApiProvider;
+use App\Services\POS\Restolution\RestolutionProvider;
+use App\Services\POS\Toast\ToastProvider;
 use InvalidArgumentException;
 
 class PosManager
@@ -9,60 +12,63 @@ class PosManager
     /**
      * Resolve POS provider adapter.
      */
-    public function driver(string $provider): PosProviderInterface
-    {
-        $provider = strtolower(trim($provider));
+    public function driver(
+        string $provider
+    ): PosProviderInterface {
+        $provider =
+            strtolower(
+                trim($provider)
+            );
 
         return match ($provider) {
-            'square',
-            'square pos' => $this->resolve(
-                \App\Services\POS\Square\SquareProvider::class
-            ),
-
             'toast',
-            'toast pos' => $this->resolve(
-                \App\Services\POS\Toast\ToastProvider::class
-            ),
+            'toast pos' =>
+                $this->resolve(
+                    ToastProvider::class
+                ),
 
-            'clover',
-            'clover pos' => $this->resolve(
-                \App\Services\POS\Clover\CloverProvider::class
-            ),
-
-            'lightspeed' => $this->resolve(
-                \App\Services\POS\Lightspeed\LightspeedProvider::class
-            ),
-
-            'restolution' => $this->resolve(
-                \App\Services\POS\Restolution\RestolutionProvider::class
-            ),
+            'restolution' =>
+                $this->resolve(
+                    RestolutionProvider::class
+                ),
 
             'custom',
-            'custom api' => $this->resolve(
-                \App\Services\POS\Custom\CustomApiProvider::class
-            ),
+            'custom api' =>
+                $this->resolve(
+                    CustomApiProvider::class
+                ),
 
-            default => throw new InvalidArgumentException(
-                "Unsupported POS provider: {$provider}"
-            ),
+            default =>
+                throw new InvalidArgumentException(
+                    "Unsupported POS provider: {$provider}"
+                ),
         };
     }
 
     /**
-     * Resolve provider through Laravel service container.
+     * Resolve provider through
+     * Laravel service container.
      */
     private function resolve(
         string $providerClass
     ): PosProviderInterface {
-        if (!class_exists($providerClass)) {
+        if (
+            !class_exists(
+                $providerClass
+            )
+        ) {
             throw new InvalidArgumentException(
                 'POS provider adapter is not configured yet.'
             );
         }
 
-        $driver = app($providerClass);
+        $driver =
+            app($providerClass);
 
-        if (!$driver instanceof PosProviderInterface) {
+        if (
+            !$driver instanceof
+                PosProviderInterface
+        ) {
             throw new InvalidArgumentException(
                 'Invalid POS provider adapter.'
             );

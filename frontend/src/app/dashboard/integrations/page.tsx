@@ -1,7 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import api from "@/lib/axios";
+
+/* =========================================================
+   TYPES
+   ========================================================= */
 
 type Connection = {
   id: number;
@@ -14,15 +18,20 @@ type Connection = {
 
 type PosMerchant = {
   external_merchant_id?: string | null;
+
   name?: string | null;
   legal_name?: string | null;
+
   phone?: string | null;
   email?: string | null;
+
   address_line_1?: string | null;
   address_line_2?: string | null;
+
   city?: string | null;
   postal_code?: string | null;
   country?: string | null;
+
   currency?: string | null;
   timezone?: string | null;
 };
@@ -30,56 +39,171 @@ type PosMerchant = {
 type PosLocation = {
   external_location_id?: string | null;
   external_business_id?: string | null;
+
   name?: string | null;
   legal_name?: string | null;
+
   phone?: string | null;
   email?: string | null;
+
   address_line_1?: string | null;
   address_line_2?: string | null;
+
   city?: string | null;
   postal_code?: string | null;
   country?: string | null;
+
   currency?: string | null;
   timezone?: string | null;
 };
 
-type PosTestResult = {
-  success: boolean;
-  message?: string;
-  merchant?: PosMerchant;
-  locations?: PosLocation[];
+type ToastRestaurantOption = {
+  restaurant_guid?: string | null;
+  restaurant_name?: string | null;
+  location_name?: string | null;
+  management_group_guid?: string | null;
 };
 
-const providers = [
-  "Square POS",
+type PosTestResult = {
+  success: boolean;
+
+  message?: string;
+
+  merchant?: PosMerchant;
+
+  locations?: PosLocation[];
+
+  restaurants_count?: number;
+
+  restaurants?: ToastRestaurantOption[];
+};
+
+type ApiConnection = {
+  id: number;
+
+  provider: string;
+  label: string;
+
+  status: string;
+
+  external_merchant_id?: string | null;
+
+  last_connected_at?: string | null;
+  last_synced_at?: string | null;
+
+  locations_count?: number;
+
+  is_active?: boolean;
+};
+
+type SyncLog = {
+  id: number;
+
+  pos_connection_id: number;
+
+  connection_label?: string | null;
+  provider?: string | null;
+
+  sync_type: string;
+
+  status:
+    | "pending"
+    | "running"
+    | "success"
+    | "failed";
+
+  records_processed: number;
+  records_created: number;
+  records_updated: number;
+  records_failed: number;
+
+  message?: string | null;
+  error_message?: string | null;
+
+  started_at?: string | null;
+  completed_at?: string | null;
+};
+
+/* =========================================================
+   PROVIDERS
+   ========================================================= */
+
+const connectionProviders = [
   "Toast POS",
-  "Clover POS",
-  "Lightspeed",
   "Restolution",
   "Custom API",
 ];
 
-export default function IntegrationsPage() {
-  const [showForm, setShowForm] = useState(false);
+const supportedProviders = [
+  "Toast POS",
+  "Restolution",
+];
 
-  const [testing, setTesting] = useState(false);
-  const [connecting, setConnecting] = useState(false);
+/* =========================================================
+   COMPONENT
+   ========================================================= */
+
+export default function IntegrationsPage() {
+  /* =========================================================
+     FORM / ACTION STATES
+     ========================================================= */
+
+  const [showForm, setShowForm] =
+    useState(false);
+
+  const [testing, setTesting] =
+    useState(false);
+
+  const [connecting, setConnecting] =
+    useState(false);
+
+  /* =========================================================
+     TEST RESULT
+     ========================================================= */
 
   const [testResult, setTestResult] =
     useState<PosTestResult | null>(null);
 
-  const [testError, setTestError] = useState("");
+  const [testError, setTestError] =
+    useState("");
 
-  const [connections, setConnections] = useState<Connection[]>([
-    {
-      id: 1,
-      provider: "Restolution",
-      label: "Main Restaurant POS",
-      status: "connected",
-      lastSync: "19 Aug 2026, 11:32 AM",
-      records: 24683,
-    },
-  ]);
+  /* =========================================================
+     CONNECTIONS
+     ========================================================= */
+
+  const [connections, setConnections] =
+    useState<Connection[]>([]);
+
+  const [
+    connectionsLoading,
+    setConnectionsLoading,
+  ] = useState(true);
+
+  const [
+    connectionsError,
+    setConnectionsError,
+  ] = useState("");
+
+  /* =========================================================
+     SYNC HISTORY
+     ========================================================= */
+
+  const [syncLogs, setSyncLogs] =
+    useState<SyncLog[]>([]);
+
+  const [
+    syncHistoryLoading,
+    setSyncHistoryLoading,
+  ] = useState(true);
+
+  const [
+    syncHistoryError,
+    setSyncHistoryError,
+  ] = useState("");
+
+  /* =========================================================
+     FORM
+     ========================================================= */
 
   const [form, setForm] = useState({
     provider: "",
@@ -87,27 +211,230 @@ export default function IntegrationsPage() {
     apiKey: "",
     accessToken: "",
     baseUrl: "",
+    restaurantGuid: "",
   });
+
+  const isToast =
+    form.provider === "Toast POS";
+
+  const isRestolution =
+    form.provider === "Restolution";
+
+  const hasToastRestaurants =
+    isToast &&
+    Array.isArray(testResult?.restaurants) &&
+    testResult.restaurants.length > 0;
+
+  /* =========================================================
+     PROVIDER FIELD LABELS
+     ========================================================= */
+
+  const credentialLabels = {
+    apiKey: isToast
+      ? "Client ID"
+      : "API Key",
+
+    accessToken: isToast
+      ? "Client Secret"
+      : "Access Token",
+
+    apiKeyPlaceholder: isToast
+      ? "Enter Toast Client ID"
+      : isRestolution
+      ? "Enter Restolution API Key"
+      : "Enter API Key",
+
+    accessTokenPlaceholder: isToast
+      ? "Enter Toast Client Secret"
+      : isRestolution
+      ? "Enter Restolution Access Token"
+      : "Enter Access Token",
+
+    baseUrlPlaceholder: isToast
+      ? "Enter Toast API Base URL"
+      : isRestolution
+      ? "Enter Restolution API Base URL"
+      : "https://api.example.com",
+  };
+
+  /* =========================================================
+     LOAD CONNECTIONS
+     ========================================================= */
+
+  const loadConnections = async () => {
+    try {
+      setConnectionsLoading(true);
+      setConnectionsError("");
+
+      const token =
+        localStorage.getItem("token");
+
+      if (!token) {
+        setConnectionsError(
+          "Login session not found. Please login again."
+        );
+
+        return;
+      }
+
+      const response = await api.get(
+        "/owner/pos-connections",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const items: ApiConnection[] =
+        response.data?.connections || [];
+
+      setConnections(
+        items.map((item) => ({
+          id: item.id,
+
+          provider:
+            item.provider,
+
+          label:
+            item.label,
+
+          status:
+            item.status === "syncing"
+              ? "syncing"
+              : item.status === "error"
+              ? "error"
+              : "connected",
+
+          lastSync:
+            item.last_synced_at ||
+            item.last_connected_at ||
+            "Not synced yet",
+
+          records:
+            item.locations_count || 0,
+        }))
+      );
+    } catch (err: any) {
+      console.error(
+        "POS connections load error:",
+        err
+      );
+
+      setConnectionsError(
+        err?.response?.data?.message ||
+          "Unable to load POS connections."
+      );
+    } finally {
+      setConnectionsLoading(false);
+    }
+  };
+
+  /* =========================================================
+     LOAD SYNC HISTORY
+     ========================================================= */
+
+  const loadSyncHistory = async () => {
+    try {
+      setSyncHistoryLoading(true);
+      setSyncHistoryError("");
+
+      const token =
+        localStorage.getItem("token");
+
+      if (!token) {
+        setSyncHistoryError(
+          "Login session not found. Please login again."
+        );
+
+        return;
+      }
+
+      const response = await api.get(
+        "/owner/pos-sync-history",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const logs: SyncLog[] =
+        response.data?.logs || [];
+
+      setSyncLogs(logs);
+    } catch (err: any) {
+      console.error(
+        "POS sync history load error:",
+        err
+      );
+
+      setSyncHistoryError(
+        err?.response?.data?.message ||
+          "Unable to load POS sync history."
+      );
+    } finally {
+      setSyncHistoryLoading(false);
+    }
+  };
+
+  /* =========================================================
+     INITIAL LOAD
+     ========================================================= */
+
+  useEffect(() => {
+    loadConnections();
+    loadSyncHistory();
+  }, []);
+
+  /* =========================================================
+     HANDLE FORM CHANGE
+     ========================================================= */
 
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement
     >
   ) => {
-    const { name, value } = e.target;
+    const { name, value } =
+      e.target;
+
+    /*
+     * Restaurant selection must NOT clear
+     * the successful Toast test result.
+     */
+
+    if (name === "restaurantGuid") {
+      setForm((prev) => ({
+        ...prev,
+        restaurantGuid: value,
+      }));
+
+      setTestError("");
+
+      return;
+    }
+
+    /*
+     * Any connection credential/provider change
+     * invalidates the previous test.
+     */
 
     setForm((prev) => ({
       ...prev,
+
       [name]: value,
+
+      restaurantGuid: "",
     }));
 
-    /*
-     * Credentials changed.
-     * Previous test result should no longer be trusted.
-     */
     setTestResult(null);
     setTestError("");
   };
+
+  /* =========================================================
+     RESET FORM
+     ========================================================= */
 
   const resetForm = () => {
     setForm({
@@ -116,209 +443,357 @@ export default function IntegrationsPage() {
       apiKey: "",
       accessToken: "",
       baseUrl: "",
+      restaurantGuid: "",
     });
 
     setTestResult(null);
     setTestError("");
   };
 
+  /* =========================================================
+     OPEN FORM
+     ========================================================= */
+
   const handleOpenForm = () => {
     resetForm();
     setShowForm(true);
   };
+
+  /* =========================================================
+     CANCEL FORM
+     ========================================================= */
 
   const handleCancel = () => {
     resetForm();
     setShowForm(false);
   };
 
-  /*
-  |--------------------------------------------------------------------------
-  | REAL TEST CONNECTION
-  |--------------------------------------------------------------------------
-  */
+  /* =========================================================
+     TEST CONNECTION
+     ========================================================= */
 
-  const handleTestConnection = async () => {
-    if (
-      !form.provider ||
-      !form.label ||
-      !form.baseUrl
-    ) {
-      setTestError(
-        "Provider, Label and Base URL are required."
-      );
-
-      return;
-    }
-
-    try {
-      setTesting(true);
-      setTestError("");
-      setTestResult(null);
-
-      const token =
-        localStorage.getItem("token");
-
-      if (!token) {
+  const handleTestConnection =
+    async () => {
+      if (
+        !form.provider ||
+        !form.label.trim() ||
+        !form.baseUrl.trim()
+      ) {
         setTestError(
-          "Login session not found. Please login again."
+          "Provider, Label and Base URL are required."
         );
 
         return;
       }
 
-      const response = await api.post(
-        "/owner/pos-connections/test",
-        {
-          provider: form.provider,
-          label: form.label,
+      /*
+       * Toast requires Client ID + Secret.
+       */
 
-          api_key:
-            form.apiKey.trim() || null,
+      if (
+        isToast &&
+        (!form.apiKey.trim() ||
+          !form.accessToken.trim())
+      ) {
+        setTestError(
+          "Toast Client ID and Client Secret are required."
+        );
 
-          access_token:
-            form.accessToken.trim() || null,
+        return;
+      }
 
-          base_url:
-            form.baseUrl.trim(),
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+      /*
+       * Restolution adapter currently requires
+       * at least one credential.
+       */
+
+      if (
+        isRestolution &&
+        !form.apiKey.trim() &&
+        !form.accessToken.trim()
+      ) {
+        setTestError(
+          "Restolution API credentials are required."
+        );
+
+        return;
+      }
+
+      try {
+        setTesting(true);
+
+        setTestError("");
+        setTestResult(null);
+
+        /*
+         * Old selected Toast restaurant
+         * should be cleared before a new test.
+         */
+
+        setForm((prev) => ({
+          ...prev,
+          restaurantGuid: "",
+        }));
+
+        const token =
+          localStorage.getItem("token");
+
+        if (!token) {
+          setTestError(
+            "Login session not found. Please login again."
+          );
+
+          return;
         }
-      );
 
-      if (response.data?.success) {
-        setTestResult(
-          response.data as PosTestResult
+        const response =
+          await api.post(
+            "/owner/pos-connections/test",
+            {
+              provider:
+                form.provider,
+
+              label:
+                form.label.trim(),
+
+              api_key:
+                form.apiKey.trim() ||
+                null,
+
+              access_token:
+                form.accessToken.trim() ||
+                null,
+
+              base_url:
+                form.baseUrl.trim(),
+            },
+            {
+              headers: {
+                Authorization:
+                  `Bearer ${token}`,
+              },
+            }
+          );
+
+        if (
+          response.data?.success
+        ) {
+          setTestResult(
+            response.data as PosTestResult
+          );
+
+          /*
+           * If Toast has exactly one accessible
+           * restaurant, automatically select it.
+           */
+
+          const restaurants:
+            ToastRestaurantOption[] =
+              response.data?.restaurants ||
+              [];
+
+          if (
+            form.provider ===
+              "Toast POS" &&
+            restaurants.length === 1 &&
+            restaurants[0]
+              ?.restaurant_guid
+          ) {
+            setForm((prev) => ({
+              ...prev,
+
+              restaurantGuid:
+                restaurants[0]
+                  .restaurant_guid ||
+                "",
+            }));
+          }
+
+          return;
+        }
+
+        setTestError(
+          response.data?.message ||
+            "POS connection test failed."
+        );
+      } catch (err: any) {
+        console.error(
+          "POS test connection error:",
+          err
         );
 
-        return;
+        setTestError(
+          err?.response?.data?.error ||
+            err?.response?.data?.message ||
+            "Unable to test POS connection."
+        );
+      } finally {
+        setTesting(false);
       }
-
-      setTestError(
-        response.data?.message ||
-          "POS connection test failed."
-      );
-    } catch (err: any) {
-      console.error(
-        "POS test connection error:",
-        err
-      );
-
-      setTestError(
-        err?.response?.data?.error ||
-          err?.response?.data?.message ||
-          "Unable to test POS connection."
-      );
-    } finally {
-      setTesting(false);
-    }
-  };
-
-  /*
-  |--------------------------------------------------------------------------
-  | CONNECT
-  |--------------------------------------------------------------------------
-  |
-  | This is still frontend/static for now.
-  | Next step will connect this to the real Laravel save endpoint.
-  |
-  */
-
-const handleConnect = async () => {
-  if (
-    !form.provider ||
-    !form.label ||
-    !form.baseUrl
-  ) {
-    alert("Please fill all required fields.");
-    return;
-  }
-
-  try {
-    setConnecting(true);
-
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      alert("Login session not found.");
-      return;
-    }
-
-    const response = await api.post(
-      "/owner/pos-connections",
-      {
-        provider: form.provider,
-        label: form.label,
-        api_key: form.apiKey || null,
-        access_token: form.accessToken || null,
-        base_url: form.baseUrl,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    if (!response.data?.success) {
-      alert(
-        response.data?.message ||
-          "Unable to add POS connection."
-      );
-      return;
-    }
-
-    const connection =
-      response.data.connection;
-
-    const newConnection: Connection = {
-      id: connection.id,
-      provider: connection.provider,
-      label: connection.label,
-      status: "connected",
-      lastSync: "Not synced yet",
-      records: 0,
     };
 
-    setConnections((prev) => [
-      ...prev,
-      newConnection,
-    ]);
+  /* =========================================================
+     CONNECT AND SAVE
+     ========================================================= */
 
-    resetForm();
-    setTestResult(null);
-    setTestError("");
-    setShowForm(false);
+  const handleConnect =
+    async () => {
+      if (
+        !form.provider ||
+        !form.label.trim() ||
+        !form.baseUrl.trim()
+      ) {
+        alert(
+          "Provider, Label and Base URL are required."
+        );
 
-    alert(
-      response.data?.message ||
-        "POS connection added successfully."
-    );
-  } catch (err: any) {
-    console.error(
-      "POS connection save error:",
-      err
-    );
+        return;
+      }
 
-    alert(
-      err?.response?.data?.error ||
-        err?.response?.data?.message ||
-        "Unable to add POS connection."
-    );
-  } finally {
-    setConnecting(false);
-  }
-};
-  /*
-  |--------------------------------------------------------------------------
-  | DELETE
-  |--------------------------------------------------------------------------
-  */
+      if (
+        isToast &&
+        (!form.apiKey.trim() ||
+          !form.accessToken.trim())
+      ) {
+        alert(
+          "Toast Client ID and Client Secret are required."
+        );
 
-  const handleDelete = (
+        return;
+      }
+
+      if (
+        isRestolution &&
+        !form.apiKey.trim() &&
+        !form.accessToken.trim()
+      ) {
+        alert(
+          "Restolution API credentials are required."
+        );
+
+        return;
+      }
+
+      /*
+       * Must test current credentials first.
+       */
+
+      if (!testResult?.success) {
+        alert(
+          "Please test the POS connection first."
+        );
+
+        return;
+      }
+
+      /*
+       * Toast restaurant selection required
+       * whenever accessible restaurants exist.
+       */
+
+      if (
+        hasToastRestaurants &&
+        !form.restaurantGuid
+      ) {
+        alert(
+          "Please select a Toast restaurant."
+        );
+
+        return;
+      }
+
+      try {
+        setConnecting(true);
+
+        const token =
+          localStorage.getItem("token");
+
+        if (!token) {
+          alert(
+            "Login session not found."
+          );
+
+          return;
+        }
+
+        const response =
+          await api.post(
+            "/owner/pos-connections",
+            {
+              provider:
+                form.provider,
+
+              label:
+                form.label.trim(),
+
+              api_key:
+                form.apiKey.trim() ||
+                null,
+
+              access_token:
+                form.accessToken.trim() ||
+                null,
+
+              base_url:
+                form.baseUrl.trim(),
+
+              external_merchant_id:
+                isToast
+                  ? form.restaurantGuid ||
+                    null
+                  : null,
+            },
+            {
+              headers: {
+                Authorization:
+                  `Bearer ${token}`,
+              },
+            }
+          );
+
+        if (
+          !response.data?.success
+        ) {
+          alert(
+            response.data?.message ||
+              "Unable to add POS connection."
+          );
+
+          return;
+        }
+
+        await loadConnections();
+        await loadSyncHistory();
+
+        resetForm();
+        setShowForm(false);
+
+        alert(
+          response.data?.message ||
+            "POS connection added successfully."
+        );
+      } catch (err: any) {
+        console.error(
+          "POS connection save error:",
+          err
+        );
+
+        alert(
+          err?.response?.data?.error ||
+            err?.response?.data
+              ?.message ||
+            "Unable to add POS connection."
+        );
+      } finally {
+        setConnecting(false);
+      }
+    };
+
+  /* =========================================================
+     DELETE CONNECTION
+     ========================================================= */
+
+  const handleDelete = async (
     id: number
   ) => {
     const confirmed =
@@ -330,85 +805,205 @@ const handleConnect = async () => {
       return;
     }
 
-    setConnections((prev) =>
-      prev.filter(
-        (connection) =>
-          connection.id !== id
-      )
-    );
+    try {
+      const token =
+        localStorage.getItem("token");
+
+      if (!token) {
+        alert(
+          "Login session not found."
+        );
+
+        return;
+      }
+
+      const response =
+        await api.delete(
+          `/owner/pos-connections/${id}`,
+          {
+            headers: {
+              Authorization:
+                `Bearer ${token}`,
+            },
+          }
+        );
+
+      if (
+        !response.data?.success
+      ) {
+        alert(
+          response.data?.message ||
+            "Unable to delete POS connection."
+        );
+
+        return;
+      }
+
+      await loadConnections();
+      await loadSyncHistory();
+
+      alert(
+        response.data?.message ||
+          "POS connection deleted successfully."
+      );
+    } catch (err: any) {
+      console.error(
+        "POS connection delete error:",
+        err
+      );
+
+      alert(
+        err?.response?.data?.message ||
+          "Unable to delete POS connection."
+      );
+    }
   };
 
-  /*
-  |--------------------------------------------------------------------------
-  | SYNC NOW
-  |--------------------------------------------------------------------------
-  |
-  | Still frontend/static.
-  | Real backend sync comes later.
-  |
-  */
+  /* =========================================================
+     SYNC NOW
+     ========================================================= */
 
   const handleSyncNow = async (
     id: number
   ) => {
-    setConnections((prev) =>
-      prev.map((connection) =>
-        connection.id === id
-          ? {
-              ...connection,
-              status: "syncing",
-            }
-          : connection
-      )
-    );
+    try {
+      const token =
+        localStorage.getItem("token");
 
-    await new Promise((resolve) =>
-      setTimeout(resolve, 1200)
-    );
+      if (!token) {
+        alert(
+          "Login session not found."
+        );
 
-    setConnections((prev) =>
-      prev.map((connection) =>
-        connection.id === id
-          ? {
-              ...connection,
-              status: "connected",
-              lastSync:
-                new Date().toLocaleString(),
-            }
-          : connection
-      )
-    );
+        return;
+      }
+
+      setConnections((prev) =>
+        prev.map(
+          (connection) =>
+            connection.id === id
+              ? {
+                  ...connection,
+                  status:
+                    "syncing",
+                }
+              : connection
+        )
+      );
+
+      const response =
+        await api.post(
+          `/owner/pos-connections/${id}/sync`,
+          {},
+          {
+            headers: {
+              Authorization:
+                `Bearer ${token}`,
+            },
+          }
+        );
+
+      if (
+        !response.data?.success
+      ) {
+        await loadConnections();
+        await loadSyncHistory();
+
+        alert(
+          response.data?.message ||
+            "POS synchronization failed."
+        );
+
+        return;
+      }
+
+      await loadConnections();
+      await loadSyncHistory();
+
+      alert(
+        response.data?.message ||
+          "POS synchronization completed successfully."
+      );
+    } catch (err: any) {
+      console.error(
+        "POS synchronization error:",
+        err
+      );
+
+      await loadConnections();
+      await loadSyncHistory();
+
+      alert(
+        err?.response?.data?.error ||
+          err?.response?.data
+            ?.message ||
+          "POS synchronization failed."
+      );
+    }
   };
+
+  /* =========================================================
+     DATE FORMATTER
+     ========================================================= */
+
+  const formatDateTime = (
+    value?: string | null
+  ) => {
+    if (!value) {
+      return "—";
+    }
+
+    const date =
+      new Date(value);
+
+    if (
+      Number.isNaN(
+        date.getTime()
+      )
+    ) {
+      return value;
+    }
+
+    return date.toLocaleString();
+  };
+
+  /* =========================================================
+     UI
+     ========================================================= */
 
   return (
     <div className="dashboard-page integrations-page">
       <div className="dashboard-container">
 
-        {/* =====================================================
-            POS HEADER
-        ===================================================== */}
+        {/* HEADER */}
 
         <div className="integrations-header">
 
           <div>
+
             <div className="integrations-eyebrow">
               <i className="fas fa-plug"></i>
               POS Management
             </div>
 
-            <h1>POS Integrations</h1>
+            <h1>
+              POS Integrations
+            </h1>
 
             <p>
               Connect and manage your restaurant POS
               systems, sync orders, payments and sales
               data automatically.
             </p>
+
           </div>
 
           <button
             type="button"
             className="integrations-add-btn"
-            onClick={handleOpenForm}
+            onClick={
+              handleOpenForm
+            }
           >
             <i className="fas fa-plus"></i>
             Add Connection
@@ -416,9 +1011,7 @@ const handleConnect = async () => {
 
         </div>
 
-        {/* =====================================================
-            POS INFO BANNER
-        ===================================================== */}
+        {/* INFO BANNER */}
 
         <div className="integrations-info-banner">
 
@@ -427,6 +1020,7 @@ const handleConnect = async () => {
           </div>
 
           <div className="integrations-info-content">
+
             <strong>
               Manage your POS connections
             </strong>
@@ -436,6 +1030,7 @@ const handleConnect = async () => {
               and manage all POS integrations from one
               place.
             </p>
+
           </div>
 
           <div className="integrations-info-status">
@@ -445,9 +1040,7 @@ const handleConnect = async () => {
 
         </div>
 
-        {/* =====================================================
-            NEW CONNECTION FORM
-        ===================================================== */}
+        {/* NEW CONNECTION */}
 
         {showForm && (
           <div className="dashboard-section integration-form-wrapper">
@@ -455,20 +1048,27 @@ const handleConnect = async () => {
             <div className="section-header-row integration-form-header">
 
               <div>
-                <h2>New POS Connection</h2>
+
+                <h2>
+                  New POS Connection
+                </h2>
 
                 <p>
                   Enter POS credentials and test the
                   connection before saving.
                 </p>
+
               </div>
 
               <button
                 type="button"
                 className="secondary-btn"
-                onClick={handleCancel}
+                onClick={
+                  handleCancel
+                }
                 disabled={
-                  testing || connecting
+                  testing ||
+                  connecting
                 }
               >
                 <i className="fas fa-times"></i>
@@ -481,12 +1081,13 @@ const handleConnect = async () => {
 
               <div className="form-grid">
 
-                {/* Provider */}
+                {/* PROVIDER */}
 
                 <div className="form-group">
 
                   <label>
                     Provider
+
                     <span className="required">
                       *
                     </span>
@@ -498,34 +1099,49 @@ const handleConnect = async () => {
 
                     <select
                       name="provider"
-                      value={form.provider}
-                      onChange={handleChange}
+                      value={
+                        form.provider
+                      }
+                      onChange={
+                        handleChange
+                      }
                     >
+
                       <option value="">
                         Select POS Provider
                       </option>
 
-                      {providers.map(
+                      {connectionProviders.map(
                         (provider) => (
                           <option
-                            key={provider}
-                            value={provider}
+                            key={
+                              provider
+                            }
+                            value={
+                              provider
+                            }
                           >
-                            {provider}
+                            {provider ===
+                            "Custom API"
+                              ? "Custom API (Development)"
+                              : provider}
                           </option>
                         )
                       )}
+
                     </select>
 
                   </div>
+
                 </div>
 
-                {/* Label */}
+                {/* LABEL */}
 
                 <div className="form-group">
 
                   <label>
                     Label
+
                     <span className="required">
                       *
                     </span>
@@ -538,20 +1154,31 @@ const handleConnect = async () => {
                     <input
                       type="text"
                       name="label"
-                      value={form.label}
-                      onChange={handleChange}
+                      value={
+                        form.label
+                      }
+                      onChange={
+                        handleChange
+                      }
                       placeholder="e.g. Main Restaurant POS"
                     />
 
                   </div>
+
                 </div>
 
-                {/* API Key */}
+                {/* API KEY / CLIENT ID */}
 
                 <div className="form-group">
 
                   <label>
-                    API Key
+                    {credentialLabels.apiKey}
+
+                    {isToast && (
+                      <span className="required">
+                        *
+                      </span>
+                    )}
                   </label>
 
                   <div className="input-wrapper">
@@ -559,23 +1186,40 @@ const handleConnect = async () => {
                     <i className="fas fa-key input-icon"></i>
 
                     <input
-                      type="password"
+                      type={
+                        isToast
+                          ? "text"
+                          : "password"
+                      }
                       name="apiKey"
-                      value={form.apiKey}
-                      onChange={handleChange}
-                      placeholder="Enter API Key"
+                      value={
+                        form.apiKey
+                      }
+                      onChange={
+                        handleChange
+                      }
+                      placeholder={
+                        credentialLabels.apiKeyPlaceholder
+                      }
                       autoComplete="off"
                     />
 
                   </div>
+
                 </div>
 
-                {/* Access Token */}
+                {/* ACCESS TOKEN / CLIENT SECRET */}
 
                 <div className="form-group">
 
                   <label>
-                    Access Token
+                    {credentialLabels.accessToken}
+
+                    {isToast && (
+                      <span className="required">
+                        *
+                      </span>
+                    )}
                   </label>
 
                   <div className="input-wrapper">
@@ -585,21 +1229,29 @@ const handleConnect = async () => {
                     <input
                       type="password"
                       name="accessToken"
-                      value={form.accessToken}
-                      onChange={handleChange}
-                      placeholder="Enter Access Token"
-                      autoComplete="off"
+                      value={
+                        form.accessToken
+                      }
+                      onChange={
+                        handleChange
+                      }
+                      placeholder={
+                        credentialLabels.accessTokenPlaceholder
+                      }
+                      autoComplete="new-password"
                     />
 
                   </div>
+
                 </div>
 
-                {/* Base URL */}
+                {/* BASE URL */}
 
                 <div className="form-group full-width">
 
                   <label>
                     Base URL
+
                     <span className="required">
                       *
                     </span>
@@ -612,19 +1264,86 @@ const handleConnect = async () => {
                     <input
                       type="url"
                       name="baseUrl"
-                      value={form.baseUrl}
-                      onChange={handleChange}
-                      placeholder="https://api.example.com"
+                      value={
+                        form.baseUrl
+                      }
+                      onChange={
+                        handleChange
+                      }
+                      placeholder={
+                        credentialLabels.baseUrlPlaceholder
+                      }
                     />
 
                   </div>
+
                 </div>
+
+                {/* TOAST RESTAURANT SELECTOR */}
+
+                {hasToastRestaurants && (
+                  <div className="form-group full-width">
+
+                    <label>
+                      Toast Restaurant
+
+                      <span className="required">
+                        *
+                      </span>
+                    </label>
+
+                    <div className="input-wrapper">
+
+                      <i className="fas fa-building input-icon"></i>
+
+                      <select
+                        name="restaurantGuid"
+                        value={
+                          form.restaurantGuid
+                        }
+                        onChange={
+                          handleChange
+                        }
+                      >
+
+                        <option value="">
+                          Select Toast Restaurant
+                        </option>
+
+                        {testResult!.restaurants!.map(
+                          (
+                            restaurant,
+                            index
+                          ) => (
+                            <option
+                              key={
+                                restaurant.restaurant_guid ||
+                                index
+                              }
+                              value={
+                                restaurant.restaurant_guid ||
+                                ""
+                              }
+                            >
+                              {restaurant.restaurant_name ||
+                                restaurant.location_name ||
+                                `Restaurant ${
+                                  index + 1
+                                }`}
+                            </option>
+                          )
+                        )}
+
+                      </select>
+
+                    </div>
+
+                  </div>
+                )}
 
               </div>
 
-              {/* =================================================
-                  SECURITY NOTE
-              ================================================= */}
+              {/* SECURITY */}
 
               <div className="integration-security-note">
 
@@ -643,9 +1362,7 @@ const handleConnect = async () => {
 
               </div>
 
-              {/* =================================================
-                  CONNECTION ERROR
-              ================================================= */}
+              {/* ERROR */}
 
               {testError && (
                 <div className="integration-test-error">
@@ -665,9 +1382,7 @@ const handleConnect = async () => {
                 </div>
               )}
 
-              {/* =================================================
-                  TEST SUCCESS + POS DETAILS
-              ================================================= */}
+              {/* SUCCESS / PREVIEW */}
 
               {testResult?.success && (
                 <div className="integration-test-result">
@@ -689,10 +1404,6 @@ const handleConnect = async () => {
                     </div>
 
                   </div>
-
-                  {/* =============================================
-                      RESTAURANT DETAILS
-                  ============================================= */}
 
                   <div className="integration-preview-grid">
 
@@ -794,7 +1505,8 @@ const handleConnect = async () => {
 
                       <strong>
                         {testResult.merchant
-                          ?.postal_code || "—"}
+                          ?.postal_code ||
+                          "—"}
                       </strong>
                     </div>
 
@@ -833,10 +1545,6 @@ const handleConnect = async () => {
 
                   </div>
 
-                  {/* =============================================
-                      LOCATIONS
-                  ============================================= */}
-
                   {Array.isArray(
                     testResult.locations
                   ) &&
@@ -862,6 +1570,7 @@ const handleConnect = async () => {
                             >
 
                               <div>
+
                                 <strong>
                                   {location.name ||
                                     `Location ${
@@ -876,10 +1585,15 @@ const handleConnect = async () => {
                                     location.postal_code,
                                     location.country,
                                   ]
-                                    .filter(Boolean)
-                                    .join(", ") ||
+                                    .filter(
+                                      Boolean
+                                    )
+                                    .join(
+                                      ", "
+                                    ) ||
                                     "Location details unavailable"}
                                 </span>
+
                               </div>
 
                               <span>
@@ -897,9 +1611,7 @@ const handleConnect = async () => {
                 </div>
               )}
 
-              {/* =================================================
-                  ACTIONS
-              ================================================= */}
+              {/* ACTIONS */}
 
               <div className="form-actions">
 
@@ -910,9 +1622,11 @@ const handleConnect = async () => {
                     handleTestConnection
                   }
                   disabled={
-                    testing || connecting
+                    testing ||
+                    connecting
                   }
                 >
+
                   {testing ? (
                     <>
                       <i className="fas fa-spinner fa-spin"></i>
@@ -924,18 +1638,24 @@ const handleConnect = async () => {
                       Test Connection
                     </>
                   )}
+
                 </button>
 
                 <button
                   type="button"
                   className="primary-btn"
-                  onClick={handleConnect}
+                  onClick={
+                    handleConnect
+                  }
                   disabled={
                     testing ||
                     connecting ||
-                    !testResult?.success
+                    !testResult?.success ||
+                    (hasToastRestaurants &&
+                      !form.restaurantGuid)
                   }
                 >
+
                   {connecting ? (
                     <>
                       <i className="fas fa-spinner fa-spin"></i>
@@ -947,17 +1667,17 @@ const handleConnect = async () => {
                       Connect
                     </>
                   )}
+
                 </button>
 
               </div>
 
             </div>
+
           </div>
         )}
 
-        {/* =====================================================
-            YOUR POS CONNECTIONS
-        ===================================================== */}
+        {/* CONNECTIONS */}
 
         <div className="dashboard-section">
 
@@ -974,11 +1694,61 @@ const handleConnect = async () => {
               </p>
             </div>
 
+            <button
+              type="button"
+              className="secondary-btn"
+              onClick={
+                loadConnections
+              }
+              disabled={
+                connectionsLoading
+              }
+            >
+              <i
+                className={`fas fa-sync-alt ${
+                  connectionsLoading
+                    ? "fa-spin"
+                    : ""
+                }`}
+              ></i>
+
+              Refresh
+            </button>
+
           </div>
 
           <div className="integration-connections-list">
 
-            {connections.length === 0 ? (
+            {connectionsLoading ? (
+              <div className="integration-empty-state">
+
+                <i className="fas fa-spinner fa-spin"></i>
+
+                <h3>
+                  Loading Connections
+                </h3>
+
+                <p>
+                  Loading saved POS connections from
+                  the database.
+                </p>
+
+              </div>
+            ) : connectionsError ? (
+              <div className="integration-empty-state">
+
+                <i className="fas fa-exclamation-circle"></i>
+
+                <h3>
+                  Unable to Load Connections
+                </h3>
+
+                <p>
+                  {connectionsError}
+                </p>
+
+              </div>
+            ) : connections.length === 0 ? (
               <div className="integration-empty-state">
 
                 <i className="fas fa-plug"></i>
@@ -997,7 +1767,9 @@ const handleConnect = async () => {
               connections.map(
                 (connection) => (
                   <div
-                    key={connection.id}
+                    key={
+                      connection.id
+                    }
                     className="integration-connection-card"
                   >
 
@@ -1024,6 +1796,7 @@ const handleConnect = async () => {
                       <span
                         className={`integration-status-badge status-${connection.status}`}
                       >
+
                         {connection.status ===
                           "connected" && (
                           <>
@@ -1047,6 +1820,7 @@ const handleConnect = async () => {
                             Error
                           </>
                         )}
+
                       </span>
 
                     </div>
@@ -1059,13 +1833,15 @@ const handleConnect = async () => {
                         </span>
 
                         <strong>
-                          {connection.lastSync}
+                          {formatDateTime(
+                            connection.lastSync
+                          )}
                         </strong>
                       </div>
 
                       <div>
                         <span>
-                          Records
+                          POS Locations
                         </span>
 
                         <strong>
@@ -1085,9 +1861,26 @@ const handleConnect = async () => {
                             connection.id
                           )
                         }
+                        disabled={
+                          connection.status ===
+                          "syncing"
+                        }
                       >
-                        <i className="fas fa-sync-alt"></i>
-                        Sync Now
+
+                        <i
+                          className={`fas fa-sync-alt ${
+                            connection.status ===
+                            "syncing"
+                              ? "fa-spin"
+                              : ""
+                          }`}
+                        ></i>
+
+                        {connection.status ===
+                        "syncing"
+                          ? "Syncing..."
+                          : "Sync Now"}
+
                       </button>
 
                       <button
@@ -1097,6 +1890,10 @@ const handleConnect = async () => {
                           handleDelete(
                             connection.id
                           )
+                        }
+                        disabled={
+                          connection.status ===
+                          "syncing"
                         }
                       >
                         <i className="fas fa-trash"></i>
@@ -1114,9 +1911,7 @@ const handleConnect = async () => {
 
         </div>
 
-        {/* =====================================================
-            SYNC HISTORY
-        ===================================================== */}
+        {/* SYNC HISTORY */}
 
         <div className="dashboard-section">
 
@@ -1132,91 +1927,196 @@ const handleConnect = async () => {
               </p>
             </div>
 
+            <button
+              type="button"
+              className="secondary-btn"
+              onClick={
+                loadSyncHistory
+              }
+              disabled={
+                syncHistoryLoading
+              }
+            >
+              <i
+                className={`fas fa-sync-alt ${
+                  syncHistoryLoading
+                    ? "fa-spin"
+                    : ""
+                }`}
+              ></i>
+
+              Refresh
+            </button>
+
           </div>
 
           <div className="integration-sync-history">
 
-            <div className="integration-sync-row">
+            {syncHistoryLoading ? (
+              <div className="integration-empty-state">
 
-              <div className="sync-icon success">
-                <i className="fas fa-check"></i>
+                <i className="fas fa-spinner fa-spin"></i>
+
+                <h3>
+                  Loading Sync History
+                </h3>
+
+                <p>
+                  Fetching POS synchronization
+                  activity.
+                </p>
+
               </div>
+            ) : syncHistoryError ? (
+              <div className="integration-empty-state">
 
-              <div className="sync-main">
-                <strong>
-                  Sync Successful
-                </strong>
+                <i className="fas fa-exclamation-circle"></i>
 
-                <span>
-                  19 Aug 2026, 11:32 AM
-                </span>
+                <h3>
+                  Unable to Load Sync History
+                </h3>
+
+                <p>
+                  {syncHistoryError}
+                </p>
+
               </div>
+            ) : syncLogs.length === 0 ? (
+              <div className="integration-empty-state">
 
-              <div className="sync-records">
-                Orders: 128
+                <i className="fas fa-clock"></i>
+
+                <h3>
+                  No Sync History
+                </h3>
+
+                <p>
+                  Sync activity will appear here after
+                  your first POS synchronization.
+                </p>
+
               </div>
+            ) : (
+              syncLogs.map(
+                (log) => (
+                  <div
+                    key={
+                      log.id
+                    }
+                    className="integration-sync-row"
+                  >
 
-              <div className="sync-records">
-                Payments: 87
-              </div>
+                    <div
+                      className={`sync-icon ${
+                        log.status ===
+                        "success"
+                          ? "success"
+                          : log.status ===
+                            "failed"
+                          ? "failed"
+                          : ""
+                      }`}
+                    >
 
-            </div>
+                      {log.status ===
+                        "success" && (
+                        <i className="fas fa-check"></i>
+                      )}
 
-            <div className="integration-sync-row">
+                      {log.status ===
+                        "failed" && (
+                        <i className="fas fa-times"></i>
+                      )}
 
-              <div className="sync-icon success">
-                <i className="fas fa-check"></i>
-              </div>
+                      {log.status ===
+                        "running" && (
+                        <i className="fas fa-spinner fa-spin"></i>
+                      )}
 
-              <div className="sync-main">
-                <strong>
-                  Sync Successful
-                </strong>
+                      {log.status ===
+                        "pending" && (
+                        <i className="fas fa-clock"></i>
+                      )}
 
-                <span>
-                  19 Aug 2026, 10:17 AM
-                </span>
-              </div>
+                    </div>
 
-              <div className="sync-records">
-                Orders: 96
-              </div>
+                    <div className="sync-main">
 
-              <div className="sync-records">
-                Payments: 64
-              </div>
+                      <strong>
+                        {log.status ===
+                        "success"
+                          ? "Sync Successful"
+                          : log.status ===
+                            "failed"
+                          ? "Sync Failed"
+                          : log.status ===
+                            "running"
+                          ? "Sync Running"
+                          : "Sync Pending"}
+                      </strong>
 
-            </div>
+                      <span>
+                        {log.connection_label ||
+                          log.provider ||
+                          "POS Connection"}
+                      </span>
 
-            <div className="integration-sync-row">
+                      <span>
+                        {formatDateTime(
+                          log.completed_at ||
+                            log.started_at
+                        )}
+                      </span>
 
-              <div className="sync-icon failed">
-                <i className="fas fa-times"></i>
-              </div>
+                    </div>
 
-              <div className="sync-main">
-                <strong>
-                  Sync Failed
-                </strong>
+                    {log.status ===
+                    "success" ? (
+                      <>
+                        <div className="sync-records">
+                          Processed:{" "}
+                          {
+                            log.records_processed
+                          }
+                        </div>
 
-                <span>
-                  18 Aug 2026, 08:30 PM
-                </span>
-              </div>
+                        <div className="sync-records">
+                          Created:{" "}
+                          {
+                            log.records_created
+                          }
+                        </div>
+                      </>
+                    ) : log.status ===
+                      "failed" ? (
+                      <div className="sync-error">
 
-              <div className="sync-error">
-                Connection timeout
-              </div>
+                        {log.error_message ||
+                          log.message ||
+                          "Synchronization failed"}
 
-            </div>
+                      </div>
+                    ) : (
+                      <div className="sync-records">
+
+                        {log.status ===
+                        "running"
+                          ? "Synchronizing..."
+                          : "Waiting..."}
+
+                      </div>
+                    )}
+
+                  </div>
+                )
+              )
+            )}
 
           </div>
 
         </div>
 
-        {/* =====================================================
-            SUPPORTED POS
-        ===================================================== */}
+        {/* SUPPORTED PROVIDERS */}
 
         <div className="dashboard-section">
 
@@ -1228,8 +2128,8 @@ const handleConnect = async () => {
               </h2>
 
               <p>
-                Available providers for restaurant
-                integrations.
+                POS providers available for restaurant
+                integration.
               </p>
             </div>
 
@@ -1237,10 +2137,12 @@ const handleConnect = async () => {
 
           <div className="integration-provider-grid">
 
-            {providers.map(
+            {supportedProviders.map(
               (provider) => (
                 <div
-                  key={provider}
+                  key={
+                    provider
+                  }
                   className="integration-provider-card"
                 >
 
@@ -1253,7 +2155,7 @@ const handleConnect = async () => {
                   </h3>
 
                   <span className="integration-available">
-                    Available
+                    Supported
                   </span>
 
                 </div>
@@ -1264,9 +2166,7 @@ const handleConnect = async () => {
 
         </div>
 
-        {/* =====================================================
-            WHAT GETS SYNCED
-        ===================================================== */}
+        {/* WHAT GETS SYNCED */}
 
         <div className="dashboard-section">
 
@@ -1288,21 +2188,20 @@ const handleConnect = async () => {
           <div className="integration-sync-grid">
 
             <div className="integration-sync-item">
-
               <i className="fas fa-receipt"></i>
 
               <div>
-                <h3>Orders</h3>
+                <h3>
+                  Orders
+                </h3>
 
                 <p>
                   Import new POS orders.
                 </p>
               </div>
-
             </div>
 
             <div className="integration-sync-item">
-
               <i className="fas fa-utensils"></i>
 
               <div>
@@ -1314,11 +2213,9 @@ const handleConnect = async () => {
                   Items, quantity and pricing.
                 </p>
               </div>
-
             </div>
 
             <div className="integration-sync-item">
-
               <i className="fas fa-credit-card"></i>
 
               <div>
@@ -1330,11 +2227,9 @@ const handleConnect = async () => {
                   Payment status and method.
                 </p>
               </div>
-
             </div>
 
             <div className="integration-sync-item">
-
               <i className="fas fa-sync"></i>
 
               <div>
@@ -1346,7 +2241,6 @@ const handleConnect = async () => {
                   Keep order status updated.
                 </p>
               </div>
-
             </div>
 
           </div>

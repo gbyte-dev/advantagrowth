@@ -28,6 +28,11 @@ class PosConnection extends Model
         'is_active',
     ];
 
+protected $hidden = [
+    'api_key',
+    'access_token',
+];
+
     protected function casts(): array
     {
         return [

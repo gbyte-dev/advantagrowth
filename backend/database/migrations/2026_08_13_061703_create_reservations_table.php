@@ -35,11 +35,14 @@ return new class extends Migration
             $table->timestamps();
 
             // Faster reservation searches
-            $table->index([
-                'restaurant_id',
-                'reservation_date',
-                'reservation_time',
-            ]);
+            $table->index(
+                [
+                    'restaurant_id',
+                    'reservation_date',
+                    'reservation_time',
+                ],
+                'reservations_lookup_idx'
+            );
 
             $table->index([
                 'restaurant_id',
