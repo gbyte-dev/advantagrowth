@@ -192,15 +192,15 @@ export default function SuperAdminSidebar() {
         {/* Sidebar Footer */}
         {!collapsed && (
           <div className="sidebar-footer">
-            <div className="sidebar-user-info">
+            <Link href="/superadmin/profile" className="sidebar-user-info" style={{ textDecoration: "none", color: "inherit", cursor: "pointer" }}>
               <div className="sidebar-user-avatar superadmin-avatar">
-                <i className="fas fa-shield-alt"></i>
+                <i className="fas fa-circle-user"></i>
               </div>
               <div className="sidebar-user-details">
                 <p className="sidebar-user-name">Super Admin</p>
                 <p className="sidebar-user-role">System Control</p>
               </div>
-            </div>
+            </Link>
           </div>
         )}
       </aside>

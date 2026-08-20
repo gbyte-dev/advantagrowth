@@ -1,7 +1,7 @@
 "use client";
 
+import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect, ChangeEvent, FormEvent } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import api from "@/lib/axios";
@@ -27,9 +27,13 @@ const CURRENCIES: string[] = (() => {
     }
 })();
 
-export default function AddRestaurantPage() {
+export default function EditRestaurantPage() {
     const router = useRouter();
+    const params = useParams();
+    const id = params.id;
+
     const [saving, setSaving] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -64,6 +68,38 @@ export default function AddRestaurantPage() {
         closing_time: "",
     });
 
+    useEffect(() => {
+        api
+            .get(`/superadmin/restaurants/${id}`)
+            .then((response) => {
+                const data = response.data.data;
+                setForm({
+                    name: data.name ?? "",
+                    legal_name: data.legal_name ?? "",
+                    business_category: data.business_category ?? "",
+                    vat_number: data.vat_number ?? "",
+                    address_line_1: data.address_line_1 ?? "",
+                    address_line_2: data.address_line_2 ?? "",
+                    city: data.city ?? "",
+                    postal_code: data.postal_code ?? "",
+                    country: data.country ?? "",
+                    phone: data.phone ?? "",
+                    email: data.email ?? "",
+                    website: data.website ?? "",
+                    currency: data.currency ?? "",
+                    timezone: data.timezone ?? "",
+                    opening_time: data.opening_time ? data.opening_time.slice(0, 5) : "",
+                    closing_time: data.closing_time ? data.closing_time.slice(0, 5) : "",
+                });
+            })
+            .catch((err) => {
+                alert(err.response?.data?.message || "Failed to load restaurant");
+            })
+            .finally(() => {
+                setLoading(false);
+            });
+    }, [id]);
+
     const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         setForm({ ...form, [e.target.name]: e.target.value });
         if (errors[e.target.name]) {
@@ -95,12 +131,12 @@ export default function AddRestaurantPage() {
         setSaving(true);
 
         api
-            .post("/superadmin/restaurants", form)
+            .put(`/superadmin/restaurants/${id}`, form)
             .then(() => {
-                router.push("/superadmin/restaurants?added=true");
+                router.push("/superadmin/restaurants?updated=true");
             })
             .catch((err) => {
-                alert(err.response?.data?.message || "Failed to create restaurant");
+                alert(err.response?.data?.message || "Failed to update restaurant");
             })
             .finally(() => {
                 setSaving(false);
@@ -120,8 +156,14 @@ export default function AddRestaurantPage() {
                         Back to Restaurants
                     </Link>
 
-                    <h1 className="mb-6 text-2xl font-bold text-gray-900">Add Restaurant</h1>
+                    <h1 className="mb-6 text-2xl font-bold text-gray-900">Edit Restaurant</h1>
 
+                    {loading ? (
+                        <div className="flex items-center justify-center gap-3 py-24">
+                            <div className="h-10 w-10 animate-spin rounded-full border-4 border-violet-200 border-t-violet-600" />
+                            <p className="text-sm text-gray-500">Loading restaurant...</p>
+                        </div>
+                    ) : (
                     <form onSubmit={handleSubmit} noValidate className="space-y-6">
                         <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
                             <h2 className="mb-4 border-b border-gray-100 pb-3 text-sm font-semibold text-gray-800">Basic Information</h2>
@@ -259,12 +301,14 @@ export default function AddRestaurantPage() {
                                 disabled={saving}
                                 className="rounded-lg bg-violet-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-violet-700 disabled:opacity-50"
                             >
-                                {saving ? "Saving..." : "Save Restaurant"}
+                                {saving ? "Saving..." : "Update Restaurant"}
                             </button>
                         </div>
                     </form>
+                    )}
                 </div>
             </main>
         </div>
     );
 }
+

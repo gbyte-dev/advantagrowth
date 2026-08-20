@@ -75,6 +75,16 @@ Route::prefix('auth')->group(function () {
             'me'
         ]);
 
+        Route::put('/profile', [
+            AuthController::class,
+            'updateProfile'
+        ]);
+
+        Route::put('/change-password', [
+            AuthController::class,
+            'changePassword'
+        ]);
+
         /*
         |--------------------------------------------------------------------------
         | STAFF MANAGEMENT

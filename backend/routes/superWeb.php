@@ -33,6 +33,11 @@ Route::middleware('auth:sanctum')->prefix('superadmin')->group(function () {
             'update'
         ]);
 
+        Route::patch('/{id}/toggle-status', [
+            RestaurantsController::class,
+            'toggleStatus'
+        ]);
+
         Route::delete('/{id}', [
             RestaurantsController::class,
             'destroy'

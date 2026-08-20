@@ -115,6 +115,29 @@ class RestaurantsController extends Controller
     }
 
     /**
+     * Toggle the active/blocked status of the specified resource.
+     */
+    public function toggleStatus(string $id)
+    {
+        $restaurant = Restaurant::find($id);
+        if (!$restaurant) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Restaurant not found',
+            ], 404);
+        }
+
+        $restaurant->is_active = !$restaurant->is_active;
+        $restaurant->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => $restaurant->is_active ? 'Restaurant unblocked successfully' : 'Restaurant blocked successfully',
+            'is_active' => $restaurant->is_active,
+        ]);
+    }
+
+    /**
      * Remove the specified resource from storage.
      */
     public function destroy(string $id)
