@@ -8,6 +8,7 @@ use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
 use Throwable;
+use App\Services\POS\PosUrlValidator;
 
 class CustomApiProvider implements PosProviderInterface
 {
@@ -400,16 +401,10 @@ class CustomApiProvider implements PosProviderInterface
         PosConnection $connection,
         string $path
     ): string {
-        $baseUrl = rtrim(
-            (string) $connection->base_url,
-            '/'
-        );
-
-        if (!$baseUrl) {
-            throw new RuntimeException(
-                'POS Base URL is missing.'
-            );
-        }
+        $baseUrl =
+    PosUrlValidator::validate(
+        (string) $connection->base_url
+    );
 
         return $baseUrl . '/' .
             ltrim($path, '/');
@@ -552,4 +547,72 @@ class CustomApiProvider implements PosProviderInterface
             ? "POS API error ({$status}): {$message}"
             : "POS API returned HTTP {$status}.";
     }
+
+    public function getOrders(
+    PosConnection $connection,
+    \Carbon\CarbonInterface $start,
+    \Carbon\CarbonInterface $end
+): array {
+    $baseUrl =
+    PosUrlValidator::validate(
+        (string) $connection->base_url
+    );
+
+    $request =
+        Http::acceptJson()
+            ->timeout(30)
+            ->connectTimeout(10);
+
+    if ($connection->access_token) {
+        $request =
+            $request->withToken(
+                $connection->access_token
+            );
+    }
+
+    if ($connection->api_key) {
+        $request =
+            $request->withHeaders([
+                'X-API-Key' =>
+                    $connection->api_key,
+            ]);
+    }
+
+    $response =
+        $request->get(
+            $baseUrl . '/orders',
+            [
+                'start' =>
+                    $start->toIso8601String(),
+
+                'end' =>
+                    $end->toIso8601String(),
+            ]
+        );
+
+    if (!$response->successful()) {
+        throw new RuntimeException(
+            'Unable to fetch Custom API orders. HTTP ' .
+            $response->status()
+        );
+    }
+
+    $data =
+        $response->json();
+
+    $orders =
+        data_get(
+            $data,
+            'orders',
+            []
+        );
+
+    if (!is_array($orders)) {
+        throw new RuntimeException(
+            'Custom API orders response is invalid.'
+        );
+    }
+
+    return $orders;
+}
 }

@@ -14,6 +14,14 @@ use App\Http\Controllers\Api\POS\PosConnectionController;
 use App\Http\Controllers\Api\POS\MockPosController;
 
 
+/*
+|--------------------------------------------------------------------------
+| EXTRA ROUTE FILES
+|--------------------------------------------------------------------------
+*/
+
+require base_path('routes/superWeb.php');
+require base_path('routes/call.php');
 
 
 /*
@@ -21,39 +29,39 @@ use App\Http\Controllers\Api\POS\MockPosController;
 | AUTH ROUTES
 |--------------------------------------------------------------------------
 */
-require base_path('routes/superWeb.php');
-
-require base_path('routes/call.php');
 
 Route::prefix('auth')->group(function () {
 
-    // Owner Register
+    /*
+    |--------------------------------------------------------------------------
+    | PUBLIC AUTH
+    |--------------------------------------------------------------------------
+    */
+
     Route::post('/register', [
         AuthController::class,
         'register'
     ]);
 
-    // Owner Login
     Route::post('/login', [
         AuthController::class,
         'login'
     ]);
 
-    // Staff Login
     Route::post('/staff/login', [
         StaffController::class,
         'login'
     ]);
 
-    // Super Admin Login
     Route::post('/superadmin/login', [
         AuthController::class,
         'superAdminLogin'
     ]);
 
+
     /*
     |--------------------------------------------------------------------------
-    | AUTHENTICATED OWNER / STAFF ROUTES
+    | AUTHENTICATED AUTH ROUTES
     |--------------------------------------------------------------------------
     */
 
@@ -84,6 +92,7 @@ Route::prefix('auth')->group(function () {
             AuthController::class,
             'changePassword'
         ]);
+
 
         /*
         |--------------------------------------------------------------------------
@@ -134,6 +143,7 @@ Route::prefix('auth')->group(function () {
             ]);
         });
 
+
         /*
         |--------------------------------------------------------------------------
         | MENU MANAGEMENT
@@ -183,6 +193,7 @@ Route::prefix('auth')->group(function () {
             ]);
         });
 
+
         /*
         |--------------------------------------------------------------------------
         | OWNER - REVIEWS
@@ -206,43 +217,8 @@ Route::prefix('auth')->group(function () {
                 'destroy'
             ]);
         });
-
-        
     });
-    
 });
-
-
-/*
-|--------------------------------------------------------------------------
-| CONTACT MESSAGES
-|--------------------------------------------------------------------------
-*/
-
-Route::middleware('auth:sanctum')
-    ->prefix('contact')
-    ->group(function () {
-
-        // Owner gets contact messages
-        Route::get('/messages', [
-            ContactController::class,
-            'messages'
-        ]);
-
-        // Owner read / unread
-        Route::patch('/messages/{id}/read', [
-            ContactController::class,
-            'toggleMessageRead'
-        ]);
-
-        // Owner deletes message
-        Route::delete('/messages/{id}', [
-            ContactController::class,
-            'destroyMessage'
-        ]);
-    });
-
-
 
 
 /*
@@ -251,37 +227,31 @@ Route::middleware('auth:sanctum')
 |--------------------------------------------------------------------------
 */
 
-// All active restaurants
 Route::get('/restaurants', [
     RestaurantController::class,
     'index'
 ]);
 
-// Single restaurant
 Route::get('/restaurants/{slug}', [
     RestaurantController::class,
     'show'
 ]);
 
-// Restaurant menu
 Route::get('/restaurants/{slug}/menu', [
     RestaurantController::class,
     'menu'
 ]);
 
-// Restaurant visible reviews
 Route::get('/restaurants/{slug}/reviews', [
     ReviewController::class,
     'restaurantReviews'
 ]);
 
-// Public customer review submission
 Route::post('/restaurants/reviews', [
     ReviewController::class,
     'store'
 ]);
 
-// Restaurant staff
 Route::get('/restaurants/{slug}/staff', [
     RestaurantController::class,
     'staff'
@@ -290,11 +260,10 @@ Route::get('/restaurants/{slug}/staff', [
 
 /*
 |--------------------------------------------------------------------------
-| PUBLIC CUSTOMER CONTACT FORM
+| PUBLIC CUSTOMER CONTACT
 |--------------------------------------------------------------------------
 */
 
-// Customer does NOT need login
 Route::post('/contact/messages', [
     ContactController::class,
     'storeMessage'
@@ -303,81 +272,203 @@ Route::post('/contact/messages', [
 
 /*
 |--------------------------------------------------------------------------
-| RESERVATION ROUTES
+| OWNER CONTACT MESSAGES
 |--------------------------------------------------------------------------
 */
 
-// Customer reservation
+Route::middleware('auth:sanctum')
+    ->prefix('contact')
+    ->group(function () {
+
+        Route::get('/messages', [
+            ContactController::class,
+            'messages'
+        ]);
+
+        Route::patch('/messages/{id}/read', [
+            ContactController::class,
+            'toggleMessageRead'
+        ]);
+
+        Route::delete('/messages/{id}', [
+            ContactController::class,
+            'destroyMessage'
+        ]);
+    });
+
+
+/*
+|--------------------------------------------------------------------------
+| RESERVATIONS
+|--------------------------------------------------------------------------
+*/
+
+/*
+|--------------------------------------------------------------------------
+| PUBLIC RESERVATION
+|--------------------------------------------------------------------------
+*/
+
 Route::post('/reservations', [
     ReservationController::class,
     'store'
 ]);
 
-// Owner reservation management
-Route::middleware('auth:sanctum')->group(function () {
-
-    Route::get(
-        '/owner/reservations',
-        [ReservationController::class, 'ownerReservations']
-    );
-
-    Route::patch(
-        '/owner/reservations/{reservation}/status',
-        [ReservationController::class, 'updateStatus']
-    );
-});
-
-
 
 /*
 |--------------------------------------------------------------------------
-| OWNER - MARQUEE / HERO / PROFILE
+| OWNER RESERVATIONS
 |--------------------------------------------------------------------------
 */
 
 Route::middleware('auth:sanctum')->group(function () {
 
-    /*
-    |--------------------------------------------------------------------------
-    | RESTAURANT PROFILE
-    |--------------------------------------------------------------------------
-    */
+    Route::get(
+        '/owner/reservations',
+        [
+            ReservationController::class,
+            'ownerReservations'
+        ]
+    );
+
+    Route::patch(
+        '/owner/reservations/{reservation}/status',
+        [
+            ReservationController::class,
+            'updateStatus'
+        ]
+    );
+});
+
+
+/*
+|--------------------------------------------------------------------------
+| RESTAURANT PROFILE
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware('auth:sanctum')->group(function () {
 
     Route::get(
-    '/restaurant/profile',
-    [RestaurantController::class, 'profile']
-);
+        '/restaurant/profile',
+        [
+            RestaurantController::class,
+            'profile'
+        ]
+    );
 
     Route::put(
         '/restaurant/profile',
-        [RestaurantController::class, 'updateProfile']
+        [
+            RestaurantController::class,
+            'updateProfile'
+        ]
     );
 });
 
 
+/*
+|--------------------------------------------------------------------------
+| MOCK POS API
+|--------------------------------------------------------------------------
+|
+| DEVELOPMENT ONLY.
+|
+| IMPORTANT:
+| These routes MUST NOT be inside owner prefix/auth middleware.
+|
+| URLs:
+| GET /api/mock-pos/restaurant
+| GET /api/mock-pos/locations
+|
+*/
 
-
-Route::middleware('auth:sanctum')->prefix('owner')->group(function () {
-    Route::get('/orders', [OwnerOrderController::class, 'index']);
-    Route::get('/orders/{order}', [OwnerOrderController::class, 'show']);
-    Route::patch('/orders/{order}/status', [OwnerOrderController::class, 'updateStatus']);
-    Route::post(
-    '/pos-connections/test',
-    [PosConnectionController::class, 'testConnection']
-);
 Route::prefix('mock-pos')->group(function () {
-    Route::get(
-        '/restaurant',
-        [MockPosController::class, 'restaurant']
-    );
+
+    Route::get('/restaurant', [
+        MockPosController::class,
+        'restaurant'
+    ]);
 
     Route::get(
-        '/locations',
-        [MockPosController::class, 'locations']
+        '/orders',
+        [MockPosController::class, 'orders']
     );
+
+    Route::get('/locations', [
+        MockPosController::class,
+        'locations'
+    ]);
+
+    
 });
+
+
+/*
+|--------------------------------------------------------------------------
+| AUTHENTICATED OWNER ROUTES
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware('auth:sanctum')
+    ->prefix('owner')
+    ->group(function () {
+
+        /*
+        |--------------------------------------------------------------------------
+        | OWNER ORDERS
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get('/orders', [
+            OwnerOrderController::class,
+            'index'
+        ]);
+
+        Route::get('/orders/{order}', [
+            OwnerOrderController::class,
+            'show'
+        ]);
+
+        Route::patch('/orders/{order}/status', [
+            OwnerOrderController::class,
+            'updateStatus'
+        ]);
+
+
+  /*
+|--------------------------------------------------------------------------
+| POS CONNECTIONS
+|--------------------------------------------------------------------------
+*/
+
+Route::get('/pos-connections', [
+    PosConnectionController::class,
+    'index'
+]);
+
+Route::post('/pos-connections/test', [
+    PosConnectionController::class,
+    'testConnection'
+]);
+
+Route::post('/pos-connections', [
+    PosConnectionController::class,
+    'store'
+]);
+
 Route::post(
-    '/pos-connections',
-    [PosConnectionController::class, 'store']
+    '/pos-connections/{posConnection}/sync',
+    [PosConnectionController::class, 'sync']
 );
-});
+
+Route::get(
+    '/pos-sync-history',
+    [PosConnectionController::class, 'syncHistory']
+);
+
+Route::delete('/pos-connections/{posConnection}', [
+    PosConnectionController::class,
+    'destroy'
+]);
+    });
