@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, ChangeEvent } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Pencil, Trash2, Store, Plus, AlertTriangle, RefreshCw, Ban, CheckCircle } from "lucide-react";
+import { Pencil, Trash2, Store, Plus, AlertTriangle, RefreshCw, Ban, CheckCircle, Search } from "lucide-react";
 import api from "@/lib/axios";
 import SuperAdminSidebar from "@/components/SuperAdminSidebar";
 
@@ -25,7 +25,8 @@ export default function RestaurantPage() {
     const [deletingId, setDeletingId] = useState<number | null>(null);
     const [togglingId, setTogglingId] = useState<number | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 10;
+    const [itemsPerPage, setItemsPerPage] = useState(10);
+    const [searchQuery, setSearchQuery] = useState("");
 
     const [successMessage, setSuccessMessage] = useState("");
 
@@ -108,18 +109,56 @@ export default function RestaurantPage() {
             });
     };
 
-    const totalPages = Math.max(1, Math.ceil(restaurants.length / itemsPerPage));
+    const filteredRestaurants = restaurants.filter((r) => {
+        const q = searchQuery.trim().toLowerCase();
+        if (!q) return true;
+        return (
+            r.name.toLowerCase().includes(q) ||
+            r.email.toLowerCase().includes(q) ||
+            r.phone.toLowerCase().includes(q) ||
+            (r.business_category || "").toLowerCase().includes(q)
+        );
+    });
+
+    const totalPages = Math.max(1, Math.ceil(filteredRestaurants.length / itemsPerPage));
     const safePage = Math.min(currentPage, totalPages);
-    const paginatedRestaurants = restaurants.slice(
+    const paginatedRestaurants = filteredRestaurants.slice(
         (safePage - 1) * itemsPerPage,
         safePage * itemsPerPage
     );
+
+    const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
+        setSearchQuery(e.target.value);
+        setCurrentPage(1);
+    };
+
+    const handleItemsPerPageChange = (e: ChangeEvent<HTMLSelectElement>) => {
+        setItemsPerPage(Number(e.target.value));
+        setCurrentPage(1);
+    };
+
+    const getPageNumbers = (): (number | "...")[] => {
+        const pages: (number | "...")[] = [];
+        const delta = 1;
+
+        pages.push(1);
+        if (safePage - delta > 2) pages.push("...");
+
+        for (let i = Math.max(2, safePage - delta); i <= Math.min(totalPages - 1, safePage + delta); i++) {
+            pages.push(i);
+        }
+
+        if (safePage + delta < totalPages - 1) pages.push("...");
+        if (totalPages > 1) pages.push(totalPages);
+
+        return pages;
+    };
 
     return (
         <div className="superadmin-layout">
             <SuperAdminSidebar />
             <main className={`superadmin-main-content ${sidebarCollapsed ? "sidebar-collapsed-main" : "sidebar-expanded-main"}`}>
-                <div className="overflow-x-hidden pt-20 sm:pt-24 lg:pt-0">
+                <div className="overflow-x-hidden pt-20 sm:pt-24 lg:pt-0" style={{ fontFamily: "'Inter', sans-serif" }}>
                     {loading ? (
                         <div className="flex min-h-[calc(100vh-42px)] flex-col items-center justify-center gap-3">
 
@@ -169,31 +208,60 @@ export default function RestaurantPage() {
 
 
                             <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-md">
-                                <div className="overflow-x-auto px-2 py-2 sm:px-4">
-                                    <table className="min-w-full text-base">
+                                <div className="flex flex-col items-start justify-between gap-3 border-b border-gray-100 px-4 py-3 sm:flex-row sm:items-center">
+                                    <label className="flex items-center gap-2 text-sm text-gray-600">
+                                        <select
+                                            value={itemsPerPage}
+                                            onChange={handleItemsPerPageChange}
+                                            className="box-border rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-sm text-gray-700 outline-none focus:border-violet-500 focus:ring-4 focus:ring-violet-100"
+                                        >
+                                            <option value={5}>5</option>
+                                            <option value={10}>10</option>
+                                            <option value={25}>25</option>
+                                            <option value={50}>50</option>
+                                        </select>
+                                        entries per page
+                                    </label>
+
+                                    <label className="flex items-center gap-2 text-sm text-gray-600">
+                                        Search
+                                        <div className="relative">
+                                            <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                                            <input
+                                                type="text"
+                                                value={searchQuery}
+                                                onChange={handleSearchChange}
+                                                autoComplete="off"
+                                                placeholder="Name, email, phone..."
+                                                className="box-border w-full rounded-lg border border-gray-200 bg-white py-1.5 pl-9 pr-3 text-sm font-normal text-gray-900 outline-none transition-all hover:border-gray-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 sm:w-60"
+                                            />
+                                        </div>
+                                    </label>
+                                </div>
+                                <div className="scrollbar-hide overflow-x-auto px-2 py-2 sm:px-4">
+                                    <table className="w-full table-fixed text-base">
                                         <thead>
                                             <tr className="divide-x divide-gray-200 border-b-2 border-gray-200 bg-gray-50">
-                                                <th className="px-5 py-3.5 text-left text-sm font-semibold uppercase tracking-wider text-gray-500">Restaurant</th>
-                                                <th className="px-5 py-3.5 text-left text-sm font-semibold uppercase tracking-wider text-gray-500">Category</th>
-                                                <th className="px-5 py-3.5 text-left text-sm font-semibold uppercase tracking-wider text-gray-500">Phone</th>
-                                                <th className="px-5 py-3.5 text-left text-sm font-semibold uppercase tracking-wider text-gray-500">Email</th>
-
-                                                <th className="px-5 py-3.5 text-left text-sm font-semibold uppercase tracking-wider text-gray-500">Status</th>
-                                                <th className="px-5 py-3.5 text-right text-sm font-semibold uppercase tracking-wider text-gray-500">Actions</th>
+                                                <th className="w-[25%] px-3 py-3.5 text-left text-sm font-semibold uppercase tracking-wider text-gray-500">Restaurant</th>
+                                                <th className="w-[17%] px-3 py-3.5 text-left text-sm font-semibold uppercase tracking-wider text-gray-500">Category</th>
+                                                <th className="w-[14%] px-3 py-3.5 text-left text-sm font-semibold uppercase tracking-wider text-gray-500">Phone</th>
+                                                <th className="w-[20%] px-3 py-3.5 text-left text-sm font-semibold uppercase tracking-wider text-gray-500">Email</th>
+                                                <th className="w-[10%] px-3 py-3.5 text-left text-sm font-semibold uppercase tracking-wider text-gray-500">Status</th>
+                                                <th className="w-[14%] px-3 py-3.5 text-right text-sm font-semibold uppercase tracking-wider text-gray-500">Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-gray-100">
-                                            {restaurants.length === 0 && (
+                                            {filteredRestaurants.length === 0 && (
                                                 <tr>
                                                     <td colSpan={6} className="px-5 py-14 text-center text-sm text-gray-500">
-                                                        No restaurants found.
+                                                        {searchQuery ? "No matching restaurants found." : "No restaurants found."}
                                                     </td>
                                                 </tr>
                                             )}
 
                                             {paginatedRestaurants.map((r) => (
                                                 <tr key={r.id} className="divide-x divide-gray-100 transition-colors hover:bg-gray-50/80">
-                                                    <td className="px-5 py-2.5">
+                                                    <td className="px-3 py-2.5">
                                                         <div className="flex items-center gap-2.5">
                                                             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-violet-50 text-violet-600">
                                                                 <Store size={17} />
@@ -204,11 +272,11 @@ export default function RestaurantPage() {
                                                             </div>
                                                         </div>
                                                     </td>
-                                                    <td className="max-w-[160px] truncate px-5 py-2.5 font-normal text-gray-700">{r.business_category || "—"}</td>
-                                                    <td className="px-5 py-2.5 whitespace-nowrap font-normal text-gray-700">{r.phone}</td>
-                                                    <td className="px-5 py-2.5 whitespace-nowrap font-normal text-gray-700">{r.email}</td>
+                                                    <td className="truncate px-3 py-2.5 font-normal text-gray-700">{r.business_category || "—"}</td>
+                                                    <td className="truncate px-3 py-2.5 font-normal text-gray-700">{r.phone}</td>
+                                                    <td className="truncate px-3 py-2.5 font-normal text-gray-700">{r.email}</td>
 
-                                                    <td className="px-5 py-2.5">
+                                                    <td className="px-3 py-2.5">
                                                         <span
                                                             className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold ${r.is_active
                                                                 ? "bg-green-50 text-green-700"
@@ -219,14 +287,14 @@ export default function RestaurantPage() {
                                                             {r.is_active ? "Active" : "Blocked"}
                                                         </span>
                                                     </td>
-                                                    <td className="px-5 py-2.5">
-                                                        <div className="flex items-center justify-end gap-2">
+                                                    <td className="px-2 py-2.5">
+                                                        <div className="flex items-center justify-end gap-1.5">
                                                             <Link
                                                                 href={`/superadmin/restaurants/${r.id}/edit`}
                                                                 aria-label="Edit restaurant"
-                                                                className="inline-flex items-center justify-center rounded-lg border border-gray-200 bg-white p-2 text-gray-500 shadow-sm transition-all hover:border-violet-300 hover:bg-violet-50 hover:text-violet-600 hover:shadow"
+                                                                className="inline-flex items-center justify-center rounded-lg border border-gray-200 bg-white p-1.5 text-gray-500 shadow-sm transition-all hover:border-violet-300 hover:bg-violet-50 hover:text-violet-600 hover:shadow"
                                                             >
-                                                                <Pencil size={17} />
+                                                                <Pencil size={16} />
                                                             </Link>
                                                             <button
                                                                 type="button"
@@ -234,18 +302,18 @@ export default function RestaurantPage() {
                                                                 disabled={togglingId === r.id}
                                                                 aria-label={r.is_active ? "Block restaurant" : "Unblock restaurant"}
                                                                 title={r.is_active ? "Block restaurant" : "Unblock restaurant"}
-                                                                className="inline-flex items-center justify-center rounded-lg border border-gray-200 bg-white p-2 text-gray-500 shadow-sm transition-all hover:border-orange-300 hover:bg-orange-50 hover:text-orange-600 hover:shadow disabled:cursor-not-allowed disabled:opacity-50"
+                                                                className="inline-flex items-center justify-center rounded-lg border border-gray-200 bg-white p-1.5 text-gray-500 shadow-sm transition-all hover:border-orange-300 hover:bg-orange-50 hover:text-orange-600 hover:shadow disabled:cursor-not-allowed disabled:opacity-50"
                                                             >
-                                                                {r.is_active ? <Ban size={17} /> : <CheckCircle size={17} />}
+                                                                {r.is_active ? <Ban size={16} /> : <CheckCircle size={16} />}
                                                             </button>
                                                             <button
                                                                 type="button"
                                                                 onClick={() => handleDelete(r.id)}
                                                                 disabled={deletingId === r.id}
                                                                 aria-label="Delete restaurant"
-                                                                className="inline-flex items-center justify-center rounded-lg border border-gray-200 bg-white p-2 text-gray-500 shadow-sm transition-all hover:border-red-300 hover:bg-red-50 hover:text-red-600 hover:shadow disabled:cursor-not-allowed disabled:opacity-50"
+                                                                className="inline-flex items-center justify-center rounded-lg border border-gray-200 bg-white p-1.5 text-gray-500 shadow-sm transition-all hover:border-red-300 hover:bg-red-50 hover:text-red-600 hover:shadow disabled:cursor-not-allowed disabled:opacity-50"
                                                             >
-                                                                <Trash2 size={17} />
+                                                                <Trash2 size={16} />
                                                             </button>
                                                         </div>
                                                     </td>
@@ -257,26 +325,73 @@ export default function RestaurantPage() {
                             </div>
 
                             {totalPages > 1 && (
-                                <div className="mt-4 flex items-center justify-center gap-2">
-                                    <button
-                                        type="button"
-                                        disabled={safePage === 1}
-                                        onClick={() => setCurrentPage((p) => p - 1)}
-                                        className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
-                                    >
-                                        Previous
-                                    </button>
-                                    <span className="text-sm text-gray-500">
-                                        Page {safePage} of {totalPages}
-                                    </span>
-                                    <button
-                                        type="button"
-                                        disabled={safePage === totalPages}
-                                        onClick={() => setCurrentPage((p) => p + 1)}
-                                        className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
-                                    >
-                                        Next
-                                    </button>
+                                <div className="mt-4 flex flex-col items-center justify-between gap-3 sm:flex-row">
+                                    <p className="text-sm text-gray-500">
+                                        Showing {(safePage - 1) * itemsPerPage + 1} to{" "}
+                                        {Math.min(safePage * itemsPerPage, filteredRestaurants.length)} of {filteredRestaurants.length} entries
+                                    </p>
+
+                                    <div className="flex items-center gap-1">
+                                        <button
+                                            type="button"
+                                            disabled={safePage === 1}
+                                            onClick={() => setCurrentPage(1)}
+                                            aria-label="First page"
+                                            className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
+                                        >
+                                            «
+                                        </button>
+                                        <button
+                                            type="button"
+                                            disabled={safePage === 1}
+                                            onClick={() => setCurrentPage((p) => p - 1)}
+                                            aria-label="Previous page"
+                                            className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
+                                        >
+                                            ‹
+                                        </button>
+
+                                        {getPageNumbers().map((p, idx) =>
+                                            p === "..." ? (
+                                                <span key={`ellipsis-${idx}`} className="px-1.5 text-sm text-gray-400">
+                                                    …
+                                                </span>
+                                            ) : (
+                                                <button
+                                                    key={p}
+                                                    type="button"
+                                                    onClick={() => setCurrentPage(p)}
+                                                    aria-label={`Page ${p}`}
+                                                    aria-current={p === safePage ? "page" : undefined}
+                                                    className={`inline-flex h-8 w-8 items-center justify-center rounded-lg text-sm font-semibold transition-colors ${p === safePage
+                                                        ? "bg-violet-600 text-white shadow-sm"
+                                                        : "border border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+                                                        }`}
+                                                >
+                                                    {p}
+                                                </button>
+                                            )
+                                        )}
+
+                                        <button
+                                            type="button"
+                                            disabled={safePage === totalPages}
+                                            onClick={() => setCurrentPage((p) => p + 1)}
+                                            aria-label="Next page"
+                                            className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
+                                        >
+                                            ›
+                                        </button>
+                                        <button
+                                            type="button"
+                                            disabled={safePage === totalPages}
+                                            onClick={() => setCurrentPage(totalPages)}
+                                            aria-label="Last page"
+                                            className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
+                                        >
+                                            »
+                                        </button>
+                                    </div>
                                 </div>
                             )}
                         </>
