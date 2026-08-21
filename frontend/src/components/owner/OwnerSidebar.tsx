@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 const menus = [
   {
@@ -27,37 +27,177 @@ const menus = [
   },
 ];
 
+type OwnerInfo = {
+  owner_name: string;
+  email: string;
+};
+
 export default function OwnerSidebar() {
   const pathname = usePathname();
   const router = useRouter();
 
-  const [collapsed, setCollapsed] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  const [collapsed, setCollapsed] =
+    useState(false);
+
+  const [isMobile, setIsMobile] =
+    useState(false);
+
+  const [owner, setOwner] =
+    useState<OwnerInfo>({
+      owner_name: "Restaurant Owner",
+      email: "",
+    });
+
+  /*
+  |--------------------------------------------------------------------------
+  | Initial setup
+  |--------------------------------------------------------------------------
+  */
 
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth <= 1024);
+      setIsMobile(
+        window.innerWidth <= 1024
+      );
     };
 
     checkMobile();
 
-    window.addEventListener("resize", checkMobile);
+    window.addEventListener(
+      "resize",
+      checkMobile
+    );
 
-    const saved = localStorage.getItem("sidebarCollapsed");
+    const saved =
+      localStorage.getItem(
+        "sidebarCollapsed"
+      );
 
     if (saved === "true") {
       setCollapsed(true);
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | Load logged-in owner
+    |--------------------------------------------------------------------------
+    */
+
+    const loadOwner = async () => {
+      try {
+        const token =
+          localStorage.getItem(
+            "token"
+          );
+
+        if (!token) {
+          return;
+        }
+
+        const response =
+          await fetch(
+            "http://127.0.0.1:8000/api/auth/me",
+            {
+              method: "GET",
+
+              headers: {
+                Authorization:
+                  `Bearer ${token}`,
+
+                Accept:
+                  "application/json",
+              },
+            }
+          );
+
+        if (!response.ok) {
+          return;
+        }
+
+        const user =
+          await response.json();
+
+        setOwner({
+          owner_name:
+            user.owner_name ||
+            "Restaurant Owner",
+
+          email:
+            user.email ||
+            "",
+        });
+      } catch (error) {
+        console.error(
+          "Sidebar owner load error:",
+          error
+        );
+      }
+    };
+
+    loadOwner();
+
+    /*
+    |--------------------------------------------------------------------------
+    | Live profile update listener
+    |--------------------------------------------------------------------------
+    */
+
+    const handleProfileUpdated =
+      (
+        event: Event
+      ) => {
+        const customEvent =
+          event as CustomEvent<{
+            owner_name?: string;
+            email?: string;
+          }>;
+
+        setOwner(
+          (current) => ({
+            owner_name:
+              customEvent.detail
+                ?.owner_name ||
+              current.owner_name,
+
+            email:
+              customEvent.detail
+                ?.email ||
+              current.email,
+          })
+        );
+      };
+
+    window.addEventListener(
+      "ownerProfileUpdated",
+      handleProfileUpdated
+    );
+
     return () => {
-      window.removeEventListener("resize", checkMobile);
+      window.removeEventListener(
+        "resize",
+        checkMobile
+      );
+
+      window.removeEventListener(
+        "ownerProfileUpdated",
+        handleProfileUpdated
+      );
     };
   }, []);
 
-  const toggleSidebar = () => {
-    const newState = !collapsed;
+  /*
+  |--------------------------------------------------------------------------
+  | Toggle sidebar
+  |--------------------------------------------------------------------------
+  */
 
-    setCollapsed(newState);
+  const toggleSidebar = () => {
+    const newState =
+      !collapsed;
+
+    setCollapsed(
+      newState
+    );
 
     localStorage.setItem(
       "sidebarCollapsed",
@@ -65,32 +205,54 @@ export default function OwnerSidebar() {
     );
 
     window.dispatchEvent(
-      new CustomEvent("sidebarToggle", {
-        detail: {
-          collapsed: newState,
-        },
-      })
+      new CustomEvent(
+        "sidebarToggle",
+        {
+          detail: {
+            collapsed:
+              newState,
+          },
+        }
+      )
     );
   };
 
-  const handleMobileLinkClick = () => {
-    if (!isMobile) return;
+  /*
+  |--------------------------------------------------------------------------
+  | Mobile sidebar close
+  |--------------------------------------------------------------------------
+  */
 
-    setCollapsed(true);
+  const handleMobileLinkClick =
+    () => {
+      if (!isMobile) {
+        return;
+      }
 
-    localStorage.setItem(
-      "sidebarCollapsed",
-      "true"
-    );
+      setCollapsed(true);
 
-    window.dispatchEvent(
-      new CustomEvent("sidebarToggle", {
-        detail: {
-          collapsed: true,
-        },
-      })
-    );
-  };
+      localStorage.setItem(
+        "sidebarCollapsed",
+        "true"
+      );
+
+      window.dispatchEvent(
+        new CustomEvent(
+          "sidebarToggle",
+          {
+            detail: {
+              collapsed: true,
+            },
+          }
+        )
+      );
+    };
+
+  /*
+  |--------------------------------------------------------------------------
+  | Logout
+  |--------------------------------------------------------------------------
+  */
 
   const handleLogout = () => {
     localStorage.clear();
@@ -99,55 +261,92 @@ export default function OwnerSidebar() {
       new Event("storage")
     );
 
-    router.replace("/owner/login");
+    router.replace(
+      "/owner/login"
+    );
   };
 
-  const isActive = (href: string) => {
-    if (href === "/dashboard") {
-      return pathname === "/dashboard";
+  /*
+  |--------------------------------------------------------------------------
+  | Active menu
+  |--------------------------------------------------------------------------
+  */
+
+  const isActive = (
+    href: string
+  ) => {
+    if (
+      href === "/dashboard"
+    ) {
+      return (
+        pathname ===
+        "/dashboard"
+      );
     }
 
     return (
       pathname === href ||
-      pathname.startsWith(`${href}/`)
+      pathname.startsWith(
+        `${href}/`
+      )
     );
   };
+
+  const profileActive =
+    pathname ===
+      "/dashboard/profile" ||
+    pathname.startsWith(
+      "/dashboard/profile/"
+    );
 
   return (
     <>
       {/* Mobile Overlay */}
+
       <div
         className={`sidebar-overlay ${
-          isMobile && !collapsed
+          isMobile &&
+          !collapsed
             ? "sidebar-overlay-visible"
             : ""
         }`}
-        onClick={toggleSidebar}
+        onClick={
+          toggleSidebar
+        }
       />
 
       <aside
         className={`owner-sidebar ${
-          collapsed ? "sidebar-collapsed" : ""
+          collapsed
+            ? "sidebar-collapsed"
+            : ""
         }`}
       >
         {/* Sidebar Header */}
+
         <div className="sidebar-header">
           <Link
             href="/dashboard"
             className="sidebar-logo"
-            onClick={handleMobileLinkClick}
+            onClick={
+              handleMobileLinkClick
+            }
           >
-            <i className="fas fa-bolt sidebar-logo-icon"></i>
+            <i className="fas fa-bolt sidebar-logo-icon" />
 
             {!collapsed && (
-              <span>Advanta</span>
+              <span>
+                Advanta
+              </span>
             )}
           </Link>
 
           <button
             type="button"
             className="sidebar-toggle"
-            onClick={toggleSidebar}
+            onClick={
+              toggleSidebar
+            }
             aria-label={
               collapsed
                 ? "Expand sidebar"
@@ -170,50 +369,66 @@ export default function OwnerSidebar() {
         </div>
 
         {/* Main Navigation */}
+
         <nav className="sidebar-nav">
           <div className="sidebar-section">
-            {menus.map((menu) => {
-              const active = isActive(menu.href);
+            {menus.map(
+              (menu) => {
+                const active =
+                  isActive(
+                    menu.href
+                  );
 
-              return (
-                <Link
-                  key={menu.href}
-                  href={menu.href}
-                  className={`sidebar-link ${
-                    active
-                      ? "sidebar-link-active"
-                      : ""
-                  }`}
-                  title={
-                    collapsed
-                      ? menu.name
-                      : ""
-                  }
-                  onClick={
-                    handleMobileLinkClick
-                  }
-                >
-                  <i
-                    className={`fas ${menu.icon} sidebar-link-icon`}
-                  />
+                return (
+                  <Link
+                    key={
+                      menu.href
+                    }
+                    href={
+                      menu.href
+                    }
+                    className={`sidebar-link ${
+                      active
+                        ? "sidebar-link-active"
+                        : ""
+                    }`}
+                    title={
+                      collapsed
+                        ? menu.name
+                        : ""
+                    }
+                    onClick={
+                      handleMobileLinkClick
+                    }
+                  >
+                    <i
+                      className={`fas ${menu.icon} sidebar-link-icon`}
+                    />
 
-                  {!collapsed && (
-                    <span>{menu.name}</span>
-                  )}
+                    {!collapsed && (
+                      <span>
+                        {menu.name}
+                      </span>
+                    )}
 
-                  {active && !collapsed && (
-                    <span className="sidebar-active-indicator" />
-                  )}
-                </Link>
-              );
-            })}
+                    {active &&
+                      !collapsed && (
+                        <span className="sidebar-active-indicator" />
+                      )}
+                  </Link>
+                );
+              }
+            )}
           </div>
 
           {/* Logout */}
+
           <div className="sidebar-section sidebar-section-bottom">
             <button
               type="button"
-              onClick={handleLogout}
+              onClick={
+                handleLogout
+              }
               className="sidebar-link sidebar-logout"
               title={
                 collapsed
@@ -224,32 +439,63 @@ export default function OwnerSidebar() {
               <i className="fas fa-sign-out-alt sidebar-link-icon" />
 
               {!collapsed && (
-                <span>Logout</span>
+                <span>
+                  Logout
+                </span>
               )}
             </button>
           </div>
         </nav>
 
-        {/* Sidebar Footer */}
-        {!collapsed && (
-          <div className="sidebar-footer">
-            <div className="sidebar-user-info">
-              <div className="sidebar-user-avatar">
-                <i className="fas fa-user" />
-              </div>
+        {/* Sidebar Footer / Profile */}
 
+        <div className="sidebar-footer">
+          <Link
+            href="/dashboard/profile"
+            onClick={
+              handleMobileLinkClick
+            }
+            className={`sidebar-user-info ${
+              profileActive
+                ? "sidebar-user-info-active"
+                : ""
+            }`}
+            title={
+              collapsed
+                ? "Profile"
+                : ""
+            }
+            style={{
+              textDecoration:
+                "none",
+
+              color:
+                "inherit",
+
+              cursor:
+                "pointer",
+            }}
+          >
+            <div className="sidebar-user-avatar">
+              <i className="fas fa-user" />
+            </div>
+
+            {!collapsed && (
               <div className="sidebar-user-details">
                 <p className="sidebar-user-name">
-                  Restaurant Owner
+                  {
+                    owner.owner_name
+                  }
                 </p>
 
                 <p className="sidebar-user-role">
-                  Management
+                  {owner.email ||
+                    "Owner Account"}
                 </p>
               </div>
-            </div>
-          </div>
-        )}
+            )}
+          </Link>
+        </div>
       </aside>
     </>
   );

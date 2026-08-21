@@ -7,6 +7,7 @@ use App\Models\PosConnection;
 use App\Models\PosSyncLog;
 use App\Models\Restaurant;
 use App\Services\POS\PosManager;
+use App\Services\POS\PosMenuSyncService;
 use App\Services\POS\PosOrderSyncService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -114,6 +115,11 @@ class PosQueueRecoveryTest extends TestCase
                 PosOrderSyncService::class
             );
 
+        $menuSyncService =
+            Mockery::mock(
+                PosMenuSyncService::class
+            );
+
         /*
          * If healthy sync is detected,
          * provider must never be resolved.
@@ -130,7 +136,8 @@ class PosQueueRecoveryTest extends TestCase
 
         $job->handle(
             $posManager,
-            $orderSyncService
+            $orderSyncService,
+            $menuSyncService
         );
 
         $this->assertSame(
@@ -215,6 +222,11 @@ class PosQueueRecoveryTest extends TestCase
                 PosOrderSyncService::class
             );
 
+        $menuSyncService =
+            Mockery::mock(
+                PosMenuSyncService::class
+            );
+
         $job =
             new SyncPosConnectionJob(
                 $connection->id
@@ -223,7 +235,8 @@ class PosQueueRecoveryTest extends TestCase
         try {
             $job->handle(
                 $posManager,
-                $orderSyncService
+                $orderSyncService,
+                $menuSyncService
             );
         } catch (\RuntimeException $exception) {
             $this->assertSame(

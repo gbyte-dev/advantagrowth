@@ -10,12 +10,15 @@ class MenuCategory extends Model
     use HasFactory;
 
     protected $fillable = [
-        'restaurant_id',
-        'name',
-        'description',
-        'is_active',
-        'sort_order',
-    ];
+    'restaurant_id',
+    'pos_connection_id',
+    'external_category_id',
+
+    'name',
+    'description',
+    'is_active',
+    'sort_order',
+];
 
     protected $casts = [
         'is_active' => 'boolean',

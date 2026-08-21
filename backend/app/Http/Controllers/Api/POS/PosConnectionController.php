@@ -805,11 +805,12 @@ class PosConnectionController extends Controller
      * Synchronize one POS connection.
      */
     public function sync(
-        Request $request,
-        PosConnection $posConnection,
-        PosManager $posManager,
-        PosOrderSyncService $orderSyncService
-    ) {
+    Request $request,
+    PosConnection $posConnection,
+    PosManager $posManager,
+    PosOrderSyncService $orderSyncService,
+    \App\Services\POS\PosMenuSyncService $menuSyncService
+){
         $user = $request->user();
 
         if (
@@ -1163,6 +1164,24 @@ class PosConnectionController extends Controller
             );
 
             /*
+|--------------------------------------------------------------------------
+| Fetch + sync POS menu
+|--------------------------------------------------------------------------
+*/
+
+$menuCategories =
+    $provider->getMenu(
+        $posConnection->fresh()
+    );
+
+$menuResult =
+    $menuSyncService->sync(
+        $posConnection->fresh(),
+        $menuCategories
+    );
+
+
+            /*
             |--------------------------------------------------------------------------
             | Order sync window
             |--------------------------------------------------------------------------
@@ -1266,17 +1285,18 @@ class PosConnectionController extends Controller
                     'locations_processed' =>
                         count($locations),
 
+                    'menu' =>
+                        $menuResult,
+
                     'orders' =>
                         $orderResult,
 
                     'sync_window' => [
                         'start' =>
-                            $start
-                                ->toIso8601String(),
+                            $start->toIso8601String(),
 
                         'end' =>
-                            $end
-                                ->toIso8601String(),
+                            $end->toIso8601String(),
                     ],
                 ],
 

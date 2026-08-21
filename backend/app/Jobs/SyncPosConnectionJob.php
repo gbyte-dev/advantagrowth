@@ -51,9 +51,10 @@ class SyncPosConnectionJob implements ShouldQueue
      * Process POS synchronization.
      */
     public function handle(
-        PosManager $posManager,
-        PosOrderSyncService $orderSyncService
-    ): void {
+    PosManager $posManager,
+    PosOrderSyncService $orderSyncService,
+    \App\Services\POS\PosMenuSyncService $menuSyncService
+): void {
         $posConnection =
             PosConnection::find(
                 $this->posConnectionId
@@ -254,7 +255,26 @@ class SyncPosConnectionJob implements ShouldQueue
                     $posConnection
                 );
 
+            
+            
             /*
+|--------------------------------------------------------------------------
+| Fetch + sync POS menu
+|--------------------------------------------------------------------------
+*/
+
+$menuCategories =
+    $provider->getMenu(
+        $posConnection->fresh()
+    );
+
+$menuResult =
+    $menuSyncService->sync(
+        $posConnection->fresh(),
+        $menuCategories
+    );
+            
+                /*
             |--------------------------------------------------------------------------
             | Save merchant + locations atomically
             |--------------------------------------------------------------------------
@@ -494,6 +514,9 @@ class SyncPosConnectionJob implements ShouldQueue
                     null,
 
                 'meta' => [
+                    'menu' =>
+                            $menuResult,    
+
                     'locations_processed' =>
                         count($locations),
 

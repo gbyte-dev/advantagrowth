@@ -10,17 +10,21 @@ class MenuItem extends Model
     use HasFactory;
 
     protected $fillable = [
-        'restaurant_id',
-        'menu_category_id',
-        'name',
-        'description',
-        'price',
-        'image',
-        'food_type',
-        'is_available',
-        'is_active',
-        'sort_order',
-    ];
+    'restaurant_id',
+    'pos_connection_id',
+    'external_item_id',
+
+    'menu_category_id',
+
+    'name',
+    'description',
+    'price',
+    'image',
+    'food_type',
+    'is_available',
+    'is_active',
+    'sort_order',
+];
 
     protected $casts = [
         'price' => 'decimal:2',

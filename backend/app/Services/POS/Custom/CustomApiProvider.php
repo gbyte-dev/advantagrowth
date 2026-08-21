@@ -4,11 +4,11 @@ namespace App\Services\POS\Custom;
 
 use App\Models\PosConnection;
 use App\Services\POS\PosProviderInterface;
+use App\Services\POS\PosUrlValidator;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
 use Throwable;
-use App\Services\POS\PosUrlValidator;
 
 class CustomApiProvider implements PosProviderInterface
 {
@@ -39,22 +39,27 @@ class CustomApiProvider implements PosProviderInterface
 
             return [
                 'success' => true,
+
                 'message' =>
                     'POS connection successful.',
+
                 'status_code' =>
                     $response->status(),
             ];
         } catch (ConnectionException $exception) {
             return [
                 'success' => false,
+
                 'message' =>
                     'Unable to reach the POS API.',
+
                 'error' =>
                     $exception->getMessage(),
             ];
         } catch (Throwable $exception) {
             return [
                 'success' => false,
+
                 'message' =>
                     $exception->getMessage(),
             ];
@@ -87,37 +92,40 @@ class CustomApiProvider implements PosProviderInterface
 
         $data = $response->json();
 
-        /*
-        |--------------------------------------------------------------------------
-        | Normalized Merchant Response
-        |--------------------------------------------------------------------------
-        |
-        | The external POS API may return extra data.
-        | We normalize the important fields here.
-        |
-        */
+        if (!is_array($data)) {
+            throw new RuntimeException(
+                'POS merchant response is invalid.'
+            );
+        }
 
         return [
             'external_merchant_id' =>
                 data_get(
                     $data,
                     'id'
-                ) ??
+                )
+                ??
                 data_get(
                     $data,
                     'merchant_id'
-                ) ??
+                )
+                ??
                 data_get(
                     $data,
                     'business.id'
                 ),
 
             'name' =>
-                data_get($data, 'name') ??
+                data_get(
+                    $data,
+                    'name'
+                )
+                ??
                 data_get(
                     $data,
                     'restaurant_name'
-                ) ??
+                )
+                ??
                 data_get(
                     $data,
                     'business.name'
@@ -127,21 +135,30 @@ class CustomApiProvider implements PosProviderInterface
                 data_get(
                     $data,
                     'legal_name'
-                ) ??
+                )
+                ??
                 data_get(
                     $data,
                     'business.legal_name'
                 ),
 
             'phone' =>
-                data_get($data, 'phone') ??
+                data_get(
+                    $data,
+                    'phone'
+                )
+                ??
                 data_get(
                     $data,
                     'contact.phone'
                 ),
 
             'email' =>
-                data_get($data, 'email') ??
+                data_get(
+                    $data,
+                    'email'
+                )
+                ??
                 data_get(
                     $data,
                     'contact.email'
@@ -151,11 +168,13 @@ class CustomApiProvider implements PosProviderInterface
                 data_get(
                     $data,
                     'address_line_1'
-                ) ??
+                )
+                ??
                 data_get(
                     $data,
                     'address.address_line_1'
-                ) ??
+                )
+                ??
                 data_get(
                     $data,
                     'address.line1'
@@ -165,18 +184,24 @@ class CustomApiProvider implements PosProviderInterface
                 data_get(
                     $data,
                     'address_line_2'
-                ) ??
+                )
+                ??
                 data_get(
                     $data,
                     'address.address_line_2'
-                ) ??
+                )
+                ??
                 data_get(
                     $data,
                     'address.line2'
                 ),
 
             'city' =>
-                data_get($data, 'city') ??
+                data_get(
+                    $data,
+                    'city'
+                )
+                ??
                 data_get(
                     $data,
                     'address.city'
@@ -186,11 +211,13 @@ class CustomApiProvider implements PosProviderInterface
                 data_get(
                     $data,
                     'postal_code'
-                ) ??
+                )
+                ??
                 data_get(
                     $data,
                     'address.postal_code'
-                ) ??
+                )
+                ??
                 data_get(
                     $data,
                     'address.zip'
@@ -200,7 +227,8 @@ class CustomApiProvider implements PosProviderInterface
                 data_get(
                     $data,
                     'country'
-                ) ??
+                )
+                ??
                 data_get(
                     $data,
                     'address.country'
@@ -218,7 +246,8 @@ class CustomApiProvider implements PosProviderInterface
                     'timezone'
                 ),
 
-            'raw_data' => $data,
+            'raw_data' =>
+                $data,
         ];
     }
 
@@ -228,12 +257,6 @@ class CustomApiProvider implements PosProviderInterface
     public function getLocations(
         PosConnection $connection
     ): array {
-        /*
-        |--------------------------------------------------------------------------
-        | Try dedicated /locations endpoint first.
-        |--------------------------------------------------------------------------
-        */
-
         $response = $this
             ->request($connection)
             ->get(
@@ -247,8 +270,16 @@ class CustomApiProvider implements PosProviderInterface
             $data = $response->json();
 
             $items =
-                data_get($data, 'locations') ??
-                data_get($data, 'data') ??
+                data_get(
+                    $data,
+                    'locations'
+                )
+                ??
+                data_get(
+                    $data,
+                    'data'
+                )
+                ??
                 $data;
 
             if (!is_array($items)) {
@@ -275,13 +306,15 @@ class CustomApiProvider implements PosProviderInterface
         | Fallback
         |--------------------------------------------------------------------------
         |
-        | Some POS APIs don't expose a separate locations endpoint.
-        | In that case, use the merchant/restaurant itself as one location.
+        | Some POS APIs do not expose a separate locations endpoint.
+        | In that case, merchant itself becomes one location.
         |
         */
 
         $merchant =
-            $this->getMerchant($connection);
+            $this->getMerchant(
+                $connection
+            );
 
         return [
             [
@@ -296,7 +329,9 @@ class CustomApiProvider implements PosProviderInterface
                     ] ?? null,
 
                 'name' =>
-                    $merchant['name'] ?? null,
+                    $merchant[
+                        'name'
+                    ] ?? null,
 
                 'legal_name' =>
                     $merchant[
@@ -304,10 +339,14 @@ class CustomApiProvider implements PosProviderInterface
                     ] ?? null,
 
                 'phone' =>
-                    $merchant['phone'] ?? null,
+                    $merchant[
+                        'phone'
+                    ] ?? null,
 
                 'email' =>
-                    $merchant['email'] ?? null,
+                    $merchant[
+                        'email'
+                    ] ?? null,
 
                 'address_line_1' =>
                     $merchant[
@@ -320,7 +359,9 @@ class CustomApiProvider implements PosProviderInterface
                     ] ?? null,
 
                 'city' =>
-                    $merchant['city'] ?? null,
+                    $merchant[
+                        'city'
+                    ] ?? null,
 
                 'postal_code' =>
                     $merchant[
@@ -351,14 +392,126 @@ class CustomApiProvider implements PosProviderInterface
     }
 
     /**
+     * Fetch POS menu / catalog.
+     */
+    public function getMenu(
+        PosConnection $connection
+    ): array {
+        $response = $this
+            ->request($connection)
+            ->get(
+                $this->url(
+                    $connection,
+                    '/menu'
+                )
+            );
+
+        if (!$response->successful()) {
+            throw new RuntimeException(
+                'Unable to fetch Custom API menu. HTTP ' .
+                $response->status()
+            );
+        }
+
+        $data =
+            $response->json();
+
+        if (!is_array($data)) {
+            throw new RuntimeException(
+                'Custom API menu response is invalid.'
+            );
+        }
+
+        $categories =
+            data_get(
+                $data,
+                'categories',
+                []
+            );
+
+        if (!is_array($categories)) {
+            throw new RuntimeException(
+                'Custom API menu categories are invalid.'
+            );
+        }
+
+        return array_values(
+            array_filter(
+                $categories,
+                fn ($category) =>
+                    is_array($category)
+            )
+        );
+    }
+
+    /**
+     * Fetch POS orders.
+     */
+    public function getOrders(
+        PosConnection $connection,
+        \Carbon\CarbonInterface $start,
+        \Carbon\CarbonInterface $end
+    ): array {
+        $response = $this
+            ->request($connection)
+            ->get(
+                $this->url(
+                    $connection,
+                    '/orders'
+                ),
+                [
+                    'start' =>
+                        $start
+                            ->toIso8601String(),
+
+                    'end' =>
+                        $end
+                            ->toIso8601String(),
+                ]
+            );
+
+        if (!$response->successful()) {
+            throw new RuntimeException(
+                'Unable to fetch Custom API orders. HTTP ' .
+                $response->status()
+            );
+        }
+
+        $data =
+            $response->json();
+
+        if (!is_array($data)) {
+            throw new RuntimeException(
+                'Custom API orders response is invalid.'
+            );
+        }
+
+        $orders =
+            data_get(
+                $data,
+                'orders',
+                []
+            );
+
+        if (!is_array($orders)) {
+            throw new RuntimeException(
+                'Custom API orders response is invalid.'
+            );
+        }
+
+        return $orders;
+    }
+
+    /**
      * Build authenticated HTTP request.
      */
     private function request(
         PosConnection $connection
     ) {
-        $request = Http::acceptJson()
-            ->timeout(15)
-            ->connectTimeout(8);
+        $request =
+            Http::acceptJson()
+                ->timeout(30)
+                ->connectTimeout(10);
 
         /*
         |--------------------------------------------------------------------------
@@ -369,7 +522,8 @@ class CustomApiProvider implements PosProviderInterface
         if ($connection->access_token) {
             $request =
                 $request->withToken(
-                    $connection->access_token
+                    $connection
+                        ->access_token
                 );
         }
 
@@ -377,17 +531,14 @@ class CustomApiProvider implements PosProviderInterface
         |--------------------------------------------------------------------------
         | API Key
         |--------------------------------------------------------------------------
-        |
-        | Custom APIs commonly use X-API-Key.
-        | Provider-specific adapters can use their own auth later.
-        |
         */
 
         if ($connection->api_key) {
             $request =
                 $request->withHeaders([
                     'X-API-Key' =>
-                        $connection->api_key,
+                        $connection
+                            ->api_key,
                 ]);
         }
 
@@ -395,19 +546,28 @@ class CustomApiProvider implements PosProviderInterface
     }
 
     /**
-     * Build endpoint URL.
+     * Build and validate endpoint URL.
      */
     private function url(
         PosConnection $connection,
         string $path
     ): string {
         $baseUrl =
-    PosUrlValidator::validate(
-        (string) $connection->base_url
-    );
+            PosUrlValidator::validate(
+                (string)
+                    $connection
+                        ->base_url
+            );
 
-        return $baseUrl . '/' .
-            ltrim($path, '/');
+        return rtrim(
+            $baseUrl,
+            '/'
+        ) .
+            '/' .
+            ltrim(
+                $path,
+                '/'
+            );
     }
 
     /**
@@ -418,7 +578,11 @@ class CustomApiProvider implements PosProviderInterface
     ): array {
         return [
             'external_location_id' =>
-                data_get($data, 'id') ??
+                data_get(
+                    $data,
+                    'id'
+                )
+                ??
                 data_get(
                     $data,
                     'location_id'
@@ -428,14 +592,18 @@ class CustomApiProvider implements PosProviderInterface
                 data_get(
                     $data,
                     'business_id'
-                ) ??
+                )
+                ??
                 data_get(
                     $data,
                     'merchant_id'
                 ),
 
             'name' =>
-                data_get($data, 'name'),
+                data_get(
+                    $data,
+                    'name'
+                ),
 
             'legal_name' =>
                 data_get(
@@ -444,14 +612,22 @@ class CustomApiProvider implements PosProviderInterface
                 ),
 
             'phone' =>
-                data_get($data, 'phone') ??
+                data_get(
+                    $data,
+                    'phone'
+                )
+                ??
                 data_get(
                     $data,
                     'contact.phone'
                 ),
 
             'email' =>
-                data_get($data, 'email') ??
+                data_get(
+                    $data,
+                    'email'
+                )
+                ??
                 data_get(
                     $data,
                     'contact.email'
@@ -461,7 +637,8 @@ class CustomApiProvider implements PosProviderInterface
                 data_get(
                     $data,
                     'address_line_1'
-                ) ??
+                )
+                ??
                 data_get(
                     $data,
                     'address.line1'
@@ -471,14 +648,19 @@ class CustomApiProvider implements PosProviderInterface
                 data_get(
                     $data,
                     'address_line_2'
-                ) ??
+                )
+                ??
                 data_get(
                     $data,
                     'address.line2'
                 ),
 
             'city' =>
-                data_get($data, 'city') ??
+                data_get(
+                    $data,
+                    'city'
+                )
+                ??
                 data_get(
                     $data,
                     'address.city'
@@ -488,11 +670,13 @@ class CustomApiProvider implements PosProviderInterface
                 data_get(
                     $data,
                     'postal_code'
-                ) ??
+                )
+                ??
                 data_get(
                     $data,
                     'address.postal_code'
-                ) ??
+                )
+                ??
                 data_get(
                     $data,
                     'address.zip'
@@ -502,7 +686,8 @@ class CustomApiProvider implements PosProviderInterface
                 data_get(
                     $data,
                     'country'
-                ) ??
+                )
+                ??
                 data_get(
                     $data,
                     'address.country'
@@ -520,7 +705,8 @@ class CustomApiProvider implements PosProviderInterface
                     'timezone'
                 ),
 
-            'raw_data' => $data,
+            'raw_data' =>
+                $data,
         ];
     }
 
@@ -534,8 +720,16 @@ class CustomApiProvider implements PosProviderInterface
         $message =
             is_array($data)
                 ? (
-                    data_get($data, 'message') ??
-                    data_get($data, 'error') ??
+                    data_get(
+                        $data,
+                        'message'
+                    )
+                    ??
+                    data_get(
+                        $data,
+                        'error'
+                    )
+                    ??
                     data_get(
                         $data,
                         'errors.0.message'
@@ -547,72 +741,4 @@ class CustomApiProvider implements PosProviderInterface
             ? "POS API error ({$status}): {$message}"
             : "POS API returned HTTP {$status}.";
     }
-
-    public function getOrders(
-    PosConnection $connection,
-    \Carbon\CarbonInterface $start,
-    \Carbon\CarbonInterface $end
-): array {
-    $baseUrl =
-    PosUrlValidator::validate(
-        (string) $connection->base_url
-    );
-
-    $request =
-        Http::acceptJson()
-            ->timeout(30)
-            ->connectTimeout(10);
-
-    if ($connection->access_token) {
-        $request =
-            $request->withToken(
-                $connection->access_token
-            );
-    }
-
-    if ($connection->api_key) {
-        $request =
-            $request->withHeaders([
-                'X-API-Key' =>
-                    $connection->api_key,
-            ]);
-    }
-
-    $response =
-        $request->get(
-            $baseUrl . '/orders',
-            [
-                'start' =>
-                    $start->toIso8601String(),
-
-                'end' =>
-                    $end->toIso8601String(),
-            ]
-        );
-
-    if (!$response->successful()) {
-        throw new RuntimeException(
-            'Unable to fetch Custom API orders. HTTP ' .
-            $response->status()
-        );
-    }
-
-    $data =
-        $response->json();
-
-    $orders =
-        data_get(
-            $data,
-            'orders',
-            []
-        );
-
-    if (!is_array($orders)) {
-        throw new RuntimeException(
-            'Custom API orders response is invalid.'
-        );
-    }
-
-    return $orders;
-}
 }

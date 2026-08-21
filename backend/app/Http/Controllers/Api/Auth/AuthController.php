@@ -235,4 +235,37 @@ class AuthController extends Controller
             'message' => 'Password updated successfully',
         ]);
     }
+
+    public function deleteAccount(Request $request)
+{
+    $user = $request->user();
+
+    if (!$user) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Unauthenticated.',
+        ], 401);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Revoke all login tokens
+    |--------------------------------------------------------------------------
+    */
+
+    $user->tokens()->delete();
+
+    /*
+    |--------------------------------------------------------------------------
+    | Delete user account
+    |--------------------------------------------------------------------------
+    */
+
+    $user->delete();
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Account deleted successfully.',
+    ]);
+}
 }
