@@ -25,7 +25,7 @@ export default function ReviewsPage() {
 
   const authHeader = () => ({
     headers: {
-      Authorization: `Bearer ${localStorage.getItem("token")}`,
+      Authorization: `Bearer ${sessionStorage.getItem("token")}`,
     },
   });
 

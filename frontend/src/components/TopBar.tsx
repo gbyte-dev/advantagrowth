@@ -13,7 +13,7 @@ export default function TopBar() {
 
     setLoggingOut(true);
 
-    const token = localStorage.getItem("token");
+    const token = sessionStorage.getItem("token");
     const role = localStorage.getItem("role");
 
     try {
@@ -38,7 +38,7 @@ export default function TopBar() {
       console.error("Logout API error:", error);
     } finally {
       // Clear local session even if API logout fails
-      localStorage.removeItem("token");
+      sessionStorage.removeItem("token");
       localStorage.removeItem("role");
       localStorage.removeItem("user");
 

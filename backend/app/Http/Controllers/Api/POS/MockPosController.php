@@ -54,7 +54,7 @@ class MockPosController extends Controller
     }
 
     /**
-     * Mock POS restaurant locations.
+     * Mock POS locations.
      */
     public function locations(Request $request)
     {
@@ -158,11 +158,6 @@ class MockPosController extends Controller
             'success' => true,
 
             'categories' => [
-                /*
-                |--------------------------------------------------------------------------
-                | MAIN COURSE
-                |--------------------------------------------------------------------------
-                */
                 [
                     'external_category_id' =>
                         'CAT-001',
@@ -180,143 +175,53 @@ class MockPosController extends Controller
                         true,
 
                     'items' => [
-                        [
-                            'external_item_id' =>
-                                'MENU-101',
+                        $this->menuItem(
+                            'MENU-101',
+                            'Chicken Tikka Masala',
+                            'Creamy chicken tikka curry.',
+                            14.00,
+                            'non-veg',
+                            1
+                        ),
 
-                            'name' =>
-                                'Chicken Tikka Masala',
+                        $this->menuItem(
+                            'MENU-102',
+                            'Chicken Biryani',
+                            'Traditional aromatic chicken biryani.',
+                            14.00,
+                            'non-veg',
+                            2
+                        ),
 
-                            'description' =>
-                                'Creamy chicken tikka curry.',
+                        $this->menuItem(
+                            'MENU-103',
+                            'Paneer Butter Masala',
+                            'Paneer cooked in rich tomato butter gravy.',
+                            12.00,
+                            'veg',
+                            3
+                        ),
 
-                            'price' =>
-                                14.00,
+                        $this->menuItem(
+                            'MENU-104',
+                            'Paneer Tikka',
+                            'Grilled paneer with Indian spices.',
+                            12.00,
+                            'veg',
+                            4
+                        ),
 
-                            'food_type' =>
-                                'non-veg',
-
-                            'is_available' =>
-                                true,
-
-                            'is_active' =>
-                                true,
-
-                            'sort_order' =>
-                                1,
-                        ],
-
-                        [
-                            'external_item_id' =>
-                                'MENU-102',
-
-                            'name' =>
-                                'Chicken Biryani',
-
-                            'description' =>
-                                'Traditional aromatic chicken biryani.',
-
-                            'price' =>
-                                14.00,
-
-                            'food_type' =>
-                                'non-veg',
-
-                            'is_available' =>
-                                true,
-
-                            'is_active' =>
-                                true,
-
-                            'sort_order' =>
-                                2,
-                        ],
-
-                        [
-                            'external_item_id' =>
-                                'MENU-103',
-
-                            'name' =>
-                                'Paneer Butter Masala',
-
-                            'description' =>
-                                'Paneer cooked in rich tomato butter gravy.',
-
-                            'price' =>
-                                12.00,
-
-                            'food_type' =>
-                                'veg',
-
-                            'is_available' =>
-                                true,
-
-                            'is_active' =>
-                                true,
-
-                            'sort_order' =>
-                                3,
-                        ],
-
-                        [
-                            'external_item_id' =>
-                                'MENU-104',
-
-                            'name' =>
-                                'Paneer Tikka',
-
-                            'description' =>
-                                'Grilled paneer with Indian spices.',
-
-                            'price' =>
-                                12.00,
-
-                            'food_type' =>
-                                'veg',
-
-                            'is_available' =>
-                                true,
-
-                            'is_active' =>
-                                true,
-
-                            'sort_order' =>
-                                4,
-                        ],
-
-                        [
-                            'external_item_id' =>
-                                'MENU-105',
-
-                            'name' =>
-                                'Garlic Naan',
-
-                            'description' =>
-                                'Fresh naan with garlic butter.',
-
-                            'price' =>
-                                5.00,
-
-                            'food_type' =>
-                                'veg',
-
-                            'is_available' =>
-                                true,
-
-                            'is_active' =>
-                                true,
-
-                            'sort_order' =>
-                                5,
-                        ],
+                        $this->menuItem(
+                            'MENU-105',
+                            'Garlic Naan',
+                            'Fresh naan with garlic butter.',
+                            5.00,
+                            'veg',
+                            5
+                        ),
                     ],
                 ],
 
-                /*
-                |--------------------------------------------------------------------------
-                | BEVERAGES
-                |--------------------------------------------------------------------------
-                */
                 [
                     'external_category_id' =>
                         'CAT-002',
@@ -334,91 +239,35 @@ class MockPosController extends Controller
                         true,
 
                     'items' => [
-                        [
-                            'external_item_id' =>
-                                'MENU-201',
+                        $this->menuItem(
+                            'MENU-201',
+                            'Cold Coffee',
+                            'Chilled creamy coffee.',
+                            6.50,
+                            'veg',
+                            1
+                        ),
 
-                            'name' =>
-                                'Cold Coffee',
+                        $this->menuItem(
+                            'MENU-202',
+                            'Mango Lassi',
+                            'Sweet mango yogurt drink.',
+                            5.50,
+                            'veg',
+                            2
+                        ),
 
-                            'description' =>
-                                'Chilled creamy coffee.',
-
-                            'price' =>
-                                6.50,
-
-                            'food_type' =>
-                                'veg',
-
-                            'is_available' =>
-                                true,
-
-                            'is_active' =>
-                                true,
-
-                            'sort_order' =>
-                                1,
-                        ],
-
-                        [
-                            'external_item_id' =>
-                                'MENU-202',
-
-                            'name' =>
-                                'Mango Lassi',
-
-                            'description' =>
-                                'Sweet mango yogurt drink.',
-
-                            'price' =>
-                                5.50,
-
-                            'food_type' =>
-                                'veg',
-
-                            'is_available' =>
-                                true,
-
-                            'is_active' =>
-                                true,
-
-                            'sort_order' =>
-                                2,
-                        ],
-
-                        [
-                            'external_item_id' =>
-                                'MENU-203',
-
-                            'name' =>
-                                'Masala Chai',
-
-                            'description' =>
-                                'Indian tea with milk and spices.',
-
-                            'price' =>
-                                3.50,
-
-                            'food_type' =>
-                                'veg',
-
-                            'is_available' =>
-                                true,
-
-                            'is_active' =>
-                                true,
-
-                            'sort_order' =>
-                                3,
-                        ],
+                        $this->menuItem(
+                            'MENU-203',
+                            'Masala Chai',
+                            'Indian tea with milk and spices.',
+                            3.50,
+                            'veg',
+                            3
+                        ),
                     ],
                 ],
 
-                /*
-                |--------------------------------------------------------------------------
-                | DESSERTS
-                |--------------------------------------------------------------------------
-                */
                 [
                     'external_category_id' =>
                         'CAT-003',
@@ -436,57 +285,23 @@ class MockPosController extends Controller
                         true,
 
                     'items' => [
-                        [
-                            'external_item_id' =>
-                                'MENU-301',
+                        $this->menuItem(
+                            'MENU-301',
+                            'Gulab Jamun',
+                            'Traditional warm Indian dessert.',
+                            5.00,
+                            'veg',
+                            1
+                        ),
 
-                            'name' =>
-                                'Gulab Jamun',
-
-                            'description' =>
-                                'Traditional warm Indian dessert.',
-
-                            'price' =>
-                                5.00,
-
-                            'food_type' =>
-                                'veg',
-
-                            'is_available' =>
-                                true,
-
-                            'is_active' =>
-                                true,
-
-                            'sort_order' =>
-                                1,
-                        ],
-
-                        [
-                            'external_item_id' =>
-                                'MENU-302',
-
-                            'name' =>
-                                'Kulfi',
-
-                            'description' =>
-                                'Traditional Indian frozen dessert.',
-
-                            'price' =>
-                                6.00,
-
-                            'food_type' =>
-                                'veg',
-
-                            'is_available' =>
-                                true,
-
-                            'is_active' =>
-                                true,
-
-                            'sort_order' =>
-                                2,
-                        ],
+                        $this->menuItem(
+                            'MENU-302',
+                            'Kulfi',
+                            'Traditional Indian frozen dessert.',
+                            6.00,
+                            'veg',
+                            2
+                        ),
                     ],
                 ],
             ],
@@ -494,17 +309,20 @@ class MockPosController extends Controller
     }
 
     /**
-     * Mock POS orders for development testing.
+     * Mock POS orders.
+     *
+     * 35 orders are distributed across:
+     * - today
+     * - last 7 days
+     * - current month
+     *
+     * pos_created_at controls analytics date.
+     * pos_updated_at stays recent so new demo data
+     * can be picked up by incremental Sync Now.
      */
     public function orders(
         Request $request
     ) {
-        /*
-        |--------------------------------------------------------------------------
-        | Incremental sync window
-        |--------------------------------------------------------------------------
-        */
-
         $start =
             $request->query('start');
 
@@ -515,7 +333,7 @@ class MockPosController extends Controller
             $startDate =
                 $start
                     ? Carbon::parse($start)
-                    : now()->subDays(7);
+                    : now()->subDays(30);
 
             $endDate =
                 $end
@@ -523,1821 +341,26 @@ class MockPosController extends Controller
                     : now();
         } catch (\Throwable $exception) {
             return response()->json([
-                'success' => false,
+                'success' =>
+                    false,
 
                 'message' =>
                     'Invalid start or end date.',
             ], 422);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Mock timestamps
-        |--------------------------------------------------------------------------
-        */
-
-        $order1001Created =
-            now()->subHours(3);
-
-        $order1001Updated =
-            now()->subHours(2);
-
-        $order1002Created =
-            now()->subHour();
-
-        $order1002Updated =
-            now()->subMinutes(2);
-
-        $order1003Created =
-            now()->subMinutes(20);
-
-        $order1003Updated =
-            now()->subMinute();
-
-        /*
-         * New orders intentionally use recent updated timestamps.
-         *
-         * This makes them appear during incremental Sync Now testing
-         * even if the POS connection has already synced previously.
-         */
-
-        $recentCreated =
-            now()->subMinutes(3);
-
-        $recentUpdated =
-            now()->subSeconds(20);
-
-        $orders = [
-            /*
-            |--------------------------------------------------------------------------
-            | ORDER 1001
-            |--------------------------------------------------------------------------
-            */
-            [
-                'external_order_id' =>
-                    'MOCK-ORDER-1001',
-
-                'external_location_id' =>
-                    'location_demo_001',
-
-                'source' =>
-                    'custom_api',
-
-                'order_type' =>
-                    'dine_in',
-
-                'table_number' =>
-                    'T-04',
-
-                'customer_name' =>
-                    'Rahul Sharma',
-
-                'customer_phone' =>
-                    '9876543210',
-
-                'customer_email' =>
-                    'rahul@example.com',
-
-                'delivery_address' =>
-                    null,
-
-                'subtotal' =>
-                    28.00,
-
-                'tax_amount' =>
-                    2.80,
-
-                'delivery_charge' =>
-                    0,
-
-                'tip_amount' =>
-                    3.00,
-
-                'total' =>
-                    33.80,
-
-                'status' =>
-                    'completed',
-
-                'payment_status' =>
-                    'paid',
-
-                'payment_id' =>
-                    'PAY-MOCK-1001',
-
-                'payment_method' =>
-                    'card',
-
-                'special_instructions' =>
-                    'Less spicy',
-
-                'pos_created_at' =>
-                    $order1001Created
-                        ->toIso8601String(),
-
-                'pos_updated_at' =>
-                    $order1001Updated
-                        ->toIso8601String(),
-
-                'items' => [
-                    [
-                        'external_item_id' =>
-                            'ITEM-1001-A',
-
-                        'external_menu_item_id' =>
-                            'MENU-101',
-
-                        'item_name' =>
-                            'Chicken Tikka Masala',
-
-                        'unit_price' =>
-                            14.00,
-
-                        'quantity' =>
-                            1,
-
-                        'total_price' =>
-                            14.00,
-
-                        'modifiers' => [
-                            [
-                                'name' =>
-                                    'Extra Spicy',
-
-                                'quantity' =>
-                                    1,
-
-                                'price' =>
-                                    0,
-                            ],
-                        ],
-
-                        'raw_data' => [
-                            'mock' =>
-                                true,
-                        ],
-                    ],
-
-                    [
-                        'external_item_id' =>
-                            'ITEM-1001-B',
-
-                        'external_menu_item_id' =>
-                            'MENU-102',
-
-                        'item_name' =>
-                            'Chicken Biryani',
-
-                        'unit_price' =>
-                            14.00,
-
-                        'quantity' =>
-                            1,
-
-                        'total_price' =>
-                            14.00,
-
-                        'modifiers' =>
-                            [],
-
-                        'raw_data' => [
-                            'mock' =>
-                                true,
-                        ],
-                    ],
-                ],
-
-                'payments' => [
-                    [
-                        'external_payment_id' =>
-                            'PAY-MOCK-1001',
-
-                        'type' =>
-                            'card',
-
-                        'amount' =>
-                            33.80,
-
-                        'tip_amount' =>
-                            3.00,
-
-                        'card_type' =>
-                            'VISA',
-
-                        'paid_at' =>
-                            $order1001Updated
-                                ->toIso8601String(),
-
-                        'raw_data' => [
-                            'mock' =>
-                                true,
-                        ],
-                    ],
-                ],
-
-                'raw_data' => [
-                    'mock_provider' =>
-                        'Advanta Mock POS',
-
-                    'order_number' =>
-                        '1001',
-                ],
-            ],
-
-            /*
-            |--------------------------------------------------------------------------
-            | ORDER 1002
-            |--------------------------------------------------------------------------
-            */
-            [
-                'external_order_id' =>
-                    'MOCK-ORDER-1002',
-
-                'external_location_id' =>
-                    'location_demo_001',
-
-                'source' =>
-                    'custom_api',
-
-                'order_type' =>
-                    'takeaway',
-
-                'table_number' =>
-                    null,
-
-                'customer_name' =>
-                    'Priya Kapoor',
-
-                'customer_phone' =>
-                    '9999999999',
-
-                'customer_email' =>
-                    'priya@example.com',
-
-                'delivery_address' =>
-                    null,
-
-                'subtotal' =>
-                    12.00,
-
-                'tax_amount' =>
-                    1.20,
-
-                'delivery_charge' =>
-                    0,
-
-                'tip_amount' =>
-                    0,
-
-                'total' =>
-                    13.20,
-
-                'status' =>
-                    'completed',
-
-                'payment_status' =>
-                    'paid',
-
-                'payment_id' =>
-                    'PAY-MOCK-1002',
-
-                'payment_method' =>
-                    'cash',
-
-                'special_instructions' =>
-                    null,
-
-                'pos_created_at' =>
-                    $order1002Created
-                        ->toIso8601String(),
-
-                'pos_updated_at' =>
-                    $order1002Updated
-                        ->toIso8601String(),
-
-                'items' => [
-                    [
-                        'external_item_id' =>
-                            'ITEM-1002-A',
-
-                        'external_menu_item_id' =>
-                            'MENU-103',
-
-                        'item_name' =>
-                            'Paneer Butter Masala',
-
-                        'unit_price' =>
-                            12.00,
-
-                        'quantity' =>
-                            1,
-
-                        'total_price' =>
-                            12.00,
-
-                        'modifiers' =>
-                            [],
-
-                        'raw_data' => [
-                            'mock' =>
-                                true,
-                        ],
-                    ],
-                ],
-
-                'payments' => [
-                    [
-                        'external_payment_id' =>
-                            'PAY-MOCK-1002',
-
-                        'type' =>
-                            'cash',
-
-                        'amount' =>
-                            13.20,
-
-                        'tip_amount' =>
-                            0,
-
-                        'paid_at' =>
-                            $order1002Updated
-                                ->toIso8601String(),
-
-                        'raw_data' => [
-                            'mock' =>
-                                true,
-                        ],
-                    ],
-                ],
-
-                'raw_data' => [
-                    'mock_provider' =>
-                        'Advanta Mock POS',
-
-                    'order_number' =>
-                        '1002',
-                ],
-            ],
-
-            /*
-            |--------------------------------------------------------------------------
-            | ORDER 1003
-            |--------------------------------------------------------------------------
-            */
-            [
-                'external_order_id' =>
-                    'MOCK-ORDER-1003',
-
-                'external_location_id' =>
-                    'location_demo_002',
-
-                'source' =>
-                    'custom_api',
-
-                'order_type' =>
-                    'dine_in',
-
-                'table_number' =>
-                    'T-08',
-
-                'customer_name' =>
-                    'Aman Verma',
-
-                'customer_phone' =>
-                    '8888888888',
-
-                'customer_email' =>
-                    'aman@example.com',
-
-                'delivery_address' =>
-                    null,
-
-                'subtotal' =>
-                    22.00,
-
-                'tax_amount' =>
-                    2.20,
-
-                'delivery_charge' =>
-                    0,
-
-                'tip_amount' =>
-                    2.00,
-
-                'total' =>
-                    26.20,
-
-                'status' =>
-                    'preparing',
-
-                'payment_status' =>
-                    'paid',
-
-                'payment_id' =>
-                    'PAY-MOCK-1003',
-
-                'payment_method' =>
-                    'card',
-
-                'special_instructions' =>
-                    'No onion',
-
-                'pos_created_at' =>
-                    $order1003Created
-                        ->toIso8601String(),
-
-                'pos_updated_at' =>
-                    $order1003Updated
-                        ->toIso8601String(),
-
-                'items' => [
-                    [
-                        'external_item_id' =>
-                            'ITEM-1003-A',
-
-                        'external_menu_item_id' =>
-                            'MENU-104',
-
-                        'item_name' =>
-                            'Paneer Tikka',
-
-                        'unit_price' =>
-                            12.00,
-
-                        'quantity' =>
-                            1,
-
-                        'total_price' =>
-                            12.00,
-
-                        'modifiers' =>
-                            [],
-
-                        'raw_data' => [
-                            'mock' =>
-                                true,
-                        ],
-                    ],
-
-                    [
-                        'external_item_id' =>
-                            'ITEM-1003-B',
-
-                        'external_menu_item_id' =>
-                            'MENU-105',
-
-                        'item_name' =>
-                            'Garlic Naan',
-
-                        'unit_price' =>
-                            5.00,
-
-                        'quantity' =>
-                            2,
-
-                        'total_price' =>
-                            10.00,
-
-                        'modifiers' =>
-                            [],
-
-                        'raw_data' => [
-                            'mock' =>
-                                true,
-                        ],
-                    ],
-                ],
-
-                'payments' => [
-                    [
-                        'external_payment_id' =>
-                            'PAY-MOCK-1003',
-
-                        'type' =>
-                            'card',
-
-                        'amount' =>
-                            26.20,
-
-                        'tip_amount' =>
-                            2.00,
-
-                        'card_type' =>
-                            'MASTERCARD',
-
-                        'paid_at' =>
-                            $order1003Updated
-                                ->toIso8601String(),
-
-                        'raw_data' => [
-                            'mock' =>
-                                true,
-                        ],
-                    ],
-                ],
-
-                'raw_data' => [
-                    'mock_provider' =>
-                        'Advanta Mock POS',
-
-                    'order_number' =>
-                        '1003',
-                ],
-            ],
-
-            /*
-            |--------------------------------------------------------------------------
-            | ORDER 1004
-            |--------------------------------------------------------------------------
-            */
-            [
-                'external_order_id' =>
-                    'MOCK-ORDER-1004',
-
-                'external_location_id' =>
-                    'location_demo_001',
-
-                'source' =>
-                    'custom_api',
-
-                'order_type' =>
-                    'dine_in',
-
-                'table_number' =>
-                    'T-02',
-
-                'customer_name' =>
-                    'Neha Singh',
-
-                'customer_phone' =>
-                    '9876500004',
-
-                'customer_email' =>
-                    'neha@example.com',
-
-                'delivery_address' =>
-                    null,
-
-                'subtotal' =>
-                    20.50,
-
-                'tax_amount' =>
-                    2.05,
-
-                'delivery_charge' =>
-                    0,
-
-                'tip_amount' =>
-                    1.50,
-
-                'total' =>
-                    24.05,
-
-                'status' =>
-                    'completed',
-
-                'payment_status' =>
-                    'paid',
-
-                'payment_id' =>
-                    'PAY-MOCK-1004',
-
-                'payment_method' =>
-                    'card',
-
-                'special_instructions' =>
-                    null,
-
-                'pos_created_at' =>
-                    $recentCreated
-                        ->copy()
-                        ->subMinutes(7)
-                        ->toIso8601String(),
-
-                'pos_updated_at' =>
-                    $recentUpdated
-                        ->copy()
-                        ->subSeconds(7)
-                        ->toIso8601String(),
-
-                'items' => [
-                    [
-                        'external_item_id' =>
-                            'ITEM-1004-A',
-
-                        'external_menu_item_id' =>
-                            'MENU-101',
-
-                        'item_name' =>
-                            'Chicken Tikka Masala',
-
-                        'unit_price' =>
-                            14.00,
-
-                        'quantity' =>
-                            1,
-
-                        'total_price' =>
-                            14.00,
-
-                        'modifiers' =>
-                            [],
-
-                        'raw_data' => [
-                            'mock' =>
-                                true,
-                        ],
-                    ],
-
-                    [
-                        'external_item_id' =>
-                            'ITEM-1004-B',
-
-                        'external_menu_item_id' =>
-                            'MENU-201',
-
-                        'item_name' =>
-                            'Cold Coffee',
-
-                        'unit_price' =>
-                            6.50,
-
-                        'quantity' =>
-                            1,
-
-                        'total_price' =>
-                            6.50,
-
-                        'modifiers' =>
-                            [],
-
-                        'raw_data' => [
-                            'mock' =>
-                                true,
-                        ],
-                    ],
-                ],
-
-                'payments' => [
-                    [
-                        'external_payment_id' =>
-                            'PAY-MOCK-1004',
-
-                        'type' =>
-                            'card',
-
-                        'amount' =>
-                            24.05,
-
-                        'tip_amount' =>
-                            1.50,
-
-                        'card_type' =>
-                            'VISA',
-
-                        'paid_at' =>
-                            $recentUpdated
-                                ->toIso8601String(),
-
-                        'raw_data' => [
-                            'mock' =>
-                                true,
-                        ],
-                    ],
-                ],
-
-                'raw_data' => [
-                    'mock_provider' =>
-                        'Advanta Mock POS',
-
-                    'order_number' =>
-                        '1004',
-                ],
-            ],
-
-            /*
-            |--------------------------------------------------------------------------
-            | ORDER 1005
-            |--------------------------------------------------------------------------
-            */
-            [
-                'external_order_id' =>
-                    'MOCK-ORDER-1005',
-
-                'external_location_id' =>
-                    'location_demo_001',
-
-                'source' =>
-                    'custom_api',
-
-                'order_type' =>
-                    'takeaway',
-
-                'table_number' =>
-                    null,
-
-                'customer_name' =>
-                    'Rohan Mehta',
-
-                'customer_phone' =>
-                    '9876500005',
-
-                'customer_email' =>
-                    'rohan@example.com',
-
-                'delivery_address' =>
-                    null,
-
-                'subtotal' =>
-                    19.50,
-
-                'tax_amount' =>
-                    1.95,
-
-                'delivery_charge' =>
-                    0,
-
-                'tip_amount' =>
-                    0,
-
-                'total' =>
-                    21.45,
-
-                'status' =>
-                    'ready',
-
-                'payment_status' =>
-                    'paid',
-
-                'payment_id' =>
-                    'PAY-MOCK-1005',
-
-                'payment_method' =>
-                    'upi',
-
-                'special_instructions' =>
-                    'Pack separately',
-
-                'pos_created_at' =>
-                    $recentCreated
-                        ->copy()
-                        ->subMinutes(6)
-                        ->toIso8601String(),
-
-                'pos_updated_at' =>
-                    $recentUpdated
-                        ->copy()
-                        ->subSeconds(6)
-                        ->toIso8601String(),
-
-                'items' => [
-                    [
-                        'external_item_id' =>
-                            'ITEM-1005-A',
-
-                        'external_menu_item_id' =>
-                            'MENU-102',
-
-                        'item_name' =>
-                            'Chicken Biryani',
-
-                        'unit_price' =>
-                            14.00,
-
-                        'quantity' =>
-                            1,
-
-                        'total_price' =>
-                            14.00,
-
-                        'modifiers' =>
-                            [],
-
-                        'raw_data' => [
-                            'mock' =>
-                                true,
-                        ],
-                    ],
-
-                    [
-                        'external_item_id' =>
-                            'ITEM-1005-B',
-
-                        'external_menu_item_id' =>
-                            'MENU-202',
-
-                        'item_name' =>
-                            'Mango Lassi',
-
-                        'unit_price' =>
-                            5.50,
-
-                        'quantity' =>
-                            1,
-
-                        'total_price' =>
-                            5.50,
-
-                        'modifiers' =>
-                            [],
-
-                        'raw_data' => [
-                            'mock' =>
-                                true,
-                        ],
-                    ],
-                ],
-
-                'payments' => [
-                    [
-                        'external_payment_id' =>
-                            'PAY-MOCK-1005',
-
-                        'type' =>
-                            'upi',
-
-                        'amount' =>
-                            21.45,
-
-                        'tip_amount' =>
-                            0,
-
-                        'paid_at' =>
-                            $recentUpdated
-                                ->toIso8601String(),
-
-                        'raw_data' => [
-                            'mock' =>
-                                true,
-                        ],
-                    ],
-                ],
-
-                'raw_data' => [
-                    'mock_provider' =>
-                        'Advanta Mock POS',
-
-                    'order_number' =>
-                        '1005',
-                ],
-            ],
-
-            /*
-            |--------------------------------------------------------------------------
-            | ORDER 1006
-            |--------------------------------------------------------------------------
-            */
-            [
-                'external_order_id' =>
-                    'MOCK-ORDER-1006',
-
-                'external_location_id' =>
-                    'location_demo_002',
-
-                'source' =>
-                    'custom_api',
-
-                'order_type' =>
-                    'dine_in',
-
-                'table_number' =>
-                    'T-11',
-
-                'customer_name' =>
-                    'Simran Kaur',
-
-                'customer_phone' =>
-                    '9876500006',
-
-                'customer_email' =>
-                    'simran@example.com',
-
-                'delivery_address' =>
-                    null,
-
-                'subtotal' =>
-                    27.50,
-
-                'tax_amount' =>
-                    2.75,
-
-                'delivery_charge' =>
-                    0,
-
-                'tip_amount' =>
-                    2.50,
-
-                'total' =>
-                    32.75,
-
-                'status' =>
-                    'preparing',
-
-                'payment_status' =>
-                    'paid',
-
-                'payment_id' =>
-                    'PAY-MOCK-1006',
-
-                'payment_method' =>
-                    'card',
-
-                'special_instructions' =>
-                    'Medium spicy',
-
-                'pos_created_at' =>
-                    $recentCreated
-                        ->copy()
-                        ->subMinutes(5)
-                        ->toIso8601String(),
-
-                'pos_updated_at' =>
-                    $recentUpdated
-                        ->copy()
-                        ->subSeconds(5)
-                        ->toIso8601String(),
-
-                'items' => [
-                    [
-                        'external_item_id' =>
-                            'ITEM-1006-A',
-
-                        'external_menu_item_id' =>
-                            'MENU-103',
-
-                        'item_name' =>
-                            'Paneer Butter Masala',
-
-                        'unit_price' =>
-                            12.00,
-
-                        'quantity' =>
-                            1,
-
-                        'total_price' =>
-                            12.00,
-
-                        'modifiers' =>
-                            [],
-
-                        'raw_data' => [
-                            'mock' =>
-                                true,
-                        ],
-                    ],
-
-                    [
-                        'external_item_id' =>
-                            'ITEM-1006-B',
-
-                        'external_menu_item_id' =>
-                            'MENU-105',
-
-                        'item_name' =>
-                            'Garlic Naan',
-
-                        'unit_price' =>
-                            5.00,
-
-                        'quantity' =>
-                            2,
-
-                        'total_price' =>
-                            10.00,
-
-                        'modifiers' =>
-                            [],
-
-                        'raw_data' => [
-                            'mock' =>
-                                true,
-                        ],
-                    ],
-
-                    [
-                        'external_item_id' =>
-                            'ITEM-1006-C',
-
-                        'external_menu_item_id' =>
-                            'MENU-202',
-
-                        'item_name' =>
-                            'Mango Lassi',
-
-                        'unit_price' =>
-                            5.50,
-
-                        'quantity' =>
-                            1,
-
-                        'total_price' =>
-                            5.50,
-
-                        'modifiers' =>
-                            [],
-
-                        'raw_data' => [
-                            'mock' =>
-                                true,
-                        ],
-                    ],
-                ],
-
-                'payments' => [
-                    [
-                        'external_payment_id' =>
-                            'PAY-MOCK-1006',
-
-                        'type' =>
-                            'card',
-
-                        'amount' =>
-                            32.75,
-
-                        'tip_amount' =>
-                            2.50,
-
-                        'card_type' =>
-                            'RUPAY',
-
-                        'paid_at' =>
-                            $recentUpdated
-                                ->toIso8601String(),
-
-                        'raw_data' => [
-                            'mock' =>
-                                true,
-                        ],
-                    ],
-                ],
-
-                'raw_data' => [
-                    'mock_provider' =>
-                        'Advanta Mock POS',
-
-                    'order_number' =>
-                        '1006',
-                ],
-            ],
-
-            /*
-            |--------------------------------------------------------------------------
-            | ORDER 1007
-            |--------------------------------------------------------------------------
-            */
-            [
-                'external_order_id' =>
-                    'MOCK-ORDER-1007',
-
-                'external_location_id' =>
-                    'location_demo_001',
-
-                'source' =>
-                    'custom_api',
-
-                'order_type' =>
-                    'takeaway',
-
-                'table_number' =>
-                    null,
-
-                'customer_name' =>
-                    'Arjun Malhotra',
-
-                'customer_phone' =>
-                    '9876500007',
-
-                'customer_email' =>
-                    'arjun@example.com',
-
-                'delivery_address' =>
-                    null,
-
-                'subtotal' =>
-                    17.50,
-
-                'tax_amount' =>
-                    1.75,
-
-                'delivery_charge' =>
-                    0,
-
-                'tip_amount' =>
-                    0,
-
-                'total' =>
-                    19.25,
-
-                'status' =>
-                    'completed',
-
-                'payment_status' =>
-                    'paid',
-
-                'payment_id' =>
-                    'PAY-MOCK-1007',
-
-                'payment_method' =>
-                    'cash',
-
-                'special_instructions' =>
-                    null,
-
-                'pos_created_at' =>
-                    $recentCreated
-                        ->copy()
-                        ->subMinutes(4)
-                        ->toIso8601String(),
-
-                'pos_updated_at' =>
-                    $recentUpdated
-                        ->copy()
-                        ->subSeconds(4)
-                        ->toIso8601String(),
-
-                'items' => [
-                    [
-                        'external_item_id' =>
-                            'ITEM-1007-A',
-
-                        'external_menu_item_id' =>
-                            'MENU-104',
-
-                        'item_name' =>
-                            'Paneer Tikka',
-
-                        'unit_price' =>
-                            12.00,
-
-                        'quantity' =>
-                            1,
-
-                        'total_price' =>
-                            12.00,
-
-                        'modifiers' =>
-                            [],
-
-                        'raw_data' => [
-                            'mock' =>
-                                true,
-                        ],
-                    ],
-
-                    [
-                        'external_item_id' =>
-                            'ITEM-1007-B',
-
-                        'external_menu_item_id' =>
-                            'MENU-202',
-
-                        'item_name' =>
-                            'Mango Lassi',
-
-                        'unit_price' =>
-                            5.50,
-
-                        'quantity' =>
-                            1,
-
-                        'total_price' =>
-                            5.50,
-
-                        'modifiers' =>
-                            [],
-
-                        'raw_data' => [
-                            'mock' =>
-                                true,
-                        ],
-                    ],
-                ],
-
-                'payments' => [
-                    [
-                        'external_payment_id' =>
-                            'PAY-MOCK-1007',
-
-                        'type' =>
-                            'cash',
-
-                        'amount' =>
-                            19.25,
-
-                        'tip_amount' =>
-                            0,
-
-                        'paid_at' =>
-                            $recentUpdated
-                                ->toIso8601String(),
-
-                        'raw_data' => [
-                            'mock' =>
-                                true,
-                        ],
-                    ],
-                ],
-
-                'raw_data' => [
-                    'mock_provider' =>
-                        'Advanta Mock POS',
-
-                    'order_number' =>
-                        '1007',
-                ],
-            ],
-
-            /*
-            |--------------------------------------------------------------------------
-            | ORDER 1008
-            |--------------------------------------------------------------------------
-            */
-            [
-                'external_order_id' =>
-                    'MOCK-ORDER-1008',
-
-                'external_location_id' =>
-                    'location_demo_002',
-
-                'source' =>
-                    'custom_api',
-
-                'order_type' =>
-                    'dine_in',
-
-                'table_number' =>
-                    'T-06',
-
-                'customer_name' =>
-                    'Meera Joshi',
-
-                'customer_phone' =>
-                    '9876500008',
-
-                'customer_email' =>
-                    'meera@example.com',
-
-                'delivery_address' =>
-                    null,
-
-                'subtotal' =>
-                    25.50,
-
-                'tax_amount' =>
-                    2.55,
-
-                'delivery_charge' =>
-                    0,
-
-                'tip_amount' =>
-                    2.00,
-
-                'total' =>
-                    30.05,
-
-                'status' =>
-                    'completed',
-
-                'payment_status' =>
-                    'paid',
-
-                'payment_id' =>
-                    'PAY-MOCK-1008',
-
-                'payment_method' =>
-                    'card',
-
-                'special_instructions' =>
-                    'Birthday table',
-
-                'pos_created_at' =>
-                    $recentCreated
-                        ->copy()
-                        ->subMinutes(3)
-                        ->toIso8601String(),
-
-                'pos_updated_at' =>
-                    $recentUpdated
-                        ->copy()
-                        ->subSeconds(3)
-                        ->toIso8601String(),
-
-                'items' => [
-                    [
-                        'external_item_id' =>
-                            'ITEM-1008-A',
-
-                        'external_menu_item_id' =>
-                            'MENU-102',
-
-                        'item_name' =>
-                            'Chicken Biryani',
-
-                        'unit_price' =>
-                            14.00,
-
-                        'quantity' =>
-                            1,
-
-                        'total_price' =>
-                            14.00,
-
-                        'modifiers' =>
-                            [],
-
-                        'raw_data' => [
-                            'mock' =>
-                                true,
-                        ],
-                    ],
-
-                    [
-                        'external_item_id' =>
-                            'ITEM-1008-B',
-
-                        'external_menu_item_id' =>
-                            'MENU-202',
-
-                        'item_name' =>
-                            'Mango Lassi',
-
-                        'unit_price' =>
-                            5.50,
-
-                        'quantity' =>
-                            1,
-
-                        'total_price' =>
-                            5.50,
-
-                        'modifiers' =>
-                            [],
-
-                        'raw_data' => [
-                            'mock' =>
-                                true,
-                        ],
-                    ],
-
-                    [
-                        'external_item_id' =>
-                            'ITEM-1008-C',
-
-                        'external_menu_item_id' =>
-                            'MENU-302',
-
-                        'item_name' =>
-                            'Kulfi',
-
-                        'unit_price' =>
-                            6.00,
-
-                        'quantity' =>
-                            1,
-
-                        'total_price' =>
-                            6.00,
-
-                        'modifiers' =>
-                            [],
-
-                        'raw_data' => [
-                            'mock' =>
-                                true,
-                        ],
-                    ],
-                ],
-
-                'payments' => [
-                    [
-                        'external_payment_id' =>
-                            'PAY-MOCK-1008',
-
-                        'type' =>
-                            'card',
-
-                        'amount' =>
-                            30.05,
-
-                        'tip_amount' =>
-                            2.00,
-
-                        'card_type' =>
-                            'VISA',
-
-                        'paid_at' =>
-                            $recentUpdated
-                                ->toIso8601String(),
-
-                        'raw_data' => [
-                            'mock' =>
-                                true,
-                        ],
-                    ],
-                ],
-
-                'raw_data' => [
-                    'mock_provider' =>
-                        'Advanta Mock POS',
-
-                    'order_number' =>
-                        '1008',
-                ],
-            ],
-
-            /*
-            |--------------------------------------------------------------------------
-            | ORDER 1009
-            |--------------------------------------------------------------------------
-            */
-            [
-                'external_order_id' =>
-                    'MOCK-ORDER-1009',
-
-                'external_location_id' =>
-                    'location_demo_001',
-
-                'source' =>
-                    'custom_api',
-
-                'order_type' =>
-                    'takeaway',
-
-                'table_number' =>
-                    null,
-
-                'customer_name' =>
-                    'Vikram Gupta',
-
-                'customer_phone' =>
-                    '9876500009',
-
-                'customer_email' =>
-                    'vikram@example.com',
-
-                'delivery_address' =>
-                    null,
-
-                'subtotal' =>
-                    18.50,
-
-                'tax_amount' =>
-                    1.85,
-
-                'delivery_charge' =>
-                    0,
-
-                'tip_amount' =>
-                    0,
-
-                'total' =>
-                    20.35,
-
-                'status' =>
-                    'pending',
-
-                'payment_status' =>
-                    'paid',
-
-                'payment_id' =>
-                    'PAY-MOCK-1009',
-
-                'payment_method' =>
-                    'upi',
-
-                'special_instructions' =>
-                    'Call when ready',
-
-                'pos_created_at' =>
-                    $recentCreated
-                        ->copy()
-                        ->subMinutes(2)
-                        ->toIso8601String(),
-
-                'pos_updated_at' =>
-                    $recentUpdated
-                        ->copy()
-                        ->subSeconds(2)
-                        ->toIso8601String(),
-
-                'items' => [
-                    [
-                        'external_item_id' =>
-                            'ITEM-1009-A',
-
-                        'external_menu_item_id' =>
-                            'MENU-103',
-
-                        'item_name' =>
-                            'Paneer Butter Masala',
-
-                        'unit_price' =>
-                            12.00,
-
-                        'quantity' =>
-                            1,
-
-                        'total_price' =>
-                            12.00,
-
-                        'modifiers' =>
-                            [],
-
-                        'raw_data' => [
-                            'mock' =>
-                                true,
-                        ],
-                    ],
-
-                    [
-                        'external_item_id' =>
-                            'ITEM-1009-B',
-
-                        'external_menu_item_id' =>
-                            'MENU-201',
-
-                        'item_name' =>
-                            'Cold Coffee',
-
-                        'unit_price' =>
-                            6.50,
-
-                        'quantity' =>
-                            1,
-
-                        'total_price' =>
-                            6.50,
-
-                        'modifiers' =>
-                            [],
-
-                        'raw_data' => [
-                            'mock' =>
-                                true,
-                        ],
-                    ],
-                ],
-
-                'payments' => [
-                    [
-                        'external_payment_id' =>
-                            'PAY-MOCK-1009',
-
-                        'type' =>
-                            'upi',
-
-                        'amount' =>
-                            20.35,
-
-                        'tip_amount' =>
-                            0,
-
-                        'paid_at' =>
-                            $recentUpdated
-                                ->toIso8601String(),
-
-                        'raw_data' => [
-                            'mock' =>
-                                true,
-                        ],
-                    ],
-                ],
-
-                'raw_data' => [
-                    'mock_provider' =>
-                        'Advanta Mock POS',
-
-                    'order_number' =>
-                        '1009',
-                ],
-            ],
-
-            /*
-            |--------------------------------------------------------------------------
-            | ORDER 1010
-            |--------------------------------------------------------------------------
-            */
-            [
-                'external_order_id' =>
-                    'MOCK-ORDER-1010',
-
-                'external_location_id' =>
-                    'location_demo_002',
-
-                'source' =>
-                    'custom_api',
-
-                'order_type' =>
-                    'dine_in',
-
-                'table_number' =>
-                    'T-15',
-
-                'customer_name' =>
-                    'Ananya Rao',
-
-                'customer_phone' =>
-                    '9876500010',
-
-                'customer_email' =>
-                    'ananya@example.com',
-
-                'delivery_address' =>
-                    null,
-
-                'subtotal' =>
-                    30.00,
-
-                'tax_amount' =>
-                    3.00,
-
-                'delivery_charge' =>
-                    0,
-
-                'tip_amount' =>
-                    3.00,
-
-                'total' =>
-                    36.00,
-
-                'status' =>
-                    'completed',
-
-                'payment_status' =>
-                    'paid',
-
-                'payment_id' =>
-                    'PAY-MOCK-1010',
-
-                'payment_method' =>
-                    'card',
-
-                'special_instructions' =>
-                    'Window side table',
-
-                'pos_created_at' =>
-                    $recentCreated
-                        ->copy()
-                        ->subMinute()
-                        ->toIso8601String(),
-
-                'pos_updated_at' =>
-                    $recentUpdated
-                        ->copy()
-                        ->subSecond()
-                        ->toIso8601String(),
-
-                'items' => [
-                    [
-                        'external_item_id' =>
-                            'ITEM-1010-A',
-
-                        'external_menu_item_id' =>
-                            'MENU-101',
-
-                        'item_name' =>
-                            'Chicken Tikka Masala',
-
-                        'unit_price' =>
-                            14.00,
-
-                        'quantity' =>
-                            1,
-
-                        'total_price' =>
-                            14.00,
-
-                        'modifiers' =>
-                            [],
-
-                        'raw_data' => [
-                            'mock' =>
-                                true,
-                        ],
-                    ],
-
-                    [
-                        'external_item_id' =>
-                            'ITEM-1010-B',
-
-                        'external_menu_item_id' =>
-                            'MENU-105',
-
-                        'item_name' =>
-                            'Garlic Naan',
-
-                        'unit_price' =>
-                            5.00,
-
-                        'quantity' =>
-                            1,
-
-                        'total_price' =>
-                            5.00,
-
-                        'modifiers' =>
-                            [],
-
-                        'raw_data' => [
-                            'mock' =>
-                                true,
-                        ],
-                    ],
-
-                    [
-                        'external_item_id' =>
-                            'ITEM-1010-C',
-
-                        'external_menu_item_id' =>
-                            'MENU-203',
-
-                        'item_name' =>
-                            'Masala Chai',
-
-                        'unit_price' =>
-                            3.50,
-
-                        'quantity' =>
-                            2,
-
-                        'total_price' =>
-                            7.00,
-
-                        'modifiers' =>
-                            [],
-
-                        'raw_data' => [
-                            'mock' =>
-                                true,
-                        ],
-                    ],
-
-                    [
-                        'external_item_id' =>
-                            'ITEM-1010-D',
-
-                        'external_menu_item_id' =>
-                            'MENU-301',
-
-                        'item_name' =>
-                            'Gulab Jamun',
-
-                        'unit_price' =>
-                            5.00,
-
-                        'quantity' =>
-                            1,
-
-                        'total_price' =>
-                            5.00,
-
-                        'modifiers' =>
-                            [],
-
-                        'raw_data' => [
-                            'mock' =>
-                                true,
-                        ],
-                    ],
-                ],
-
-                'payments' => [
-                    [
-                        'external_payment_id' =>
-                            'PAY-MOCK-1010',
-
-                        'type' =>
-                            'card',
-
-                        'amount' =>
-                            36.00,
-
-                        'tip_amount' =>
-                            3.00,
-
-                        'card_type' =>
-                            'MASTERCARD',
-
-                        'paid_at' =>
-                            $recentUpdated
-                                ->toIso8601String(),
-
-                        'raw_data' => [
-                            'mock' =>
-                                true,
-                        ],
-                    ],
-                ],
-
-                'raw_data' => [
-                    'mock_provider' =>
-                        'Advanta Mock POS',
-
-                    'order_number' =>
-                        '1010',
-                ],
-            ],
-        ];
+        $orders = [];
+
+        foreach (
+            $this->orderBlueprints()
+            as $index => $blueprint
+        ) {
+            $orders[] =
+                $this->buildOrder(
+                    $index,
+                    $blueprint
+                );
+        }
 
         /*
         |--------------------------------------------------------------------------
@@ -2413,5 +436,965 @@ class MockPosController extends Controller
             'orders' =>
                 $filteredOrders,
         ]);
+    }
+
+    /**
+     * Build one menu item.
+     */
+    private function menuItem(
+        string $id,
+        string $name,
+        string $description,
+        float $price,
+        string $foodType,
+        int $sortOrder
+    ): array {
+        return [
+            'external_item_id' =>
+                $id,
+
+            'name' =>
+                $name,
+
+            'description' =>
+                $description,
+
+            'price' =>
+                $price,
+
+            'food_type' =>
+                $foodType,
+
+            'is_available' =>
+                true,
+
+            'is_active' =>
+                true,
+
+            'sort_order' =>
+                $sortOrder,
+        ];
+    }
+
+    /**
+     * Menu lookup used by mock orders.
+     */
+    private function catalog(): array
+    {
+        return [
+            'MENU-101' => [
+                'name' =>
+                    'Chicken Tikka Masala',
+
+                'price' =>
+                    14.00,
+            ],
+
+            'MENU-102' => [
+                'name' =>
+                    'Chicken Biryani',
+
+                'price' =>
+                    14.00,
+            ],
+
+            'MENU-103' => [
+                'name' =>
+                    'Paneer Butter Masala',
+
+                'price' =>
+                    12.00,
+            ],
+
+            'MENU-104' => [
+                'name' =>
+                    'Paneer Tikka',
+
+                'price' =>
+                    12.00,
+            ],
+
+            'MENU-105' => [
+                'name' =>
+                    'Garlic Naan',
+
+                'price' =>
+                    5.00,
+            ],
+
+            'MENU-201' => [
+                'name' =>
+                    'Cold Coffee',
+
+                'price' =>
+                    6.50,
+            ],
+
+            'MENU-202' => [
+                'name' =>
+                    'Mango Lassi',
+
+                'price' =>
+                    5.50,
+            ],
+
+            'MENU-203' => [
+                'name' =>
+                    'Masala Chai',
+
+                'price' =>
+                    3.50,
+            ],
+
+            'MENU-301' => [
+                'name' =>
+                    'Gulab Jamun',
+
+                'price' =>
+                    5.00,
+            ],
+
+            'MENU-302' => [
+                'name' =>
+                    'Kulfi',
+
+                'price' =>
+                    6.00,
+            ],
+        ];
+    }
+
+    /**
+     * 35 realistic demo orders.
+     *
+     * days_ago controls analytics date.
+     * hour controls the Day chart.
+     */
+    private function orderBlueprints(): array
+    {
+        return [
+            /*
+            |--------------------------------------------------------------------------
+            | TODAY - 10 ORDERS
+            |--------------------------------------------------------------------------
+            */
+
+            [
+                'days_ago' => 0,
+                'hour' => 9,
+                'minute' => 15,
+                'items' => [
+                    ['MENU-203', 2],
+                    ['MENU-105', 1],
+                ],
+                'payment' => 'cash',
+                'status' => 'completed',
+                'type' => 'takeaway',
+            ],
+
+            [
+                'days_ago' => 0,
+                'hour' => 10,
+                'minute' => 30,
+                'items' => [
+                    ['MENU-103', 1],
+                    ['MENU-105', 2],
+                ],
+                'payment' => 'upi',
+                'status' => 'completed',
+                'type' => 'dine_in',
+            ],
+
+            [
+                'days_ago' => 0,
+                'hour' => 11,
+                'minute' => 45,
+                'items' => [
+                    ['MENU-102', 2],
+                    ['MENU-202', 2],
+                ],
+                'payment' => 'card',
+                'status' => 'completed',
+                'type' => 'dine_in',
+            ],
+
+            [
+                'days_ago' => 0,
+                'hour' => 12,
+                'minute' => 20,
+                'items' => [
+                    ['MENU-101', 1],
+                    ['MENU-105', 3],
+                    ['MENU-201', 1],
+                ],
+                'payment' => 'card',
+                'status' => 'completed',
+                'type' => 'dine_in',
+            ],
+
+            [
+                'days_ago' => 0,
+                'hour' => 13,
+                'minute' => 10,
+                'items' => [
+                    ['MENU-102', 1],
+                    ['MENU-105', 2],
+                    ['MENU-202', 1],
+                ],
+                'payment' => 'upi',
+                'status' => 'completed',
+                'type' => 'takeaway',
+            ],
+
+            [
+                'days_ago' => 0,
+                'hour' => 14,
+                'minute' => 5,
+                'items' => [
+                    ['MENU-103', 2],
+                    ['MENU-105', 4],
+                ],
+                'payment' => 'card',
+                'status' => 'completed',
+                'type' => 'dine_in',
+            ],
+
+            [
+                'days_ago' => 0,
+                'hour' => 16,
+                'minute' => 20,
+                'items' => [
+                    ['MENU-104', 1],
+                    ['MENU-201', 2],
+                ],
+                'payment' => 'cash',
+                'status' => 'ready',
+                'type' => 'takeaway',
+            ],
+
+            [
+                'days_ago' => 0,
+                'hour' => 18,
+                'minute' => 15,
+                'items' => [
+                    ['MENU-101', 2],
+                    ['MENU-105', 4],
+                    ['MENU-202', 2],
+                ],
+                'payment' => 'card',
+                'status' => 'preparing',
+                'type' => 'dine_in',
+            ],
+
+            [
+                'days_ago' => 0,
+                'hour' => 20,
+                'minute' => 10,
+                'items' => [
+                    ['MENU-102', 2],
+                    ['MENU-105', 3],
+                    ['MENU-301', 2],
+                ],
+                'payment' => 'upi',
+                'status' => 'pending',
+                'type' => 'dine_in',
+            ],
+
+            [
+                'days_ago' => 0,
+                'hour' => 21,
+                'minute' => 25,
+                'items' => [
+                    ['MENU-101', 1],
+                    ['MENU-103', 1],
+                    ['MENU-105', 3],
+                    ['MENU-302', 1],
+                ],
+                'payment' => 'card',
+                'status' => 'completed',
+                'type' => 'dine_in',
+            ],
+
+            /*
+            |--------------------------------------------------------------------------
+            | YESTERDAY - 5
+            |--------------------------------------------------------------------------
+            */
+
+            [
+                'days_ago' => 1,
+                'hour' => 11,
+                'minute' => 20,
+                'items' => [
+                    ['MENU-103', 1],
+                    ['MENU-202', 1],
+                ],
+                'payment' => 'cash',
+                'status' => 'completed',
+                'type' => 'takeaway',
+            ],
+
+            [
+                'days_ago' => 1,
+                'hour' => 13,
+                'minute' => 15,
+                'items' => [
+                    ['MENU-102', 3],
+                    ['MENU-105', 5],
+                ],
+                'payment' => 'card',
+                'status' => 'completed',
+                'type' => 'dine_in',
+            ],
+
+            [
+                'days_ago' => 1,
+                'hour' => 15,
+                'minute' => 40,
+                'items' => [
+                    ['MENU-104', 2],
+                    ['MENU-201', 2],
+                ],
+                'payment' => 'upi',
+                'status' => 'completed',
+                'type' => 'takeaway',
+            ],
+
+            [
+                'days_ago' => 1,
+                'hour' => 19,
+                'minute' => 5,
+                'items' => [
+                    ['MENU-101', 3],
+                    ['MENU-105', 6],
+                    ['MENU-202', 2],
+                ],
+                'payment' => 'card',
+                'status' => 'completed',
+                'type' => 'dine_in',
+            ],
+
+            [
+                'days_ago' => 1,
+                'hour' => 21,
+                'minute' => 10,
+                'items' => [
+                    ['MENU-102', 2],
+                    ['MENU-301', 1],
+                ],
+                'payment' => 'cash',
+                'status' => 'completed',
+                'type' => 'dine_in',
+            ],
+
+            /*
+            |--------------------------------------------------------------------------
+            | 2 DAYS AGO - 5
+            |--------------------------------------------------------------------------
+            */
+
+            [
+                'days_ago' => 2,
+                'hour' => 10,
+                'minute' => 10,
+                'items' => [
+                    ['MENU-203', 2],
+                    ['MENU-104', 1],
+                ],
+                'payment' => 'cash',
+                'status' => 'completed',
+                'type' => 'takeaway',
+            ],
+
+            [
+                'days_ago' => 2,
+                'hour' => 12,
+                'minute' => 35,
+                'items' => [
+                    ['MENU-103', 2],
+                    ['MENU-105', 3],
+                ],
+                'payment' => 'upi',
+                'status' => 'completed',
+                'type' => 'dine_in',
+            ],
+
+            [
+                'days_ago' => 2,
+                'hour' => 14,
+                'minute' => 20,
+                'items' => [
+                    ['MENU-102', 2],
+                    ['MENU-202', 2],
+                ],
+                'payment' => 'card',
+                'status' => 'completed',
+                'type' => 'takeaway',
+            ],
+
+            [
+                'days_ago' => 2,
+                'hour' => 18,
+                'minute' => 25,
+                'items' => [
+                    ['MENU-101', 2],
+                    ['MENU-105', 5],
+                    ['MENU-201', 1],
+                ],
+                'payment' => 'card',
+                'status' => 'completed',
+                'type' => 'dine_in',
+            ],
+
+            [
+                'days_ago' => 2,
+                'hour' => 20,
+                'minute' => 45,
+                'items' => [
+                    ['MENU-102', 3],
+                    ['MENU-105', 4],
+                    ['MENU-302', 1],
+                ],
+                'payment' => 'upi',
+                'status' => 'completed',
+                'type' => 'dine_in',
+            ],
+
+            /*
+            |--------------------------------------------------------------------------
+            | 3-6 DAYS AGO - WEEK DATA
+            |--------------------------------------------------------------------------
+            */
+
+            [
+                'days_ago' => 3,
+                'hour' => 12,
+                'minute' => 15,
+                'items' => [
+                    ['MENU-103', 1],
+                    ['MENU-105', 2],
+                    ['MENU-202', 1],
+                ],
+                'payment' => 'cash',
+                'status' => 'completed',
+                'type' => 'takeaway',
+            ],
+
+            [
+                'days_ago' => 3,
+                'hour' => 19,
+                'minute' => 30,
+                'items' => [
+                    ['MENU-101', 3],
+                    ['MENU-105', 5],
+                    ['MENU-301', 2],
+                ],
+                'payment' => 'card',
+                'status' => 'completed',
+                'type' => 'dine_in',
+            ],
+
+            [
+                'days_ago' => 4,
+                'hour' => 13,
+                'minute' => 5,
+                'items' => [
+                    ['MENU-102', 2],
+                    ['MENU-201', 2],
+                ],
+                'payment' => 'upi',
+                'status' => 'completed',
+                'type' => 'takeaway',
+            ],
+
+            [
+                'days_ago' => 4,
+                'hour' => 20,
+                'minute' => 10,
+                'items' => [
+                    ['MENU-101', 2],
+                    ['MENU-103', 1],
+                    ['MENU-105', 5],
+                ],
+                'payment' => 'card',
+                'status' => 'completed',
+                'type' => 'dine_in',
+            ],
+
+            [
+                'days_ago' => 5,
+                'hour' => 12,
+                'minute' => 25,
+                'items' => [
+                    ['MENU-104', 2],
+                    ['MENU-202', 2],
+                ],
+                'payment' => 'cash',
+                'status' => 'completed',
+                'type' => 'takeaway',
+            ],
+
+            [
+                'days_ago' => 5,
+                'hour' => 19,
+                'minute' => 50,
+                'items' => [
+                    ['MENU-102', 4],
+                    ['MENU-105', 5],
+                    ['MENU-301', 1],
+                ],
+                'payment' => 'card',
+                'status' => 'completed',
+                'type' => 'dine_in',
+            ],
+
+            [
+                'days_ago' => 6,
+                'hour' => 13,
+                'minute' => 35,
+                'items' => [
+                    ['MENU-103', 2],
+                    ['MENU-105', 4],
+                    ['MENU-201', 1],
+                ],
+                'payment' => 'upi',
+                'status' => 'completed',
+                'type' => 'dine_in',
+            ],
+
+            [
+                'days_ago' => 6,
+                'hour' => 20,
+                'minute' => 15,
+                'items' => [
+                    ['MENU-101', 4],
+                    ['MENU-105', 6],
+                    ['MENU-202', 3],
+                ],
+                'payment' => 'card',
+                'status' => 'completed',
+                'type' => 'dine_in',
+            ],
+
+            /*
+            |--------------------------------------------------------------------------
+            | OLDER CURRENT-MONTH DATA
+            |--------------------------------------------------------------------------
+            */
+
+            [
+                'days_ago' => 9,
+                'hour' => 13,
+                'minute' => 20,
+                'items' => [
+                    ['MENU-102', 2],
+                    ['MENU-105', 2],
+                ],
+                'payment' => 'cash',
+                'status' => 'completed',
+                'type' => 'takeaway',
+            ],
+
+            [
+                'days_ago' => 11,
+                'hour' => 19,
+                'minute' => 5,
+                'items' => [
+                    ['MENU-101', 3],
+                    ['MENU-105', 5],
+                    ['MENU-202', 2],
+                ],
+                'payment' => 'card',
+                'status' => 'completed',
+                'type' => 'dine_in',
+            ],
+
+            [
+                'days_ago' => 14,
+                'hour' => 12,
+                'minute' => 40,
+                'items' => [
+                    ['MENU-103', 3],
+                    ['MENU-105', 4],
+                ],
+                'payment' => 'upi',
+                'status' => 'completed',
+                'type' => 'dine_in',
+            ],
+
+            [
+                'days_ago' => 17,
+                'hour' => 20,
+                'minute' => 10,
+                'items' => [
+                    ['MENU-102', 3],
+                    ['MENU-201', 2],
+                    ['MENU-301', 1],
+                ],
+                'payment' => 'card',
+                'status' => 'completed',
+                'type' => 'dine_in',
+            ],
+
+            [
+                'days_ago' => 20,
+                'hour' => 13,
+                'minute' => 25,
+                'items' => [
+                    ['MENU-104', 2],
+                    ['MENU-105', 3],
+                    ['MENU-202', 1],
+                ],
+                'payment' => 'cash',
+                'status' => 'completed',
+                'type' => 'takeaway',
+            ],
+
+            [
+                'days_ago' => 23,
+                'hour' => 19,
+                'minute' => 45,
+                'items' => [
+                    ['MENU-101', 3],
+                    ['MENU-105', 5],
+                    ['MENU-302', 1],
+                ],
+                'payment' => 'card',
+                'status' => 'completed',
+                'type' => 'dine_in',
+            ],
+
+            [
+                'days_ago' => 26,
+                'hour' => 18,
+                'minute' => 15,
+                'items' => [
+                    ['MENU-102', 2],
+                    ['MENU-103', 1],
+                    ['MENU-105', 4],
+                ],
+                'payment' => 'upi',
+                'status' => 'completed',
+                'type' => 'dine_in',
+            ],
+        ];
+    }
+
+    /**
+     * Build normalized mock order.
+     */
+    private function buildOrder(
+        int $index,
+        array $blueprint
+    ): array {
+        $catalog =
+            $this->catalog();
+
+        $number =
+            1001 + $index;
+
+        $createdAt =
+            now()
+                ->subDays(
+                    (int)
+                    $blueprint[
+                        'days_ago'
+                    ]
+                )
+                ->setTime(
+                    (int)
+                    $blueprint[
+                        'hour'
+                    ],
+                    (int)
+                    $blueprint[
+                        'minute'
+                    ],
+                    0
+                );
+
+        /*
+         * Keep update time recent so newly-added historical
+         * mock orders are returned by incremental Sync Now.
+         */
+
+        $updatedAt =
+            now()
+                ->subSeconds(
+                    10 + $index
+                );
+
+        $items = [];
+
+        $subtotal = 0;
+
+        foreach (
+            $blueprint['items']
+            as $itemIndex => $row
+        ) {
+            [
+                $menuId,
+                $quantity,
+            ] = $row;
+
+            $menuItem =
+                $catalog[$menuId];
+
+            $unitPrice =
+                (float)
+                $menuItem[
+                    'price'
+                ];
+
+            $lineTotal =
+                $unitPrice *
+                (int) $quantity;
+
+            $subtotal +=
+                $lineTotal;
+
+            $items[] = [
+                'external_item_id' =>
+                    'ITEM-' .
+                    $number .
+                    '-' .
+                    ($itemIndex + 1),
+
+                'external_menu_item_id' =>
+                    $menuId,
+
+                'item_name' =>
+                    $menuItem[
+                        'name'
+                    ],
+
+                'unit_price' =>
+                    round(
+                        $unitPrice,
+                        2
+                    ),
+
+                'quantity' =>
+                    (int)
+                    $quantity,
+
+                'total_price' =>
+                    round(
+                        $lineTotal,
+                        2
+                    ),
+
+                'modifiers' =>
+                    [],
+
+                'raw_data' => [
+                    'mock' =>
+                        true,
+                ],
+            ];
+        }
+
+        $tax =
+            round(
+                $subtotal *
+                0.10,
+                2
+            );
+
+        $tip =
+            $blueprint[
+                'type'
+            ] === 'dine_in'
+                ? round(
+                    min(
+                        5,
+                        $subtotal *
+                        0.05
+                    ),
+                    2
+                )
+                : 0;
+
+        $total =
+            round(
+                $subtotal +
+                $tax +
+                $tip,
+                2
+            );
+
+        $paymentMethod =
+            $blueprint[
+                'payment'
+            ];
+
+        $cardTypes = [
+            'VISA',
+            'MASTERCARD',
+            'RUPAY',
+        ];
+
+        $cardType =
+            $paymentMethod ===
+            'card'
+                ? $cardTypes[
+                    $index %
+                    count(
+                        $cardTypes
+                    )
+                ]
+                : null;
+
+        $location =
+            $index % 4 === 0
+                ? 'location_demo_002'
+                : 'location_demo_001';
+
+        $table =
+            $blueprint[
+                'type'
+            ] === 'dine_in'
+                ? 'T-' .
+                    str_pad(
+                        (string)
+                        (
+                            ($index % 18)
+                            + 1
+                        ),
+                        2,
+                        '0',
+                        STR_PAD_LEFT
+                    )
+                : null;
+
+        return [
+            'external_order_id' =>
+                'MOCK-ORDER-' .
+                $number,
+
+            'external_location_id' =>
+                $location,
+
+            'source' =>
+                'custom_api',
+
+            'order_type' =>
+                $blueprint[
+                    'type'
+                ],
+
+            'table_number' =>
+                $table,
+
+            'customer_name' =>
+                'Demo Customer ' .
+                $number,
+
+            'customer_phone' =>
+                '98' .
+                str_pad(
+                    (string)
+                    $number,
+                    8,
+                    '0',
+                    STR_PAD_LEFT
+                ),
+
+            'customer_email' =>
+                'customer' .
+                $number .
+                '@example.com',
+
+            'delivery_address' =>
+                null,
+
+            'subtotal' =>
+                round(
+                    $subtotal,
+                    2
+                ),
+
+            'tax_amount' =>
+                $tax,
+
+            'delivery_charge' =>
+                0,
+
+            'tip_amount' =>
+                $tip,
+
+            'total' =>
+                $total,
+
+            'status' =>
+                $blueprint[
+                    'status'
+                ],
+
+            'payment_status' =>
+                'paid',
+
+            'payment_id' =>
+                'PAY-MOCK-' .
+                $number,
+
+            'payment_method' =>
+                $paymentMethod,
+
+            'special_instructions' =>
+                null,
+
+            'pos_created_at' =>
+                $createdAt
+                    ->toIso8601String(),
+
+            'pos_updated_at' =>
+                $updatedAt
+                    ->toIso8601String(),
+
+            'items' =>
+                $items,
+
+            'payments' => [
+                [
+                    'external_payment_id' =>
+                        'PAY-MOCK-' .
+                        $number,
+
+                    'type' =>
+                        $paymentMethod,
+
+                    'amount' =>
+                        $total,
+
+                    'tip_amount' =>
+                        $tip,
+
+                    'card_type' =>
+                        $cardType,
+
+                    'paid_at' =>
+                        $updatedAt
+                            ->toIso8601String(),
+
+                    'raw_data' => [
+                        'mock' =>
+                            true,
+                    ],
+                ],
+            ],
+
+            'raw_data' => [
+                'mock_provider' =>
+                    'Advanta Mock POS',
+
+                'order_number' =>
+                    (string)
+                    $number,
+
+                'analytics_demo' =>
+                    true,
+            ],
+        ];
     }
 }

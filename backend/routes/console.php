@@ -35,3 +35,22 @@ Schedule::call(function () {
     ->name('automatic-pos-sync')
     ->everyFiveMinutes()
     ->withoutOverlapping();
+
+
+    /*
+|--------------------------------------------------------------------------
+| SANCTUM TOKEN CLEANUP
+|--------------------------------------------------------------------------
+|
+| Remove old expired personal access tokens from the database.
+|
+*/
+
+Schedule::command(
+    'sanctum:prune-expired --hours=24'
+)
+    ->name(
+        'sanctum-token-cleanup'
+    )
+    ->daily()
+    ->withoutOverlapping();

@@ -25,6 +25,11 @@ const menus = [
     href: "/dashboard/recommendations",
     icon: "fa-lightbulb",
   },
+  {
+  name: "Weather Dashboard",
+  href: "/dashboard/weather",
+  icon: "fa-cloud-sun",
+  },
 ];
 
 type OwnerInfo = {
@@ -255,7 +260,7 @@ export default function OwnerSidebar() {
   */
 
   const handleLogout = () => {
-    localStorage.clear();
+    sessionStorage.clear();
 
     window.dispatchEvent(
       new Event("storage")

@@ -88,7 +88,7 @@ export default function SuperAdminSidebar() {
   };
 
   const handleLogout = () => {
-    localStorage.clear();
+    sessionStorage.clear();
     window.dispatchEvent(new Event("storage"));
     router.replace("/superadmin/login");
   };

@@ -13,7 +13,7 @@ export default function AuthGuard({ children, allowedRoles }: Props) {
   const [authorized, setAuthorized] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = sessionStorage.getItem("token");
     const role = localStorage.getItem("role");
 
     // Handle missing or invalid values

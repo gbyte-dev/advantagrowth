@@ -54,7 +54,7 @@ export default function Navbar() {
   }, []);
 
   const logout = () => {
-    localStorage.removeItem("token");
+    sessionStorage.removeItem("token");
     localStorage.removeItem("role");
     localStorage.removeItem("user");
     setRole("");

@@ -43,7 +43,7 @@ export default function StaffMenuPage() {
       setLoading(true);
       setError("");
 
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
 
       if (!token) {
         router.replace("/owner/login");
@@ -61,7 +61,7 @@ export default function StaffMenuPage() {
       console.error("Staff menu error:", error);
 
       if (error.response?.status === 401) {
-        localStorage.clear();
+        sessionStorage.clear();
         router.replace("/owner/login");
         return;
       }
@@ -141,7 +141,7 @@ export default function StaffMenuPage() {
   );
 
   const handleLogout = () => {
-    localStorage.clear();
+    sessionStorage.clear();
     window.dispatchEvent(new Event("storage"));
     router.replace("/owner/login");
   };

@@ -324,7 +324,7 @@ export default function OrderingPage() {
       setOrderError("");
 
       const token =
-        localStorage.getItem("token");
+        sessionStorage.getItem("token");
 
       if (!token) {
         setOrderError(

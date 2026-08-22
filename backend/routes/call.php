@@ -6,6 +6,24 @@ use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\Menu\MenuController;
 use App\Http\Controllers\Api\POS\MockPosController;
 use App\Http\Controllers\Api\Staff\StaffController;
+use App\Http\Controllers\Api\Owner\AnalyticsController;
+use App\Http\Controllers\Api\Owner\WeatherController;
+
+/*
+|--------------------------------------------------------------------------
+| DEVELOPMENT PASSWORD RESET
+|--------------------------------------------------------------------------
+|
+| No email / OTP yet.
+| Controller itself blocks this endpoint outside local/testing.
+|
+*/
+
+Route::post('/auth/reset-password', [
+    AuthController::class,
+    'resetPasswordDev'
+]);
+
 
 /*
 |--------------------------------------------------------------------------
@@ -123,4 +141,27 @@ Route::middleware('auth:sanctum')->group(function () {
         AuthController::class,
         'deleteAccount'
     ]);
+
+
+    /*
+|--------------------------------------------------------------------------
+| OWNER ANALYTICS
+|--------------------------------------------------------------------------
+*/
+
+    Route::get('/owner/analytics', [
+        AnalyticsController::class,
+        'overview'
+    ]);
+
+    /*
+        |--------------------------------------------------------------------------
+        | OWNER WEATHER
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get('/owner/weather', [
+            WeatherController::class,
+            'overview'
+        ]);
 });

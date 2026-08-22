@@ -10,7 +10,7 @@ export default function MainNavigation() {
 
   useEffect(() => {
     const checkAuth = () => {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
 
       setIsLoggedIn(!!token);
     };

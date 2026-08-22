@@ -385,7 +385,7 @@ export default function StaffSidebar() {
   };
 
   const handleLogout = () => {
-    localStorage.clear();
+    sessionStorage.clear();
 
     window.dispatchEvent(
       new Event("storage")

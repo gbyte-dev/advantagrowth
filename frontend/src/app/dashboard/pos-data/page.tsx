@@ -48,7 +48,7 @@ export default function PosDataPage() {
   const [error, setError] = useState("");
 
   const authConfig = () => {
-    const token = localStorage.getItem("token");
+    const token = sessionStorage.getItem("token");
 
     return {
       headers: {
@@ -62,7 +62,7 @@ export default function PosDataPage() {
       setLoading(true);
       setError("");
 
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
 
       if (!token) {
         setError("Please login again.");

@@ -29,13 +29,13 @@ export default function StaffDashboard() {
       const parsedUser = JSON.parse(user);
       setStaff(parsedUser);
     } catch {
-      localStorage.clear();
+      sessionStorage.clear();
       router.replace("/owner/login");
     }
   }, [router]);
 
   const handleLogout = () => {
-    localStorage.clear();
+    sessionStorage.clear();
     window.dispatchEvent(new Event("storage"));
     router.replace("/owner/login");
   };

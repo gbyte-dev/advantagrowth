@@ -55,8 +55,8 @@ export default function StaffOrdersPage() {
     if (typeof window === "undefined") return null;
 
     return (
-      localStorage.getItem("token") ||
-      localStorage.getItem("staff_token")
+      sessionStorage.getItem("token") ||
+      sessionStorage.getItem("staff_token")
     );
   };
 
@@ -115,8 +115,8 @@ export default function StaffOrdersPage() {
   }, [loadOrders]);
 
   const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("staff_token");
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("staff_token");
     localStorage.removeItem("user");
 
     router.replace("/owner/login");

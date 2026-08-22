@@ -267,7 +267,7 @@ export default function IntegrationsPage() {
       setConnectionsError("");
 
       const token =
-        localStorage.getItem("token");
+        sessionStorage.getItem("token");
 
       if (!token) {
         setConnectionsError(
@@ -340,7 +340,7 @@ export default function IntegrationsPage() {
       setSyncHistoryError("");
 
       const token =
-        localStorage.getItem("token");
+        sessionStorage.getItem("token");
 
       if (!token) {
         setSyncHistoryError(
@@ -536,7 +536,7 @@ export default function IntegrationsPage() {
         }));
 
         const token =
-          localStorage.getItem("token");
+          sessionStorage.getItem("token");
 
         if (!token) {
           setTestError(
@@ -706,7 +706,7 @@ export default function IntegrationsPage() {
         setConnecting(true);
 
         const token =
-          localStorage.getItem("token");
+          sessionStorage.getItem("token");
 
         if (!token) {
           alert(
@@ -807,7 +807,7 @@ export default function IntegrationsPage() {
 
     try {
       const token =
-        localStorage.getItem("token");
+        sessionStorage.getItem("token");
 
       if (!token) {
         alert(
@@ -868,7 +868,7 @@ export default function IntegrationsPage() {
   ) => {
     try {
       const token =
-        localStorage.getItem("token");
+        sessionStorage.getItem("token");
 
       if (!token) {
         alert(
@@ -980,11 +980,6 @@ export default function IntegrationsPage() {
         <div className="integrations-header">
 
           <div>
-
-            <div className="integrations-eyebrow">
-              <i className="fas fa-plug"></i>
-              POS Management
-            </div>
 
             <h1>
               POS Integrations

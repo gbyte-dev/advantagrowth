@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { login } from "@/services/auth";
 
+
 export default function OwnerLoginPage() {
   const router = useRouter();
 
@@ -92,7 +93,7 @@ export default function OwnerLoginPage() {
       |--------------------------------------------------------------------------
       */
 
-      localStorage.clear();
+      sessionStorage.clear();
 
       /*
       |--------------------------------------------------------------------------
@@ -100,7 +101,7 @@ export default function OwnerLoginPage() {
       |--------------------------------------------------------------------------
       */
 
-      localStorage.setItem("token", res.data.token);
+      sessionStorage.setItem("token", res.data.token);
       localStorage.setItem("role", res.data.role);
       localStorage.setItem(
         "user",
@@ -152,7 +153,7 @@ export default function OwnerLoginPage() {
       |--------------------------------------------------------------------------
       */
 
-      localStorage.clear();
+      sessionStorage.clear();
 
       alert("Unauthorized account role.");
     } catch (error: any) {
@@ -383,7 +384,6 @@ export default function OwnerLoginPage() {
                 >
                   Forgot Password?
                 </Link>
-
               </div>
 
               {/* Submit Button */}

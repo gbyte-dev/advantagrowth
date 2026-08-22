@@ -2,7 +2,7 @@ import api from "@/lib/axios";
 
 const authHeader = () => ({
   headers: {
-    Authorization: `Bearer ${localStorage.getItem("token")}`,
+    Authorization: `Bearer ${sessionStorage.getItem("token")}`,
   },
 });
 
@@ -13,7 +13,7 @@ export const getStaff = () => {
 export const createStaff = (data: FormData) => {
   return api.post("/auth/staff", data, {
     headers: {
-      Authorization: `Bearer ${localStorage.getItem("token")}`,
+      Authorization: `Bearer ${sessionStorage.getItem("token")}`,
       "Content-Type": "multipart/form-data",
     },
   });
@@ -22,7 +22,7 @@ export const createStaff = (data: FormData) => {
 export const updateStaff = (id: number, data: FormData) => {
   return api.post(`/auth/staff/${id}`, data, {
     headers: {
-      Authorization: `Bearer ${localStorage.getItem("token")}`,
+      Authorization: `Bearer ${sessionStorage.getItem("token")}`,
       "Content-Type": "multipart/form-data",
     },
     params: {

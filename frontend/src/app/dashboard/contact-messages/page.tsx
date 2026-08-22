@@ -24,7 +24,7 @@ export default function ContactMessagesPage() {
     try {
       setLoading(true);
 
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
 
       const response = await api.get("/contact/messages", {
         headers: {
@@ -51,7 +51,7 @@ export default function ContactMessagesPage() {
 
   const toggleRead = async (id: number) => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
 
       const response = await api.patch(
         `/contact/messages/${id}/read`,
@@ -102,7 +102,7 @@ export default function ContactMessagesPage() {
     if (!confirmed) return;
 
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
 
       await api.delete(`/contact/messages/${id}`, {
         headers: {

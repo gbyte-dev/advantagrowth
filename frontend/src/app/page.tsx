@@ -12,7 +12,7 @@ export default function HomePage() {
 
   useEffect(() => {
     const checkLogin = () => {
-      setLoggedIn(!!localStorage.getItem("token"));
+      setLoggedIn(!!sessionStorage.getItem("token"));
     };
 
     checkLogin();

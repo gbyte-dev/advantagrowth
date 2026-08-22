@@ -236,6 +236,146 @@ class AuthController extends Controller
         ]);
     }
 
+/**
+ * Development-only password reset.
+ *
+ * IMPORTANT:
+ * This intentionally does not use email / OTP yet.
+ * It is blocked outside local/testing environments.
+ */
+public function resetPasswordDev(Request $request)
+{
+    /*
+    |--------------------------------------------------------------------------
+    | Development only
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+        !app()->environment([
+            'local',
+            'testing',
+        ])
+    ) {
+        abort(404);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Validation
+    |--------------------------------------------------------------------------
+    */
+
+    $validated =
+        $request->validate([
+            'login' => [
+                'required',
+                'string',
+                'max:255',
+            ],
+
+            'new_password' => [
+                'required',
+                'string',
+                'min:6',
+                'confirmed',
+            ],
+        ]);
+
+    $login =
+        trim(
+            $validated['login']
+        );
+
+    /*
+    |--------------------------------------------------------------------------
+    | Find account
+    |--------------------------------------------------------------------------
+    |
+    | Owner / SuperAdmin:
+    | - email
+    |
+    | Staff:
+    | - email
+    | - username
+    |
+    */
+
+    $user =
+        User::query()
+            ->whereIn(
+                'role',
+                [
+                    'owner',
+                    'staff',
+                    'super_admin',
+                ]
+            )
+            ->where(
+                function ($query) use ($login) {
+                    $query
+                        ->where(
+                            'email',
+                            $login
+                        )
+                        ->orWhere(
+                            'username',
+                            $login
+                        );
+                }
+            )
+            ->first();
+
+    if (!$user) {
+        return response()->json([
+            'success' => false,
+
+            'message' =>
+                'Account not found.',
+        ], 422);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Update password
+    |--------------------------------------------------------------------------
+    */
+
+    DB::transaction(
+        function () use (
+            $user,
+            $validated
+        ) {
+            $user->update([
+                'password' =>
+                    Hash::make(
+                        $validated[
+                            'new_password'
+                        ]
+                    ),
+            ]);
+
+            /*
+             * Revoke every existing login token.
+             *
+             * After reset, every currently logged-in
+             * session must authenticate again.
+             */
+
+            $user
+                ->tokens()
+                ->delete();
+        }
+    );
+
+    return response()->json([
+        'success' => true,
+
+        'message' =>
+            'Password reset successfully. Please login again.',
+    ]);
+}
+
     public function deleteAccount(Request $request)
 {
     $user = $request->user();

@@ -198,11 +198,6 @@ export default function RecommendationsPage() {
         {/* PAGE HEADER */}
         <div className="recommendations-header">
           <div>
-            <div className="recommendations-eyebrow">
-              <i className="fas fa-wand-magic-sparkles"></i>
-              AI Insights
-            </div>
-
             <h1>Recommendations</h1>
 
             <p>

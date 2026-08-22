@@ -41,7 +41,7 @@ export default function ProfilePage() {
 
   const authConfig = () => {
     const token =
-      localStorage.getItem("token");
+      sessionStorage.getItem("token");
 
     return {
       headers: {
@@ -62,7 +62,7 @@ export default function ProfilePage() {
       setLoading(true);
 
       const token =
-        localStorage.getItem("token");
+        sessionStorage.getItem("token");
 
       if (!token) {
         router.replace("/owner/login");
@@ -94,7 +94,7 @@ export default function ProfilePage() {
       if (
         error?.response?.status === 401
       ) {
-        localStorage.clear();
+        sessionStorage.clear();
 
         router.replace(
           "/owner/login"
@@ -344,7 +344,7 @@ export default function ProfilePage() {
         authConfig()
       );
 
-      localStorage.clear();
+      sessionStorage.clear();
 
       window.dispatchEvent(
         new Event("storage")

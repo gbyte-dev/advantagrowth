@@ -73,7 +73,7 @@ export default function RestaurantProfilePage() {
       setError("");
       setSuccess("");
 
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
 
       if (!token) {
         setError("Login session not found.");
@@ -199,7 +199,7 @@ export default function RestaurantProfilePage() {
       setSuccess("");
       setError("");
 
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
 
       if (!token) {
         setError("Login session not found.");
@@ -378,11 +378,6 @@ export default function RestaurantProfilePage() {
         <div className="restaurant-profile-header">
 
           <div className="restaurant-profile-header-left">
-
-            <div className="restaurant-profile-eyebrow">
-              <i className="fas fa-store"></i>
-              <span>Restaurant Management</span>
-            </div>
 
             <h1>Restaurant Profile</h1>
 

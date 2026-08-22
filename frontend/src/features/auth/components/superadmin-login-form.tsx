@@ -66,10 +66,10 @@ export default function SuperAdminLoginPage() {
       const res = await superAdminLogin(form);
 
       // Clear previous login
-      localStorage.clear();
+      sessionStorage.clear();
 
       // Save Super Admin session
-      localStorage.setItem("token", res.data.token);
+      sessionStorage.setItem("token", res.data.token);
       localStorage.setItem("role", res.data.role);
       localStorage.setItem("user", JSON.stringify(res.data.user));
 
