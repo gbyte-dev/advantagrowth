@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\SupAdmin\RestaurantsController;
+use App\Http\Controllers\Api\SupAdmin\SubscriptionController;
 
 /*
 |--------------------------------------------------------------------------
@@ -43,4 +44,14 @@ Route::middleware('auth:sanctum')->prefix('superadmin')->group(function () {
             'destroy'
         ]);
     });
+
+    Route::prefix('subscription')->group(function(){
+        Route::get('/',[SubscriptionController::class,'index']);
+        Route::post('/',[SubscriptionController::class,'store']);
+        Route::get('/{id}',[SubscriptionController::class,'show']);
+        Route::put('/{id}',[SubscriptionController::class,'update']);
+        Route::delete('/{id}',[SubscriptionController::class,'destroy']);
+    });
+
+
 });
