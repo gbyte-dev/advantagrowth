@@ -4,6 +4,13 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/lib/axios";
 
+import {
+  showSuccess,
+  showError,
+  showWarning,
+  confirmDialog,
+} from "@/lib/feedback";
+
 type User = {
   id: number;
   owner_name: string;
@@ -27,10 +34,11 @@ export default function ProfilePage() {
   const [deleting, setDeleting] =
     useState(false);
 
-  const [profile, setProfile] = useState({
-    owner_name: "",
-    email: "",
-  });
+  const [profile, setProfile] =
+    useState({
+      owner_name: "",
+      email: "",
+    });
 
   const [passwordForm, setPasswordForm] =
     useState({
@@ -65,7 +73,10 @@ export default function ProfilePage() {
         sessionStorage.getItem("token");
 
       if (!token) {
-        router.replace("/owner/login");
+        router.replace(
+          "/owner/login"
+        );
+
         return;
       }
 
@@ -92,7 +103,8 @@ export default function ProfilePage() {
       );
 
       if (
-        error?.response?.status === 401
+        error?.response?.status ===
+        401
       ) {
         sessionStorage.clear();
 
@@ -103,7 +115,7 @@ export default function ProfilePage() {
         return;
       }
 
-      alert(
+      showError(
         error?.response?.data?.message ||
           "Unable to load profile."
       );
@@ -130,16 +142,20 @@ export default function ProfilePage() {
     if (
       !profile.owner_name.trim()
     ) {
-      alert(
+      showWarning(
         "Owner name is required."
       );
+
       return;
     }
 
-    if (!profile.email.trim()) {
-      alert(
+    if (
+      !profile.email.trim()
+    ) {
+      showWarning(
         "Email is required."
       );
+
       return;
     }
 
@@ -187,7 +203,7 @@ export default function ProfilePage() {
         );
       }
 
-      alert(
+      showSuccess(
         response.data?.message ||
           "Profile updated successfully."
       );
@@ -212,7 +228,7 @@ export default function ProfilePage() {
             firstError
           )
         ) {
-          alert(
+          showWarning(
             firstError[0]
           );
 
@@ -220,7 +236,7 @@ export default function ProfilePage() {
         }
       }
 
-      alert(
+      showError(
         error?.response?.data?.message ||
           "Unable to update profile."
       );
@@ -244,7 +260,7 @@ export default function ProfilePage() {
       !passwordForm
         .current_password
     ) {
-      alert(
+      showWarning(
         "Current password is required."
       );
 
@@ -255,7 +271,7 @@ export default function ProfilePage() {
       passwordForm
         .new_password.length < 6
     ) {
-      alert(
+      showWarning(
         "New password must be at least 6 characters."
       );
 
@@ -268,7 +284,7 @@ export default function ProfilePage() {
       passwordForm
         .new_password_confirmation
     ) {
-      alert(
+      showWarning(
         "Password confirmation does not match."
       );
 
@@ -292,7 +308,7 @@ export default function ProfilePage() {
           "",
       });
 
-      alert(
+      showSuccess(
         response.data?.message ||
           "Password updated successfully."
       );
@@ -302,7 +318,7 @@ export default function ProfilePage() {
         error
       );
 
-      alert(
+      showError(
         error?.response?.data?.message ||
           "Unable to update password."
       );
@@ -319,18 +335,44 @@ export default function ProfilePage() {
 
   const deleteAccount = async () => {
     const firstConfirm =
-      window.confirm(
-        "Are you sure you want to delete your account?"
-      );
+      await confirmDialog({
+        title:
+          "Delete Account?",
+
+        message:
+          "Are you sure you want to delete your account?",
+
+        confirmText:
+          "Continue",
+
+        cancelText:
+          "Cancel",
+
+        danger:
+          true,
+      });
 
     if (!firstConfirm) {
       return;
     }
 
     const secondConfirm =
-      window.confirm(
-        "This action cannot be undone. Delete account permanently?"
-      );
+      await confirmDialog({
+        title:
+          "Permanently Delete Account?",
+
+        message:
+          "This action cannot be undone. Your account access will be permanently removed.",
+
+        confirmText:
+          "Delete Permanently",
+
+        cancelText:
+          "Cancel",
+
+        danger:
+          true,
+      });
 
     if (!secondConfirm) {
       return;
@@ -350,7 +392,7 @@ export default function ProfilePage() {
         new Event("storage")
       );
 
-      alert(
+      showSuccess(
         "Account deleted successfully."
       );
 
@@ -363,7 +405,7 @@ export default function ProfilePage() {
         error
       );
 
-      alert(
+      showError(
         error?.response?.data?.message ||
           "Unable to delete account."
       );
@@ -384,7 +426,7 @@ export default function ProfilePage() {
         <div className="dashboard-container">
           <div className="dashboard-section">
             <div className="empty-state">
-              <i className="fas fa-spinner fa-spin"></i>
+              <i className="fas fa-spinner fa-spin" />
 
               <h3>
                 Loading Profile
@@ -405,16 +447,14 @@ export default function ProfilePage() {
     <div className="dashboard-page profile-page">
       <div className="dashboard-container">
 
-        {/* =====================================================
-            PROFILE HEADER
-        ===================================================== */}
+        {/* PROFILE HEADER */}
 
         <div className="profile-page-header">
 
           <div className="profile-page-header-left">
 
             <div className="profile-page-eyebrow">
-              <i className="fas fa-user-circle"></i>
+              <i className="fas fa-user-circle" />
 
               <span>
                 Owner Account
@@ -433,17 +473,15 @@ export default function ProfilePage() {
 
           </div>
 
-
         </div>
 
-        {/* =====================================================
-            PROFILE INFORMATION
-        ===================================================== */}
+        {/* PROFILE INFORMATION */}
 
         <section className="dashboard-section profile-card">
 
           <div className="section-header-row">
             <div>
+
               <h2>
                 Profile Information
               </h2>
@@ -452,10 +490,15 @@ export default function ProfilePage() {
                 Update your account name
                 and email address.
               </p>
+
             </div>
           </div>
 
-          <form onSubmit={updateProfile}>
+          <form
+            onSubmit={
+              updateProfile
+            }
+          >
 
             <div className="form-section">
 
@@ -469,7 +512,7 @@ export default function ProfilePage() {
 
                   <div className="input-wrapper">
 
-                    <i className="fas fa-user input-icon"></i>
+                    <i className="fas fa-user input-icon" />
 
                     <input
                       type="text"
@@ -499,7 +542,7 @@ export default function ProfilePage() {
 
                   <div className="input-wrapper">
 
-                    <i className="fas fa-envelope input-icon"></i>
+                    <i className="fas fa-envelope input-icon" />
 
                     <input
                       type="email"
@@ -536,12 +579,12 @@ export default function ProfilePage() {
               >
                 {savingProfile ? (
                   <>
-                    <i className="fas fa-spinner fa-spin"></i>
+                    <i className="fas fa-spinner fa-spin" />
                     Saving...
                   </>
                 ) : (
                   <>
-                    <i className="fas fa-save"></i>
+                    <i className="fas fa-save" />
                     Save Changes
                   </>
                 )}
@@ -553,9 +596,7 @@ export default function ProfilePage() {
 
         </section>
 
-        {/* =====================================================
-            UPDATE PASSWORD
-        ===================================================== */}
+        {/* UPDATE PASSWORD */}
 
         <section className="dashboard-section profile-card">
 
@@ -574,7 +615,11 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          <form onSubmit={changePassword}>
+          <form
+            onSubmit={
+              changePassword
+            }
+          >
 
             <div className="form-section">
 
@@ -588,7 +633,7 @@ export default function ProfilePage() {
 
                   <div className="input-wrapper">
 
-                    <i className="fas fa-lock input-icon"></i>
+                    <i className="fas fa-lock input-icon" />
 
                     <input
                       type="password"
@@ -619,7 +664,7 @@ export default function ProfilePage() {
 
                   <div className="input-wrapper">
 
-                    <i className="fas fa-key input-icon"></i>
+                    <i className="fas fa-key input-icon" />
 
                     <input
                       type="password"
@@ -650,7 +695,7 @@ export default function ProfilePage() {
 
                   <div className="input-wrapper">
 
-                    <i className="fas fa-shield-alt input-icon"></i>
+                    <i className="fas fa-shield-alt input-icon" />
 
                     <input
                       type="password"
@@ -688,12 +733,12 @@ export default function ProfilePage() {
               >
                 {savingPassword ? (
                   <>
-                    <i className="fas fa-spinner fa-spin"></i>
+                    <i className="fas fa-spinner fa-spin" />
                     Updating...
                   </>
                 ) : (
                   <>
-                    <i className="fas fa-key"></i>
+                    <i className="fas fa-key" />
                     Save Password
                   </>
                 )}
@@ -705,9 +750,7 @@ export default function ProfilePage() {
 
         </section>
 
-        {/* =====================================================
-            DELETE ACCOUNT
-        ===================================================== */}
+        {/* DELETE ACCOUNT */}
 
         <section className="dashboard-section profile-danger-card">
 
@@ -730,7 +773,7 @@ export default function ProfilePage() {
           <div className="profile-danger-content">
 
             <div className="profile-danger-icon">
-              <i className="fas fa-exclamation-triangle"></i>
+              <i className="fas fa-exclamation-triangle" />
             </div>
 
             <div>
@@ -763,12 +806,12 @@ export default function ProfilePage() {
             >
               {deleting ? (
                 <>
-                  <i className="fas fa-spinner fa-spin"></i>
+                  <i className="fas fa-spinner fa-spin" />
                   Deleting...
                 </>
               ) : (
                 <>
-                  <i className="fas fa-trash-alt"></i>
+                  <i className="fas fa-trash-alt" />
                   Delete Account
                 </>
               )}

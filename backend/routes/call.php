@@ -3,89 +3,101 @@
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Api\Auth\AuthController;
-use App\Http\Controllers\Api\Menu\MenuController;
-use App\Http\Controllers\Api\POS\MockPosController;
 use App\Http\Controllers\Api\Staff\StaffController;
+use App\Http\Controllers\Api\Menu\MenuController;
+use App\Http\Controllers\Api\Restaurant\RestaurantController;
+use App\Http\Controllers\Api\Review\ReviewController;
+use App\Http\Controllers\Api\Contact\ContactController;
+use App\Http\Controllers\Api\ReservationController;
+
+use App\Http\Controllers\Api\Owner\OrderController as OwnerOrderController;
 use App\Http\Controllers\Api\Owner\AnalyticsController;
 use App\Http\Controllers\Api\Owner\WeatherController;
+use App\Http\Controllers\Api\Owner\HolidayController;
 
-/*
-|--------------------------------------------------------------------------
-| DEVELOPMENT PASSWORD RESET
-|--------------------------------------------------------------------------
-|
-| No email / OTP yet.
-| Controller itself blocks this endpoint outside local/testing.
-|
-*/
-
-Route::post('/auth/reset-password', [
-    AuthController::class,
-    'resetPasswordDev'
-]);
+use App\Http\Controllers\Api\POS\PosConnectionController;
 
 
 /*
 |--------------------------------------------------------------------------
-| MOCK POS ROUTES
+| OWNER AUTHENTICATED ROUTES
 |--------------------------------------------------------------------------
 |
-| Development/testing only.
-| These routes intentionally stay outside auth middleware
-| because the Advanta backend calls them like an external POS API.
+| All routes in this file belong to restaurant owner functionality.
 |
-*/
-
-Route::prefix('mock-pos')->group(function () {
-
-    Route::get('/restaurant', [
-        MockPosController::class,
-        'restaurant'
-    ]);
-
-    Route::get('/locations', [
-        MockPosController::class,
-        'locations'
-    ]);
-
-    Route::get('/menu', [
-        MockPosController::class,
-        'menu'
-    ]);
-
-    Route::get('/orders', [
-        MockPosController::class,
-        'orders'
-    ]);
-});
-
-/*
-|--------------------------------------------------------------------------
-| AUTHENTICATED ROUTES
-|--------------------------------------------------------------------------
 */
 
 Route::middleware('auth:sanctum')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | STAFF
+    | OWNER ACCOUNT
     |--------------------------------------------------------------------------
     */
 
-    Route::prefix('staff')->group(function () {
+    Route::delete('/auth/account', [
+        AuthController::class,
+        'deleteAccount'
+    ]);
 
-        Route::get('/orders', [
+
+    /*
+    |--------------------------------------------------------------------------
+    | OWNER STAFF MANAGEMENT
+    |--------------------------------------------------------------------------
+    |
+    | URLs remain:
+    |
+    | GET    /api/auth/staff
+    | POST   /api/auth/staff
+    | PUT    /api/auth/staff/{id}
+    | DELETE /api/auth/staff/{id}
+    |
+    */
+
+    Route::prefix('auth/staff')->group(function () {
+
+        Route::get('/', [
             StaffController::class,
-            'orders'
+            'index'
         ]);
 
+        Route::post('/', [
+            StaffController::class,
+            'store'
+        ]);
+
+        Route::put('/{id}', [
+            StaffController::class,
+            'update'
+        ]);
+
+        Route::delete('/{id}', [
+            StaffController::class,
+            'destroy'
+        ]);
+
+        Route::patch('/{id}/status', [
+            StaffController::class,
+            'toggleStatus'
+        ]);
+
+        Route::patch('/{id}/password', [
+            StaffController::class,
+            'resetPassword'
+        ]);
     });
+
 
     /*
     |--------------------------------------------------------------------------
     | OWNER MENU MANAGEMENT
     |--------------------------------------------------------------------------
+    |
+    | URLs remain:
+    |
+    | /api/auth/menu/*
+    |
     */
 
     Route::prefix('auth/menu')->group(function () {
@@ -131,37 +143,211 @@ Route::middleware('auth:sanctum')->group(function () {
         ]);
     });
 
+
     /*
     |--------------------------------------------------------------------------
-    | OWNER ACCOUNT
+    | OWNER REVIEWS
+    |--------------------------------------------------------------------------
+    |
+    | URLs remain:
+    |
+    | /api/auth/reviews/*
+    |
+    */
+
+    Route::prefix('auth/reviews')->group(function () {
+
+        Route::get('/', [
+            ReviewController::class,
+            'index'
+        ]);
+
+        Route::patch('/{id}/visibility', [
+            ReviewController::class,
+            'toggleVisibility'
+        ]);
+
+        Route::delete('/{id}', [
+            ReviewController::class,
+            'destroy'
+        ]);
+    });
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | OWNER CONTACT MESSAGES
     |--------------------------------------------------------------------------
     */
 
-    Route::delete('/auth/account', [
-        AuthController::class,
-        'deleteAccount'
+    Route::prefix('contact')->group(function () {
+
+        Route::get('/messages', [
+            ContactController::class,
+            'messages'
+        ]);
+
+        Route::patch('/messages/{id}/read', [
+            ContactController::class,
+            'toggleMessageRead'
+        ]);
+
+        Route::delete('/messages/{id}', [
+            ContactController::class,
+            'destroyMessage'
+        ]);
+    });
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | OWNER RESERVATIONS
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get('/owner/reservations', [
+        ReservationController::class,
+        'ownerReservations'
+    ]);
+
+    Route::patch(
+        '/owner/reservations/{reservation}/status',
+        [
+            ReservationController::class,
+            'updateStatus'
+        ]
+    );
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | OWNER RESTAURANT PROFILE
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get('/restaurant/profile', [
+        RestaurantController::class,
+        'profile'
+    ]);
+
+    Route::put('/restaurant/profile', [
+        RestaurantController::class,
+        'updateProfile'
     ]);
 
 
     /*
-|--------------------------------------------------------------------------
-| OWNER ANALYTICS
-|--------------------------------------------------------------------------
-*/
+    |--------------------------------------------------------------------------
+    | OWNER ORDERS
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get('/owner/orders', [
+        OwnerOrderController::class,
+        'index'
+    ]);
+
+    Route::get('/owner/orders/{order}', [
+        OwnerOrderController::class,
+        'show'
+    ]);
+
+    Route::patch('/owner/orders/{order}/status', [
+        OwnerOrderController::class,
+        'updateStatus'
+    ]);
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | OWNER POS CONNECTIONS
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get('/owner/pos-connections', [
+        PosConnectionController::class,
+        'index'
+    ]);
+
+    Route::post('/owner/pos-connections/test', [
+        PosConnectionController::class,
+        'testConnection'
+    ]);
+
+    Route::post('/owner/pos-connections', [
+        PosConnectionController::class,
+        'store'
+    ]);
+
+    Route::post(
+        '/owner/pos-connections/{posConnection}/sync',
+        [
+            PosConnectionController::class,
+            'sync'
+        ]
+    );
+
+    Route::get('/owner/pos-sync-history', [
+        PosConnectionController::class,
+        'syncHistory'
+    ]);
+
+    Route::delete(
+        '/owner/pos-connections/{posConnection}',
+        [
+            PosConnectionController::class,
+            'destroy'
+        ]
+    );
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | OWNER ANALYTICS
+    |--------------------------------------------------------------------------
+    */
 
     Route::get('/owner/analytics', [
         AnalyticsController::class,
         'overview'
     ]);
 
-    /*
-        |--------------------------------------------------------------------------
-        | OWNER WEATHER
-        |--------------------------------------------------------------------------
-        */
 
-        Route::get('/owner/weather', [
-            WeatherController::class,
-            'overview'
-        ]);
+    /*
+    |--------------------------------------------------------------------------
+    | OWNER WEATHER
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get('/owner/weather', [
+        WeatherController::class,
+        'overview'
+    ]);
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | OWNER HOLIDAYS
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get('/owner/holidays', [
+        HolidayController::class,
+        'index'
+    ]);
+
+    Route::post('/owner/holidays', [
+        HolidayController::class,
+        'store'
+    ]);
+
+    Route::put('/owner/holidays/{id}', [
+        HolidayController::class,
+        'update'
+    ]);
+
+    Route::delete('/owner/holidays/{id}', [
+        HolidayController::class,
+        'destroy'
+    ]);
 });

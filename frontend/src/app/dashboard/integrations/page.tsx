@@ -2,7 +2,12 @@
 
 import { useEffect, useState } from "react";
 import api from "@/lib/axios";
-
+import {
+  showSuccess,
+  showError,
+  showWarning,
+  confirmDialog,
+} from "@/lib/feedback";
 /* =========================================================
    TYPES
    ========================================================= */
@@ -637,189 +642,112 @@ export default function IntegrationsPage() {
      ========================================================= */
 
   const handleConnect =
-    async () => {
-      if (
-        !form.provider ||
-        !form.label.trim() ||
-        !form.baseUrl.trim()
-      ) {
-        alert(
-          "Provider, Label and Base URL are required."
-        );
-
-        return;
-      }
-
-      if (
-        isToast &&
-        (!form.apiKey.trim() ||
-          !form.accessToken.trim())
-      ) {
-        alert(
-          "Toast Client ID and Client Secret are required."
-        );
-
-        return;
-      }
-
-      if (
-        isRestolution &&
-        !form.apiKey.trim() &&
-        !form.accessToken.trim()
-      ) {
-        alert(
-          "Restolution API credentials are required."
-        );
-
-        return;
-      }
-
-      /*
-       * Must test current credentials first.
-       */
-
-      if (!testResult?.success) {
-        alert(
-          "Please test the POS connection first."
-        );
-
-        return;
-      }
-
-      /*
-       * Toast restaurant selection required
-       * whenever accessible restaurants exist.
-       */
-
-      if (
-        hasToastRestaurants &&
-        !form.restaurantGuid
-      ) {
-        alert(
-          "Please select a Toast restaurant."
-        );
-
-        return;
-      }
-
-      try {
-        setConnecting(true);
-
-        const token =
-          sessionStorage.getItem("token");
-
-        if (!token) {
-          alert(
-            "Login session not found."
-          );
-
-          return;
-        }
-
-        const response =
-          await api.post(
-            "/owner/pos-connections",
-            {
-              provider:
-                form.provider,
-
-              label:
-                form.label.trim(),
-
-              api_key:
-                form.apiKey.trim() ||
-                null,
-
-              access_token:
-                form.accessToken.trim() ||
-                null,
-
-              base_url:
-                form.baseUrl.trim(),
-
-              external_merchant_id:
-                isToast
-                  ? form.restaurantGuid ||
-                    null
-                  : null,
-            },
-            {
-              headers: {
-                Authorization:
-                  `Bearer ${token}`,
-              },
-            }
-          );
-
-        if (
-          !response.data?.success
-        ) {
-          alert(
-            response.data?.message ||
-              "Unable to add POS connection."
-          );
-
-          return;
-        }
-
-        await loadConnections();
-        await loadSyncHistory();
-
-        resetForm();
-        setShowForm(false);
-
-        alert(
-          response.data?.message ||
-            "POS connection added successfully."
-        );
-      } catch (err: any) {
-        console.error(
-          "POS connection save error:",
-          err
-        );
-
-        alert(
-          err?.response?.data?.error ||
-            err?.response?.data
-              ?.message ||
-            "Unable to add POS connection."
-        );
-      } finally {
-        setConnecting(false);
-      }
-    };
-
-  /* =========================================================
-     DELETE CONNECTION
-     ========================================================= */
-
-  const handleDelete = async (
-    id: number
-  ) => {
-    const confirmed =
-      window.confirm(
-        "Are you sure you want to delete this POS connection?"
+  async () => {
+    if (
+      !form.provider ||
+      !form.label.trim() ||
+      !form.baseUrl.trim()
+    ) {
+      showWarning(
+        "Provider, Label and Base URL are required."
       );
 
-    if (!confirmed) {
+      return;
+    }
+
+    if (
+      isToast &&
+      (!form.apiKey.trim() ||
+        !form.accessToken.trim())
+    ) {
+      showWarning(
+        "Toast Client ID and Client Secret are required."
+      );
+
+      return;
+    }
+
+    if (
+      isRestolution &&
+      !form.apiKey.trim() &&
+      !form.accessToken.trim()
+    ) {
+      showWarning(
+        "Restolution API credentials are required."
+      );
+
+      return;
+    }
+
+    /*
+     * Must test current credentials first.
+     */
+
+    if (!testResult?.success) {
+      showWarning(
+        "Please test the POS connection first."
+      );
+
+      return;
+    }
+
+    /*
+     * Toast restaurant selection required
+     * whenever accessible restaurants exist.
+     */
+
+    if (
+      hasToastRestaurants &&
+      !form.restaurantGuid
+    ) {
+      showWarning(
+        "Please select a Toast restaurant."
+      );
+
       return;
     }
 
     try {
+      setConnecting(true);
+
       const token =
         sessionStorage.getItem("token");
 
       if (!token) {
-        alert(
-          "Login session not found."
+        showError(
+          "Login session not found. Please login again."
         );
 
         return;
       }
 
       const response =
-        await api.delete(
-          `/owner/pos-connections/${id}`,
+        await api.post(
+          "/owner/pos-connections",
+          {
+            provider:
+              form.provider,
+
+            label:
+              form.label.trim(),
+
+            api_key:
+              form.apiKey.trim() ||
+              null,
+
+            access_token:
+              form.accessToken.trim() ||
+              null,
+
+            base_url:
+              form.baseUrl.trim(),
+
+            external_merchant_id:
+              isToast
+                ? form.restaurantGuid ||
+                  null
+                : null,
+          },
           {
             headers: {
               Authorization:
@@ -831,9 +759,9 @@ export default function IntegrationsPage() {
       if (
         !response.data?.success
       ) {
-        alert(
+        showError(
           response.data?.message ||
-            "Unable to delete POS connection."
+            "Unable to add POS connection."
         );
 
         return;
@@ -842,106 +770,205 @@ export default function IntegrationsPage() {
       await loadConnections();
       await loadSyncHistory();
 
-      alert(
+      resetForm();
+      setShowForm(false);
+
+      showSuccess(
         response.data?.message ||
-          "POS connection deleted successfully."
+          "POS connection added successfully."
       );
     } catch (err: any) {
       console.error(
-        "POS connection delete error:",
+        "POS connection save error:",
         err
       );
 
-      alert(
-        err?.response?.data?.message ||
-          "Unable to delete POS connection."
+      showError(
+        err?.response?.data?.error ||
+          err?.response?.data
+            ?.message ||
+          "Unable to add POS connection."
       );
+    } finally {
+      setConnecting(false);
     }
   };
+
+  /* =========================================================
+     DELETE CONNECTION
+     ========================================================= */
+const handleDelete = async (
+  id: number
+) => {
+  const connection =
+    connections.find(
+      (item) =>
+        item.id === id
+    );
+
+  const confirmed =
+    await confirmDialog({
+      title:
+        "Delete POS Connection?",
+
+      message:
+        `Are you sure you want to delete ${
+          connection?.label ||
+          "this POS connection"
+        }? Existing synced data will remain, but this connection will no longer sync.`,
+
+      confirmText:
+        "Delete Connection",
+
+      cancelText:
+        "Cancel",
+
+      danger:
+        true,
+    });
+
+  if (!confirmed) {
+    return;
+  }
+
+  try {
+    const token =
+      sessionStorage.getItem("token");
+
+    if (!token) {
+      showError(
+        "Login session not found. Please login again."
+      );
+
+      return;
+    }
+
+    const response =
+      await api.delete(
+        `/owner/pos-connections/${id}`,
+        {
+          headers: {
+            Authorization:
+              `Bearer ${token}`,
+          },
+        }
+      );
+
+    if (
+      !response.data?.success
+    ) {
+      showError(
+        response.data?.message ||
+          "Unable to delete POS connection."
+      );
+
+      return;
+    }
+
+    await loadConnections();
+    await loadSyncHistory();
+
+    showSuccess(
+      response.data?.message ||
+        "POS connection deleted successfully."
+    );
+  } catch (err: any) {
+    console.error(
+      "POS connection delete error:",
+      err
+    );
+
+    showError(
+      err?.response?.data?.message ||
+        "Unable to delete POS connection."
+    );
+  }
+};
 
   /* =========================================================
      SYNC NOW
      ========================================================= */
 
-  const handleSyncNow = async (
-    id: number
-  ) => {
-    try {
-      const token =
-        sessionStorage.getItem("token");
+ const handleSyncNow = async (
+  id: number
+) => {
+  try {
+    const token =
+      sessionStorage.getItem("token");
 
-      if (!token) {
-        alert(
-          "Login session not found."
-        );
+    if (!token) {
+      showError(
+        "Login session not found. Please login again."
+      );
 
-        return;
-      }
+      return;
+    }
 
-      setConnections((prev) =>
+    setConnections(
+      (prev) =>
         prev.map(
           (connection) =>
             connection.id === id
               ? {
                   ...connection,
+
                   status:
                     "syncing",
                 }
               : connection
         )
+    );
+
+    const response =
+      await api.post(
+        `/owner/pos-connections/${id}/sync`,
+        {},
+        {
+          headers: {
+            Authorization:
+              `Bearer ${token}`,
+          },
+        }
       );
 
-      const response =
-        await api.post(
-          `/owner/pos-connections/${id}/sync`,
-          {},
-          {
-            headers: {
-              Authorization:
-                `Bearer ${token}`,
-            },
-          }
-        );
-
-      if (
-        !response.data?.success
-      ) {
-        await loadConnections();
-        await loadSyncHistory();
-
-        alert(
-          response.data?.message ||
-            "POS synchronization failed."
-        );
-
-        return;
-      }
-
+    if (
+      !response.data?.success
+    ) {
       await loadConnections();
       await loadSyncHistory();
 
-      alert(
+      showError(
         response.data?.message ||
-          "POS synchronization completed successfully."
-      );
-    } catch (err: any) {
-      console.error(
-        "POS synchronization error:",
-        err
-      );
-
-      await loadConnections();
-      await loadSyncHistory();
-
-      alert(
-        err?.response?.data?.error ||
-          err?.response?.data
-            ?.message ||
           "POS synchronization failed."
       );
-    }
-  };
 
+      return;
+    }
+
+    await loadConnections();
+    await loadSyncHistory();
+
+    showSuccess(
+      response.data?.message ||
+        "POS synchronization completed successfully."
+    );
+  } catch (err: any) {
+    console.error(
+      "POS synchronization error:",
+      err
+    );
+
+    await loadConnections();
+    await loadSyncHistory();
+
+    showError(
+      err?.response?.data?.error ||
+        err?.response?.data
+          ?.message ||
+        "POS synchronization failed."
+    );
+  }
+};
   /* =========================================================
      DATE FORMATTER
      ========================================================= */

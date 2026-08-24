@@ -8,20 +8,9 @@ use Illuminate\Support\Facades\Http;
 
 class WeatherController extends Controller
 {
-    /**
-     * Current weather + 7-day forecast
-     * for logged-in owner's restaurant.
-     */
     public function overview(Request $request)
     {
-        /*
-        |--------------------------------------------------------------------------
-        | Logged-in user
-        |--------------------------------------------------------------------------
-        */
-
-        $user =
-            $request->user();
+        $user = $request->user();
 
         if (
             !$user ||
@@ -29,25 +18,16 @@ class WeatherController extends Controller
         ) {
             return response()->json([
                 'success' => false,
-                'message' =>
-                    'Restaurant not found.',
+                'message' => 'Restaurant not found.',
             ], 404);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Restaurant
-        |--------------------------------------------------------------------------
-        */
-
-        $restaurant =
-            $user->restaurant;
+        $restaurant = $user->restaurant;
 
         if (!$restaurant) {
             return response()->json([
                 'success' => false,
-                'message' =>
-                    'Restaurant not found.',
+                'message' => 'Restaurant not found.',
             ], 404);
         }
 
@@ -57,28 +37,17 @@ class WeatherController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $city =
-            trim(
-                (string)
-                $restaurant->city
-            );
+        $city = trim(
+            (string) $restaurant->city
+        );
 
-        $country =
-            trim(
-                (string)
-                $restaurant->country
-            );
+        $country = trim(
+            (string) $restaurant->country
+        );
 
-        $postalCode =
-            trim(
-                (string)
-                $restaurant->postal_code
-            );
-
-        /*
-         * At least one location field
-         * is required.
-         */
+        $postalCode = trim(
+            (string) $restaurant->postal_code
+        );
 
         if (
             $city === '' &&
@@ -86,7 +55,6 @@ class WeatherController extends Controller
         ) {
             return response()->json([
                 'success' => false,
-
                 'message' =>
                     'Restaurant city or postal code is missing. Please update the Restaurant Profile first.',
             ], 422);
@@ -94,58 +62,50 @@ class WeatherController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | Geocoding search terms
-        |--------------------------------------------------------------------------
-        |
-        | Search priority:
-        |
-        | 1. City / town
-        | 2. Postal code
-        |
-        | This makes the weather lookup more tolerant
-        | when the restaurant profile contains an
-        | inaccurate city/state value.
+        | Build geocoding search terms
         |--------------------------------------------------------------------------
         */
 
-        $searchTerms =
-            [];
+        $searchTerms = [];
 
         if ($city !== '') {
-            $searchTerms[] =
-                $city;
+            $searchTerms[] = $city;
+        }
+
+        if ($postalCode !== '') {
+            $searchTerms[] = $postalCode;
         }
 
         if (
-            $postalCode !== '' &&
-            !in_array(
-                $postalCode,
-                $searchTerms,
-                true
-            )
+            $city !== '' &&
+            $country !== ''
         ) {
             $searchTerms[] =
-                $postalCode;
+                "{$city}, {$country}";
         }
 
-        $location =
-            null;
-
-        $usedSearchTerm =
-            null;
+        $searchTerms =
+            array_values(
+                array_unique(
+                    $searchTerms
+                )
+            );
 
         /*
         |--------------------------------------------------------------------------
-        | Find coordinates
+        | Resolve location
         |--------------------------------------------------------------------------
         */
+
+        $location = null;
+        $usedSearchTerm = null;
 
         foreach (
             $searchTerms
             as $searchTerm
         ) {
             try {
-                $geocodingResponse =
+                $response =
                     Http::acceptJson()
                         ->timeout(10)
                         ->retry(
@@ -169,42 +129,32 @@ class WeatherController extends Controller
                             ]
                         );
             } catch (\Throwable $exception) {
-                /*
-                 * Try next search term.
-                 */
                 continue;
             }
 
             if (
-                !$geocodingResponse
+                !$response
                     ->successful()
             ) {
                 continue;
             }
 
             $results =
-                $geocodingResponse
-                    ->json(
-                        'results',
-                        []
-                    );
+                $response->json(
+                    'results',
+                    []
+                );
 
             if (
-                !is_array(
-                    $results
-                ) ||
-                count(
-                    $results
-                ) === 0
+                !is_array($results) ||
+                count($results) === 0
             ) {
                 continue;
             }
 
             /*
-            |--------------------------------------------------------------------------
-            | Prefer matching country
-            |--------------------------------------------------------------------------
-            */
+             * Prefer country match.
+             */
 
             if ($country !== '') {
                 foreach (
@@ -215,9 +165,7 @@ class WeatherController extends Controller
                         trim(
                             (string)
                             (
-                                $result[
-                                    'country'
-                                ]
+                                $result['country']
                                 ?? ''
                             )
                         );
@@ -241,10 +189,8 @@ class WeatherController extends Controller
             }
 
             /*
-            |--------------------------------------------------------------------------
-            | Fallback to first result
-            |--------------------------------------------------------------------------
-            */
+             * Fallback to first result.
+             */
 
             $location =
                 $results[0];
@@ -257,46 +203,31 @@ class WeatherController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | Location still not found
+        | Location not found
         |--------------------------------------------------------------------------
         */
 
         if (
             !$location ||
             !isset(
-                $location[
-                    'latitude'
-                ],
-                $location[
-                    'longitude'
-                ]
+                $location['latitude'],
+                $location['longitude']
             )
         ) {
             return response()->json([
                 'success' => false,
-
                 'message' =>
-                    'Restaurant location could not be found. Please enter the actual city/town and a valid postal code in Restaurant Profile.',
+                    'Restaurant location could not be found. Please enter the actual city/town or a valid postal code in Restaurant Profile.',
             ], 422);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Coordinates
-        |--------------------------------------------------------------------------
-        */
-
         $latitude =
             (float)
-            $location[
-                'latitude'
-            ];
+            $location['latitude'];
 
         $longitude =
             (float)
-            $location[
-                'longitude'
-            ];
+            $location['longitude'];
 
         /*
         |--------------------------------------------------------------------------
@@ -312,9 +243,7 @@ class WeatherController extends Controller
 
         if ($timezone === '') {
             $timezone =
-                $location[
-                    'timezone'
-                ]
+                $location['timezone']
                 ?? 'auto';
         }
 
@@ -347,10 +276,6 @@ class WeatherController extends Controller
                             'forecast_days' =>
                                 7,
 
-                            /*
-                             * Current weather.
-                             */
-
                             'current' =>
                                 implode(
                                     ',',
@@ -363,10 +288,6 @@ class WeatherController extends Controller
                                         'wind_direction_10m',
                                     ]
                                 ),
-
-                            /*
-                             * Daily forecast.
-                             */
 
                             'daily' =>
                                 implode(
@@ -384,17 +305,10 @@ class WeatherController extends Controller
         } catch (\Throwable $exception) {
             return response()->json([
                 'success' => false,
-
                 'message' =>
                     'Unable to connect to the weather service.',
             ], 503);
         }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Weather API error
-        |--------------------------------------------------------------------------
-        */
 
         if (
             !$weatherResponse
@@ -402,45 +316,33 @@ class WeatherController extends Controller
         ) {
             return response()->json([
                 'success' => false,
-
                 'message' =>
                     'Weather service returned an error.',
             ], 503);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Weather response
-        |--------------------------------------------------------------------------
-        */
-
         $weather =
-            $weatherResponse
-                ->json();
+            $weatherResponse->json();
 
         $current =
-            $weather[
-                'current'
-            ] ?? [];
+            $weather['current']
+            ?? [];
 
         $daily =
-            $weather[
-                'daily'
-            ] ?? [];
+            $weather['daily']
+            ?? [];
 
         /*
         |--------------------------------------------------------------------------
-        | Normalize 7-day forecast
+        | Forecast normalization
         |--------------------------------------------------------------------------
         */
 
-        $forecast =
-            [];
+        $forecast = [];
 
         $dates =
-            $daily[
-                'time'
-            ] ?? [];
+            $daily['time']
+            ?? [];
 
         foreach (
             $dates
@@ -449,45 +351,9 @@ class WeatherController extends Controller
             $weatherCode =
                 (int)
                 (
-                    $daily[
-                        'weather_code'
-                    ][
-                        $index
-                    ]
+                    $daily['weather_code'][$index]
                     ?? 0
                 );
-
-            $temperatureMax =
-                $daily[
-                    'temperature_2m_max'
-                ][
-                    $index
-                ]
-                ?? null;
-
-            $temperatureMin =
-                $daily[
-                    'temperature_2m_min'
-                ][
-                    $index
-                ]
-                ?? null;
-
-            $precipitation =
-                $daily[
-                    'precipitation_sum'
-                ][
-                    $index
-                ]
-                ?? 0;
-
-            $precipitationProbability =
-                $daily[
-                    'precipitation_probability_max'
-                ][
-                    $index
-                ]
-                ?? null;
 
             $forecast[] = [
                 'date' =>
@@ -497,80 +363,73 @@ class WeatherController extends Controller
                     $weatherCode,
 
                 'condition' =>
-                    $this
-                        ->weatherCondition(
-                            $weatherCode
-                        ),
+                    $this->weatherCondition(
+                        $weatherCode
+                    ),
 
                 'icon' =>
-                    $this
-                        ->weatherIcon(
-                            $weatherCode
-                        ),
+                    $this->weatherIcon(
+                        $weatherCode
+                    ),
 
                 'temperature_max' =>
-                    $temperatureMax !== null
+                    isset(
+                        $daily['temperature_2m_max'][$index]
+                    )
                         ? round(
                             (float)
-                            $temperatureMax,
+                            $daily['temperature_2m_max'][$index],
                             1
                         )
                         : null,
 
                 'temperature_min' =>
-                    $temperatureMin !== null
+                    isset(
+                        $daily['temperature_2m_min'][$index]
+                    )
                         ? round(
                             (float)
-                            $temperatureMin,
+                            $daily['temperature_2m_min'][$index],
                             1
                         )
                         : null,
 
                 'precipitation' =>
-                    round(
-                        (float)
-                        $precipitation,
-                        2
-                    ),
+                    isset(
+                        $daily['precipitation_sum'][$index]
+                    )
+                        ? round(
+                            (float)
+                            $daily['precipitation_sum'][$index],
+                            2
+                        )
+                        : 0,
 
                 'precipitation_probability' =>
-                    $precipitationProbability !== null
+                    isset(
+                        $daily['precipitation_probability_max'][$index]
+                    )
                         ? (int)
-                            $precipitationProbability
+                            $daily['precipitation_probability_max'][$index]
                         : null,
             ];
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Current weather code
-        |--------------------------------------------------------------------------
-        */
-
         $currentCode =
             (int)
             (
-                $current[
-                    'weather_code'
-                ]
+                $current['weather_code']
                 ?? 0
             );
 
         /*
         |--------------------------------------------------------------------------
-        | Final response
+        | Response
         |--------------------------------------------------------------------------
         */
 
         return response()->json([
-            'success' =>
-                true,
-
-            /*
-            |--------------------------------------------------------------------------
-            | Restaurant
-            |--------------------------------------------------------------------------
-            */
+            'success' => true,
 
             'restaurant' => [
                 'id' =>
@@ -592,48 +451,26 @@ class WeatherController extends Controller
                     $timezone,
             ],
 
-            /*
-            |--------------------------------------------------------------------------
-            | Resolved location
-            |--------------------------------------------------------------------------
-            */
-
             'location' => [
                 'name' =>
-                    $location[
-                        'name'
-                    ]
+                    $location['name']
                     ?? $city,
 
                 'admin1' =>
-                    $location[
-                        'admin1'
-                    ]
+                    $location['admin1']
                     ?? null,
 
                 'admin2' =>
-                    $location[
-                        'admin2'
-                    ]
+                    $location['admin2']
                     ?? null,
 
                 'country' =>
-                    $location[
-                        'country'
-                    ]
+                    $location['country']
                     ?? $country,
 
                 'country_code' =>
-                    $location[
-                        'country_code'
-                    ]
+                    $location['country_code']
                     ?? null,
-
-                'postal_code' =>
-                    $location[
-                        'postcodes'
-                    ][0]
-                    ?? $postalCode,
 
                 'latitude' =>
                     $latitude,
@@ -642,91 +479,63 @@ class WeatherController extends Controller
                     $longitude,
 
                 'timezone' =>
-                    $location[
-                        'timezone'
-                    ]
+                    $location['timezone']
                     ?? $timezone,
 
                 'search_term' =>
                     $usedSearchTerm,
             ],
 
-            /*
-            |--------------------------------------------------------------------------
-            | Current weather
-            |--------------------------------------------------------------------------
-            */
-
             'current' => [
                 'temperature' =>
                     isset(
-                        $current[
-                            'temperature_2m'
-                        ]
+                        $current['temperature_2m']
                     )
                         ? round(
                             (float)
-                            $current[
-                                'temperature_2m'
-                            ],
+                            $current['temperature_2m'],
                             1
                         )
                         : null,
 
                 'feels_like' =>
                     isset(
-                        $current[
-                            'apparent_temperature'
-                        ]
+                        $current['apparent_temperature']
                     )
                         ? round(
                             (float)
-                            $current[
-                                'apparent_temperature'
-                            ],
+                            $current['apparent_temperature'],
                             1
                         )
                         : null,
 
                 'humidity' =>
                     isset(
-                        $current[
-                            'relative_humidity_2m'
-                        ]
+                        $current['relative_humidity_2m']
                     )
                         ? (int)
-                            $current[
-                                'relative_humidity_2m'
-                            ]
+                            $current['relative_humidity_2m']
                         : null,
 
                 'wind_speed' =>
                     isset(
-                        $current[
-                            'wind_speed_10m'
-                        ]
+                        $current['wind_speed_10m']
                     )
                         ? round(
                             (float)
-                            $current[
-                                'wind_speed_10m'
-                            ],
+                            $current['wind_speed_10m'],
                             1
                         )
                         : null,
 
                 'wind_direction' =>
                     isset(
-                        $current[
-                            'wind_direction_10m'
-                        ]
+                        $current['wind_direction_10m']
                     )
                         ? (int)
                             round(
                                 (float)
-                                $current[
-                                    'wind_direction_10m'
-                                ]
+                                $current['wind_direction_10m']
                             )
                         : null,
 
@@ -734,38 +543,22 @@ class WeatherController extends Controller
                     $currentCode,
 
                 'condition' =>
-                    $this
-                        ->weatherCondition(
-                            $currentCode
-                        ),
+                    $this->weatherCondition(
+                        $currentCode
+                    ),
 
                 'icon' =>
-                    $this
-                        ->weatherIcon(
-                            $currentCode
-                        ),
+                    $this->weatherIcon(
+                        $currentCode
+                    ),
 
                 'time' =>
-                    $current[
-                        'time'
-                    ]
+                    $current['time']
                     ?? null,
             ],
 
-            /*
-            |--------------------------------------------------------------------------
-            | Forecast
-            |--------------------------------------------------------------------------
-            */
-
             'forecast' =>
                 $forecast,
-
-            /*
-            |--------------------------------------------------------------------------
-            | Units
-            |--------------------------------------------------------------------------
-            */
 
             'units' => [
                 'temperature' =>
@@ -780,10 +573,6 @@ class WeatherController extends Controller
         ]);
     }
 
-    /**
-     * Convert WMO weather code
-     * to readable condition.
-     */
     private function weatherCondition(
         int $code
     ): string {
@@ -793,10 +582,7 @@ class WeatherController extends Controller
 
             in_array(
                 $code,
-                [
-                    1,
-                    2,
-                ],
+                [1, 2],
                 true
             ) =>
                 'Partly cloudy',
@@ -806,80 +592,49 @@ class WeatherController extends Controller
 
             in_array(
                 $code,
-                [
-                    45,
-                    48,
-                ],
+                [45, 48],
                 true
             ) =>
                 'Fog',
 
             in_array(
                 $code,
-                [
-                    51,
-                    53,
-                    55,
-                    56,
-                    57,
-                ],
+                [51, 53, 55, 56, 57],
                 true
             ) =>
                 'Drizzle',
 
             in_array(
                 $code,
-                [
-                    61,
-                    63,
-                    65,
-                    66,
-                    67,
-                ],
+                [61, 63, 65, 66, 67],
                 true
             ) =>
                 'Rain',
 
             in_array(
                 $code,
-                [
-                    71,
-                    73,
-                    75,
-                    77,
-                ],
+                [71, 73, 75, 77],
                 true
             ) =>
                 'Snow',
 
             in_array(
                 $code,
-                [
-                    80,
-                    81,
-                    82,
-                ],
+                [80, 81, 82],
                 true
             ) =>
                 'Rain showers',
 
             in_array(
                 $code,
-                [
-                    85,
-                    86,
-                ],
+                [85, 86],
                 true
             ) =>
                 'Snow showers',
 
             in_array(
                 $code,
-                [
-                    95,
-                    96,
-                    99,
-                ],
+                [95, 96, 99],
                 true
             ) =>
                 'Thunderstorm',
@@ -889,9 +644,6 @@ class WeatherController extends Controller
         };
     }
 
-    /**
-     * Frontend-friendly weather icon.
-     */
     private function weatherIcon(
         int $code
     ): string {
@@ -901,10 +653,7 @@ class WeatherController extends Controller
 
             in_array(
                 $code,
-                [
-                    1,
-                    2,
-                ],
+                [1, 2],
                 true
             ) =>
                 'cloud-sun',
@@ -914,10 +663,7 @@ class WeatherController extends Controller
 
             in_array(
                 $code,
-                [
-                    45,
-                    48,
-                ],
+                [45, 48],
                 true
             ) =>
                 'smog',
@@ -959,11 +705,7 @@ class WeatherController extends Controller
 
             in_array(
                 $code,
-                [
-                    95,
-                    96,
-                    99,
-                ],
+                [95, 96, 99],
                 true
             ) =>
                 'bolt',
