@@ -2,6 +2,11 @@
 
 import { useEffect, useState } from "react";
 import api from "@/lib/axios";
+import {
+  showSuccess,
+  showError,
+  showWarning,
+} from "@/lib/feedback";
 
 type RestaurantProfileForm = {
   name: string;
@@ -189,161 +194,250 @@ export default function RestaurantProfilePage() {
     }
   };
 
-  const handleSave = async (
-    e: React.FormEvent<HTMLFormElement>
-  ) => {
-    e.preventDefault();
+ const handleSave = async (
+  e: React.FormEvent<HTMLFormElement>
+) => {
+  e.preventDefault();
 
-    try {
-      setSaving(true);
-      setSuccess("");
-      setError("");
+  if (!form.name.trim()) {
+    showWarning(
+      "Restaurant name is required."
+    );
 
-      const token = sessionStorage.getItem("token");
+    return;
+  }
 
-      if (!token) {
-        setError("Login session not found.");
-        return;
-      }
+  try {
+    setSaving(true);
+    setSuccess("");
+    setError("");
 
-      /*
-       * Send clean HH:MM values to Laravel.
-       *
-       * MySQL may return:
-       * 09:00:00
-       *
-       * Laravel validation requires:
-       * 09:00
-       */
-      const payload: RestaurantProfileForm = {
-        ...form,
+    const token =
+      sessionStorage.getItem(
+        "token"
+      );
 
-        opening_time: normalizeTime(
+    if (!token) {
+      showError(
+        "Login session not found. Please login again."
+      );
+
+      return;
+    }
+
+    /*
+     * Send clean HH:MM values to Laravel.
+     */
+
+    const payload:
+      RestaurantProfileForm = {
+      ...form,
+
+      name:
+        form.name.trim(),
+
+      legal_name:
+        form.legal_name.trim(),
+
+      business_category:
+        form.business_category.trim(),
+
+      vat_number:
+        form.vat_number.trim(),
+
+      address_line_1:
+        form.address_line_1.trim(),
+
+      address_line_2:
+        form.address_line_2.trim(),
+
+      city:
+        form.city.trim(),
+
+      postal_code:
+        form.postal_code.trim(),
+
+      country:
+        form.country.trim(),
+
+      phone:
+        form.phone.trim(),
+
+      email:
+        form.email.trim(),
+
+      website:
+        form.website.trim(),
+
+      currency:
+        form.currency,
+
+      timezone:
+        form.timezone,
+
+      opening_time:
+        normalizeTime(
           form.opening_time
         ),
 
-        closing_time: normalizeTime(
+      closing_time:
+        normalizeTime(
           form.closing_time
         ),
+    };
 
-        website: form.website.trim(),
-        email: form.email.trim(),
-        phone: form.phone.trim(),
-      };
-
-      const response = await api.put(
+    const response =
+      await api.put(
         "/restaurant/profile",
         payload,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization:
+              `Bearer ${token}`,
           },
         }
       );
 
-      if (response.data?.success) {
-        setSuccess(
-          "Restaurant profile updated successfully."
-        );
-
-        const restaurant =
-          response.data.restaurant;
-
-        if (restaurant) {
-          setForm({
-            name:
-              restaurant.name ?? "",
-
-            legal_name:
-              restaurant.legal_name ?? "",
-
-            business_category:
-              restaurant.business_category ?? "",
-
-            vat_number:
-              restaurant.vat_number ?? "",
-
-            address_line_1:
-              restaurant.address_line_1 ?? "",
-
-            address_line_2:
-              restaurant.address_line_2 ?? "",
-
-            city:
-              restaurant.city ?? "",
-
-            postal_code:
-              restaurant.postal_code ?? "",
-
-            country:
-              restaurant.country ?? "",
-
-            phone:
-              restaurant.phone ?? "",
-
-            email:
-              restaurant.email ?? "",
-
-            website:
-              restaurant.website ?? "",
-
-            currency:
-              restaurant.currency ?? "",
-
-            timezone:
-              restaurant.timezone ?? "",
-
-            opening_time: normalizeTime(
-              restaurant.opening_time
-            ),
-
-            closing_time: normalizeTime(
-              restaurant.closing_time
-            ),
-          });
-        }
-      }
-    } catch (err: any) {
-      console.error(
-        "Restaurant profile save error:",
-        err
+    if (
+      !response.data?.success
+    ) {
+      showError(
+        response.data?.message ||
+          "Unable to update restaurant profile."
       );
 
-      console.error(
-        "Validation response:",
-        err?.response?.data
-      );
-
-      if (err?.response?.status === 422) {
-        const validationErrors =
-          err?.response?.data?.errors;
-
-        if (validationErrors) {
-          const firstError =
-            Object.values(validationErrors)[0];
-
-          if (
-            Array.isArray(firstError) &&
-            firstError.length > 0
-          ) {
-            setError(
-              String(firstError[0])
-            );
-
-            return;
-          }
-        }
-      }
-
-      setError(
-        err?.response?.data?.message ||
-        "Unable to update restaurant profile."
-      );
-    } finally {
-      setSaving(false);
+      return;
     }
-  };
 
+    const restaurant =
+      response.data.restaurant;
+
+    if (restaurant) {
+      setForm({
+        name:
+          restaurant.name ??
+          "",
+
+        legal_name:
+          restaurant.legal_name ??
+          "",
+
+        business_category:
+          restaurant.business_category ??
+          "",
+
+        vat_number:
+          restaurant.vat_number ??
+          "",
+
+        address_line_1:
+          restaurant.address_line_1 ??
+          "",
+
+        address_line_2:
+          restaurant.address_line_2 ??
+          "",
+
+        city:
+          restaurant.city ??
+          "",
+
+        postal_code:
+          restaurant.postal_code ??
+          "",
+
+        country:
+          restaurant.country ??
+          "",
+
+        phone:
+          restaurant.phone ??
+          "",
+
+        email:
+          restaurant.email ??
+          "",
+
+        website:
+          restaurant.website ??
+          "",
+
+        currency:
+          restaurant.currency ??
+          "",
+
+        timezone:
+          restaurant.timezone ??
+          "",
+
+        opening_time:
+          normalizeTime(
+            restaurant.opening_time
+          ),
+
+        closing_time:
+          normalizeTime(
+            restaurant.closing_time
+          ),
+      });
+    }
+
+    showSuccess(
+      response.data?.message ||
+        "Restaurant profile updated successfully."
+    );
+  } catch (err: any) {
+    console.error(
+      "Restaurant profile save error:",
+      err
+    );
+
+    console.error(
+      "Validation response:",
+      err?.response?.data
+    );
+
+    if (
+      err?.response?.status ===
+      422
+    ) {
+      const validationErrors =
+        err?.response?.data
+          ?.errors;
+
+      if (
+        validationErrors
+      ) {
+        const firstError =
+          Object.values(
+            validationErrors
+          )[0];
+
+        if (
+          Array.isArray(
+            firstError
+          ) &&
+          firstError.length > 0
+        ) {
+          showWarning(
+            String(
+              firstError[0]
+            )
+          );
+
+          return;
+        }
+      }
+    }
+
+    showError(
+      err?.response?.data?.message ||
+        "Unable to update restaurant profile."
+    );
+  } finally {
+    setSaving(false);
+  }
+};
   if (loading) {
     return (
       <div className="dashboard-page restaurant-profile-page">
@@ -393,31 +487,6 @@ export default function RestaurantProfilePage() {
           </div>
 
         </div>
-        {/* =====================================================
-            SUCCESS
-        ===================================================== */}
-
-        {success && (
-          <div
-            style={{
-              padding: "14px 18px",
-              marginBottom: "20px",
-              borderRadius: "10px",
-              background: "#eaf8ef",
-              color: "#187a3d",
-              fontWeight: 600,
-            }}
-          >
-            <i
-              className="fas fa-check-circle"
-              style={{
-                marginRight: "8px",
-              }}
-            ></i>
-
-            {success}
-          </div>
-        )}
 
         {/* =====================================================
             ERROR

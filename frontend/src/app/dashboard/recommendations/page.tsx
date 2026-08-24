@@ -1,6 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import {
+  showInfo,
+} from "@/lib/feedback";
 
 type Recommendation = {
   id: number;
@@ -169,22 +172,21 @@ export default function RecommendationsPage() {
     };
   }, [recommendations]);
 
-  const handleGenerate = async () => {
-    try {
-      setGenerating(true);
+const handleGenerate = async () => {
+  try {
+    setGenerating(true);
 
-      await new Promise((resolve) =>
-        setTimeout(resolve, 1000)
-      );
+    await new Promise((resolve) =>
+      setTimeout(resolve, 1000)
+    );
 
-      alert(
-        "Frontend recommendation generation is ready. AI/backend connection can be added next."
-      );
-    } finally {
-      setGenerating(false);
-    }
-  };
-
+    showInfo(
+      "Recommendation generation UI is ready. AI/backend integration can be connected next."
+    );
+  } finally {
+    setGenerating(false);
+  }
+};
   const dismissRecommendation = (id: number) => {
     setRecommendations((current) =>
       current.filter((item) => item.id !== id)

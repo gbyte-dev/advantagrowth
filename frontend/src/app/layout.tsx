@@ -1,8 +1,10 @@
 import "./globals.css";
 import type { Metadata } from "next";
+
 import MainNavigation from "@/components/MainNavigation";
 import ConditionalFooter from "@/components/ConditionalFooter";
 import ScrollToTop from "@/components/ScrollToTop";
+import GlobalFeedback from "@/components/GlobalFeedback";
 
 export const metadata: Metadata = {
   title: "Advanta Growth - Restaurant POS Management",
@@ -11,10 +13,14 @@ export const metadata: Metadata = {
   keywords:
     "restaurant POS, management system, billing, inventory, restaurant management",
   authors: [{ name: "Advanta Growth" }],
+
   openGraph: {
-    title: "Advanta Growth - Restaurant POS Management",
+    title:
+      "Advanta Growth - Restaurant POS Management",
+
     description:
       "Professional Restaurant POS & Management System",
+
     type: "website",
   },
 };
@@ -28,7 +34,11 @@ export default function RootLayout({
     <html lang="en">
       <head>
         {/* Google Fonts */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
+
+        <link
+          rel="preconnect"
+          href="https://fonts.googleapis.com"
+        />
 
         <link
           rel="preconnect"
@@ -42,12 +52,14 @@ export default function RootLayout({
         />
 
         {/* Font Awesome */}
+
         <link
           rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
         />
 
         {/* Material Icons */}
+
         <link
           href="https://fonts.googleapis.com/icon?family=Material+Icons"
           rel="stylesheet"
@@ -59,6 +71,7 @@ export default function RootLayout({
         />
 
         {/* Favicon */}
+
         <link
           rel="icon"
           href="/favicon.ico"
@@ -66,6 +79,7 @@ export default function RootLayout({
         />
 
         {/* Razorpay Checkout */}
+
         <script
           src="https://checkout.razorpay.com/v1/checkout.js"
           async
@@ -74,7 +88,12 @@ export default function RootLayout({
 
       <body className="min-h-screen flex flex-col bg-gray-50">
 
+        {/* GLOBAL TOASTS + CONFIRM MODAL */}
+
+        <GlobalFeedback />
+
         {/* Skip to main content */}
+
         <a
           href="#main-content"
           className="skip-to-main"
@@ -83,9 +102,11 @@ export default function RootLayout({
         </a>
 
         {/* Navbar */}
+
         <MainNavigation />
 
         {/* Main Content */}
+
         <main
           id="main-content"
           className="flex-1"
@@ -95,10 +116,12 @@ export default function RootLayout({
           </div>
         </main>
 
-        {/* Footer - sirf guest users ke liye */}
+        {/* Footer - guest users only */}
+
         <ConditionalFooter />
 
         {/* Scroll To Top */}
+
         <ScrollToTop />
 
       </body>
