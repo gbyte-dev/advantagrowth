@@ -3,23 +3,25 @@
 import { useState, useEffect, ChangeEvent } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Pencil, Trash2, Store, Plus, AlertTriangle, RefreshCw, Ban, CheckCircle, Search } from "lucide-react";
+import { Pencil, Trash2, CreditCard, Plus, AlertTriangle, RefreshCw, Ban, CheckCircle, Search } from "lucide-react";
 import api from "@/lib/axios";
 import SuperAdminSidebar from "@/components/SuperAdminSidebar";
+import { formatPrice, formatBilling } from "@/lib/subscriptionFormat";
 
-interface Restaurant {
+interface Subscription {
     id: number;
     name: string;
     slug: string;
-    phone: string;
-    email: string;
-    business_category: string | null;
-    address: string | null;
+    price: string;
+    currency: string;
+    interval: string;
+    interval_count: number;
     is_active: boolean;
+    created_at: string;
 }
 
-export default function RestaurantPage() {
-    const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
+export default function SubscriptionsPage() {
+    const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [deletingId, setDeletingId] = useState<number | null>(null);
@@ -36,12 +38,12 @@ export default function RestaurantPage() {
 
     useEffect(() => {
         api
-            .get("/superadmin/restaurants")
+            .get("/superadmin/subscription")
             .then((response) => {
-                setRestaurants(response.data.data);
+                setSubscriptions(response.data.data);
             })
             .catch((err) => {
-                setError(err.response?.data?.message || "Failed to load restaurants. Please try again.");
+                setError(err.response?.data?.message || "Failed to load subscriptions. Please try again.");
             })
             .finally(() => {
                 setLoading(false);
@@ -50,13 +52,13 @@ export default function RestaurantPage() {
 
     useEffect(() => {
         if (searchParams.get("added") === "true") {
-            setSuccessMessage("Restaurant added successfully.");
+            setSuccessMessage("Subscription plan added successfully.");
             setTimeout(() => setSuccessMessage(""), 4000);
-            router.replace("/superadmin/restaurants");
+            router.replace("/superadmin/subscriptions");
         } else if (searchParams.get("updated") === "true") {
-            setSuccessMessage("Restaurant updated successfully.");
+            setSuccessMessage("Subscription plan updated successfully.");
             setTimeout(() => setSuccessMessage(""), 4000);
-            router.replace("/superadmin/restaurants");
+            router.replace("/superadmin/subscriptions");
         }
     }, [searchParams, router]);
 
@@ -73,19 +75,18 @@ export default function RestaurantPage() {
     }, []);
 
     const handleDelete = (id: number) => {
-        if (!window.confirm("Delete this restaurant? This cannot be undone.")) return;
+        if (!window.confirm("Delete this subscription plan? This cannot be undone.")) return;
 
         setDeletingId(id);
         api
-            .delete(`/superadmin/restaurants/${id}`)
+            .delete(`/superadmin/subscription/${id}`)
             .then(() => {
-                setRestaurants((prev) => prev.filter((r) => r.id !== id));
-                setSuccessMessage("Restaurant deleted successfully.");
+                setSubscriptions((prev) => prev.filter((s) => s.id !== id));
+                setSuccessMessage("Subscription plan deleted successfully.");
                 setTimeout(() => setSuccessMessage(""), 4000);
             })
-
             .catch((err) => {
-                alert(err.response?.data?.message || "Failed to delete restaurant");
+                alert(err.response?.data?.message || "Failed to delete subscription plan");
             })
             .finally(() => {
                 setDeletingId(null);
@@ -95,34 +96,29 @@ export default function RestaurantPage() {
     const handleToggleStatus = (id: number) => {
         setTogglingId(id);
         api
-            .patch(`/superadmin/restaurants/${id}/toggle-status`)
+            .patch(`/superadmin/subscription/${id}/toggle-status`)
             .then((res) => {
-                setRestaurants((prev) =>
-                    prev.map((r) => (r.id === id ? { ...r, is_active: res.data.is_active } : r))
+                setSubscriptions((prev) =>
+                    prev.map((s) => (s.id === id ? { ...s, is_active: res.data.is_active } : s))
                 );
             })
             .catch((err) => {
-                alert(err.response?.data?.message || "Failed to update restaurant status");
+                alert(err.response?.data?.message || "Failed to update subscription status");
             })
             .finally(() => {
                 setTogglingId(null);
             });
     };
 
-    const filteredRestaurants = restaurants.filter((r) => {
+    const filteredSubscriptions = subscriptions.filter((s) => {
         const q = searchQuery.trim().toLowerCase();
         if (!q) return true;
-        return (
-            r.name.toLowerCase().includes(q) ||
-            r.email.toLowerCase().includes(q) ||
-            r.phone.toLowerCase().includes(q) ||
-            (r.business_category || "").toLowerCase().includes(q)
-        );
+        return s.name.toLowerCase().includes(q) || s.slug.toLowerCase().includes(q);
     });
 
-    const totalPages = Math.max(1, Math.ceil(filteredRestaurants.length / itemsPerPage));
+    const totalPages = Math.max(1, Math.ceil(filteredSubscriptions.length / itemsPerPage));
     const safePage = Math.min(currentPage, totalPages);
-    const paginatedRestaurants = filteredRestaurants.slice(
+    const paginatedSubscriptions = filteredSubscriptions.slice(
         (safePage - 1) * itemsPerPage,
         safePage * itemsPerPage
     );
@@ -161,9 +157,8 @@ export default function RestaurantPage() {
                 <div className="overflow-x-hidden pt-20 sm:pt-24 lg:pt-0" style={{ fontFamily: "'Inter', sans-serif" }}>
                     {loading ? (
                         <div className="flex min-h-[calc(100vh-42px)] flex-col items-center justify-center gap-3">
-
                             <div className="h-10 w-10 animate-spin rounded-full border-4 border-violet-200 border-t-violet-600" />
-                            <p className="text-sm text-gray-500">Loading restaurants...</p>
+                            <p className="text-sm text-gray-500">Loading subscriptions...</p>
                         </div>
                     ) : error ? (
                         <div className="flex min-h-[calc(100vh-42px)] items-center justify-center">
@@ -171,7 +166,7 @@ export default function RestaurantPage() {
                                 <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-50">
                                     <AlertTriangle size={26} className="text-red-500" />
                                 </div>
-                                <h2 className="mb-1.5 text-base font-semibold text-gray-900">Couldn&apos;t load restaurants</h2>
+                                <h2 className="mb-1.5 text-base font-semibold text-gray-900">Couldn&apos;t load subscriptions</h2>
                                 <p className="mb-6 text-sm text-gray-500">{error}</p>
                                 <button
                                     type="button"
@@ -187,16 +182,16 @@ export default function RestaurantPage() {
                         <>
                             <div className="mb-6 flex flex-col items-start gap-3 md:flex-row md:items-center md:justify-between">
                                 <div>
-                                    <h1 className="text-xl font-bold text-gray-900 sm:text-2xl">Restaurants</h1>
-                                    <p className="mt-1 text-sm text-gray-500">{restaurants.length} total</p>
+                                    <h1 className="text-xl font-bold text-gray-900 sm:text-2xl">Subscriptions</h1>
+                                    <p className="mt-1 text-sm text-gray-500">{subscriptions.length} total</p>
                                 </div>
                                 <Link
-                                    href='/superadmin/restaurants/add'
+                                    href="/superadmin/subscriptions/add"
                                     className="no-underline inline-flex w-auto shrink-0 items-center justify-center gap-1.5 rounded-lg bg-violet-600 px-3 py-2 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-violet-700 sm:gap-2 sm:px-4 sm:py-2.5 sm:text-sm"
                                 >
                                     <Plus size={14} className="sm:hidden" />
                                     <Plus size={16} className="hidden sm:block" />
-                                    Add Restaurant
+                                    Add Subscription
                                 </Link>
                             </div>
 
@@ -205,7 +200,6 @@ export default function RestaurantPage() {
                                     {successMessage}
                                 </div>
                             )}
-
 
                             <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-md">
                                 <div className="flex flex-col items-start justify-between gap-3 border-b border-gray-100 px-4 py-3 sm:flex-row sm:items-center">
@@ -232,85 +226,83 @@ export default function RestaurantPage() {
                                                 value={searchQuery}
                                                 onChange={handleSearchChange}
                                                 autoComplete="off"
-                                                placeholder="Name, email, phone..."
+                                                placeholder="Name, slug..."
                                                 className="box-border w-full rounded-lg border border-gray-200 bg-white py-1.5 pl-9 pr-3 text-sm font-normal text-gray-900 outline-none transition-all hover:border-gray-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 sm:w-60"
                                             />
                                         </div>
                                     </label>
                                 </div>
                                 <div className="scrollbar-hide overflow-x-auto px-2 py-2 sm:px-4">
-                                    <table className="min-w-[760px] text-base lg:min-w-0 lg:w-full lg:table-fixed">
+                                    <table className="min-w-[640px] text-base lg:min-w-0 lg:w-full lg:table-fixed">
                                         <thead>
                                             <tr className="divide-x divide-gray-200 border-b-2 border-gray-200 bg-gray-50">
-                                                <th className="w-[25%] px-3 py-3.5 text-left text-sm font-semibold uppercase tracking-wider text-gray-500">Restaurant</th>
-                                                <th className="w-[17%] px-3 py-3.5 text-left text-sm font-semibold uppercase tracking-wider text-gray-500">Category</th>
-                                                <th className="w-[14%] px-3 py-3.5 text-left text-sm font-semibold uppercase tracking-wider text-gray-500">Phone</th>
-                                                <th className="w-[20%] px-3 py-3.5 text-left text-sm font-semibold uppercase tracking-wider text-gray-500">Email</th>
-                                                <th className="w-[10%] px-3 py-3.5 text-left text-sm font-semibold uppercase tracking-wider text-gray-500">Status</th>
-                                                <th className="w-[14%] px-3 py-3.5 text-right text-sm font-semibold uppercase tracking-wider text-gray-500">Actions</th>
+                                                <th className="w-[30%] px-3 py-3.5 text-left text-sm font-semibold uppercase tracking-wider text-gray-500">Name</th>
+                                                <th className="w-[15%] px-3 py-3.5 text-left text-sm font-semibold uppercase tracking-wider text-gray-500">Price</th>
+                                                <th className="w-[20%] px-3 py-3.5 text-left text-sm font-semibold uppercase tracking-wider text-gray-500">Billing</th>
+                                                <th className="w-[15%] px-3 py-3.5 text-left text-sm font-semibold uppercase tracking-wider text-gray-500">Status</th>
+                                                <th className="w-[20%] px-3 py-3.5 text-right text-sm font-semibold uppercase tracking-wider text-gray-500">Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-gray-100">
-                                            {filteredRestaurants.length === 0 && (
+                                            {filteredSubscriptions.length === 0 && (
                                                 <tr>
-                                                    <td colSpan={6} className="px-5 py-14 text-center text-sm text-gray-500">
-                                                        {searchQuery ? "No matching restaurants found." : "No restaurants found."}
+                                                    <td colSpan={5} className="px-5 py-14 text-center text-sm text-gray-500">
+                                                        {searchQuery ? "No matching subscriptions found." : "No subscription plans found."}
                                                     </td>
                                                 </tr>
                                             )}
 
-                                            {paginatedRestaurants.map((r) => (
-                                                <tr key={r.id} className="divide-x divide-gray-100 transition-colors hover:bg-gray-50/80">
+                                            {paginatedSubscriptions.map((s) => (
+                                                <tr key={s.id} className="divide-x divide-gray-100 transition-colors hover:bg-gray-50/80">
                                                     <td className="px-3 py-2.5">
                                                         <div className="flex items-center gap-2.5">
                                                             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-violet-50 text-violet-600">
-                                                                <Store size={17} />
+                                                                <CreditCard size={17} />
                                                             </span>
                                                             <div className="min-w-0">
-                                                                <p className="m-0 truncate font-normal text-gray-700">{r.name}</p>
-                                                                <p className="m-0 truncate font-mono text-sm text-gray-400">{r.slug}</p>
+                                                                <p className="m-0 truncate font-normal text-gray-700">{s.name}</p>
+                                                                <p className="m-0 truncate font-mono text-sm text-gray-400">{s.slug}</p>
                                                             </div>
                                                         </div>
                                                     </td>
-                                                    <td className="truncate px-3 py-2.5 font-normal text-gray-700">{r.business_category || "—"}</td>
-                                                    <td className="truncate px-3 py-2.5 font-normal text-gray-700">{r.phone}</td>
-                                                    <td className="truncate px-3 py-2.5 font-normal text-gray-700">{r.email}</td>
+                                                    <td className="truncate px-3 py-2.5 font-normal text-gray-700">{formatPrice(s.price, s.currency)}</td>
+                                                    <td className="truncate px-3 py-2.5 font-normal text-gray-700">{formatBilling(s.interval, s.interval_count)}</td>
 
                                                     <td className="px-3 py-2.5">
                                                         <span
-                                                            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold ${r.is_active
+                                                            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold ${s.is_active
                                                                 ? "bg-green-50 text-green-700"
                                                                 : "bg-red-50 text-red-700"
                                                                 }`}
                                                         >
-                                                            <span className={`h-2 w-2 rounded-full ${r.is_active ? "bg-green-500" : "bg-red-500"}`} />
-                                                            {r.is_active ? "Active" : "Blocked"}
+                                                            <span className={`h-2 w-2 rounded-full ${s.is_active ? "bg-green-500" : "bg-red-500"}`} />
+                                                            {s.is_active ? "Active" : "Inactive"}
                                                         </span>
                                                     </td>
                                                     <td className="px-2 py-2.5">
                                                         <div className="flex items-center justify-end gap-1.5">
                                                             <Link
-                                                                href={`/superadmin/restaurants/${r.id}/edit`}
-                                                                aria-label="Edit restaurant"
+                                                                href={`/superadmin/subscriptions/${s.id}/edit`}
+                                                                aria-label="Edit subscription"
                                                                 className="inline-flex items-center justify-center rounded-lg border border-gray-200 bg-white p-1.5 text-gray-500 shadow-sm transition-all hover:border-violet-300 hover:bg-violet-50 hover:text-violet-600 hover:shadow"
                                                             >
                                                                 <Pencil size={16} />
                                                             </Link>
                                                             <button
                                                                 type="button"
-                                                                onClick={() => handleToggleStatus(r.id)}
-                                                                disabled={togglingId === r.id}
-                                                                aria-label={r.is_active ? "Block restaurant" : "Unblock restaurant"}
-                                                                title={r.is_active ? "Block restaurant" : "Unblock restaurant"}
+                                                                onClick={() => handleToggleStatus(s.id)}
+                                                                disabled={togglingId === s.id}
+                                                                aria-label={s.is_active ? "Deactivate subscription" : "Activate subscription"}
+                                                                title={s.is_active ? "Deactivate subscription" : "Activate subscription"}
                                                                 className="inline-flex items-center justify-center rounded-lg border border-gray-200 bg-white p-1.5 text-gray-500 shadow-sm transition-all hover:border-orange-300 hover:bg-orange-50 hover:text-orange-600 hover:shadow disabled:cursor-not-allowed disabled:opacity-50"
                                                             >
-                                                                {r.is_active ? <Ban size={16} /> : <CheckCircle size={16} />}
+                                                                {s.is_active ? <Ban size={16} /> : <CheckCircle size={16} />}
                                                             </button>
                                                             <button
                                                                 type="button"
-                                                                onClick={() => handleDelete(r.id)}
-                                                                disabled={deletingId === r.id}
-                                                                aria-label="Delete restaurant"
+                                                                onClick={() => handleDelete(s.id)}
+                                                                disabled={deletingId === s.id}
+                                                                aria-label="Delete subscription"
                                                                 className="inline-flex items-center justify-center rounded-lg border border-gray-200 bg-white p-1.5 text-gray-500 shadow-sm transition-all hover:border-red-300 hover:bg-red-50 hover:text-red-600 hover:shadow disabled:cursor-not-allowed disabled:opacity-50"
                                                             >
                                                                 <Trash2 size={16} />
@@ -328,7 +320,7 @@ export default function RestaurantPage() {
                                 <div className="mt-4 flex flex-col items-center justify-between gap-3 sm:flex-row">
                                     <p className="text-sm text-gray-500">
                                         Showing {(safePage - 1) * itemsPerPage + 1} to{" "}
-                                        {Math.min(safePage * itemsPerPage, filteredRestaurants.length)} of {filteredRestaurants.length} entries
+                                        {Math.min(safePage * itemsPerPage, filteredSubscriptions.length)} of {filteredSubscriptions.length} entries
                                     </p>
 
                                     <div className="flex items-center gap-1">

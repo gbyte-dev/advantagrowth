@@ -10,7 +10,7 @@ use App\Http\Controllers\Api\SupAdmin\SubscriptionController;
 |--------------------------------------------------------------------------
 */
 
-Route::middleware('auth:sanctum')->prefix('superadmin')->group(function () {
+Route::middleware(['auth:sanctum', 'superadmin'])->prefix('superadmin')->group(function () {
 
     Route::prefix('restaurants')->group(function () {
 
@@ -51,6 +51,8 @@ Route::middleware('auth:sanctum')->prefix('superadmin')->group(function () {
         Route::get('/{id}',[SubscriptionController::class,'show']);
         Route::put('/{id}',[SubscriptionController::class,'update']);
         Route::delete('/{id}',[SubscriptionController::class,'destroy']);
+        Route::patch('/{id}/toggle-status', [SubscriptionController::class, 'toggleStatus']);
+
     });
 
 

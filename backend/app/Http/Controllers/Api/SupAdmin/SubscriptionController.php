@@ -9,12 +9,20 @@ use App\Models\Subscription;
 class SubscriptionController extends Controller
 {
     public function index(){
-        $data=Subscription::latest()->get();
-        return response()->json([
-            'success'=>true,
-            'message'=>'Subscription fetched successfully',
-            'data'=>$data,
-        ]);
+        try {
+            $data = Subscription::latest()->get();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Subscriptions fetched successfully',
+                'data' => $data,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch subscriptions. Please try again.',
+            ], 500);
+        }
     }
     public function store(Request $req){
         $valiadte=$req->validate([
@@ -28,41 +36,54 @@ class SubscriptionController extends Controller
             'is_active' => 'boolean',
 
         ]);
-        $subscription = Subscription::create($valiadte);
-       return  response()->json([
-            'success'=>true,
-            'message'=>"Subscription created successfully",
-            'data'=>$subscription,
-       
-       ]);
-        
+        try {
+            $subscription = Subscription::create($valiadte);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Subscription created successfully',
+                'data' => $subscription,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to create subscription plan. Please try again.',
+            ], 500);
+        }
     }
     public function show(string $id){
-        $subscription=Subscription::find($id);
-        if(!$subscription){
-            return response()->json([
-                'success'=>false,
-                'message'=>'Subscription not found'
-            ],404);
-        }
-    return response()->json([
-        'success'=>true,
-        'message'=>'subscription fetched successfully',
-        'data'=>$subscription
+        try {
+            $subscription = Subscription::find($id);
+            if (!$subscription) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Subscription not found',
+                ], 404);
+            }
 
-    ],201);
+            return response()->json([
+                'success' => true,
+                'message' => 'Subscription fetched successfully',
+                'data' => $subscription,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch subscription. Please try again.',
+            ], 500);
+        }
     }
     public function update(Request $req,$id){
         $subscription=Subscription::find($id);
         if(!$subscription){
-           return responce()->json([
+           return response()->json([
             'success'=>false,
             'message'=>'subscription not found',
-           ]);
+           ],404);
         }
         $validate=$req->validate([
             'name'=>'required|string',
-            'slug'=>'required|string|unique:subscriptions,slug',
+            'slug'=>'required|string|unique:subscriptions,slug,' . $id,
             'price'=>'required|numeric|min:0',
             'currency'=>'required|string|max:3',
             'interval'=>'required|string|in:month,year',
@@ -70,13 +91,20 @@ class SubscriptionController extends Controller
             'description' => 'nullable|string',
             'is_active' => 'boolean',
         ]);
-            $subscription->update($validate);
-        
-        return response()->json([
-            'success'=>true,
-            'message'=>'subscription update successfully',
-            'data'=>$subscription,
-        ]);
+            try {
+                $subscription->update($validate);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Subscription updated successfully',
+                    'data' => $subscription->fresh(),
+                ]);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to update subscription plan. Please try again.',
+                ], 500);
+            }
     }
     public function toggleStatus($id){
         $subscription=Subscription::find($id);
@@ -86,14 +114,21 @@ class SubscriptionController extends Controller
                 'message'=>'subscription not found'
             ],404);
         }
-        $subscription->is_active=!$subscription->is_active;
-        $subscription->save();
+        try {
+            $subscription->is_active = !$subscription->is_active;
+            $subscription->save();
 
-        return response()->json([
-            'success'=>true,
-            'message'=>$subscription->is_active ? 'subscription activate' : 'subscriptioon deactive',
-            'is_active'=>$subscription->is_active ,
-        ]);
+            return response()->json([
+                'success' => true,
+                'message' => $subscription->is_active ? 'Subscription activated' : 'Subscription deactivated',
+                'is_active' => $subscription->is_active,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update subscription status. Please try again.',
+            ], 500);
+        }
     }
         public function destroy($id){
             $subscription=Subscription::find($id);
@@ -103,12 +138,19 @@ class SubscriptionController extends Controller
                 'message'=>'subscription not found'
             ],404);
         }
-        $subscription->delete();
-        return response()->json([
-            'success'=>true,
-            'message'=>'subscription deleted successfully',
+        try {
+            $subscription->delete();
 
-        ]);
+            return response()->json([
+                'success' => true,
+                'message' => 'Subscription deleted successfully',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete subscription plan. Please try again.',
+            ], 500);
+        }
         }
 
 }

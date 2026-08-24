@@ -35,4 +35,27 @@ api.interceptors.request.use(
   }
 );
 
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (typeof window !== "undefined") {
+      const status = error.response?.status;
+      const pathname = window.location.pathname;
+
+      if (
+        (status === 401 || status === 403) &&
+        pathname.startsWith("/superadmin") &&
+        pathname !== "/superadmin/login"
+      ) {
+        sessionStorage.clear();
+        localStorage.removeItem("role");
+        localStorage.removeItem("user");
+        window.location.href = "/superadmin/login";
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
+
 export default api;

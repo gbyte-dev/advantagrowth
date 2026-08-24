@@ -15,40 +15,21 @@ const menus = [
     href: "/superadmin/restaurants",
     icon: "fa-store",
   },
-  {
-    name: "Owners",
-    href: "/superadmin/owners",
-    icon: "fa-crown",
-  },
-  {
-    name: "Staff Members",
-    href: "/superadmin/staff",
-    icon: "fa-users",
-  },
+
   {
     name: "Subscriptions",
     href: "/superadmin/subscriptions",
     icon: "fa-credit-card",
   },
-  {
-    name: "Reports & Analytics",
-    href: "/superadmin/reports",
-    icon: "fa-chart-bar",
-  },
-  {
-    name: "System Settings",
-    href: "/superadmin/settings",
-    icon: "fa-cogs",
-  },
+
+  // {
+  //   name: "System Settings",
+  //   href: "/superadmin/settings",
+  //   icon: "fa-cogs",
+  // },
 ];
 
-const bottomMenus = [
-  {
-    name: "Help & Support",
-    href: "/superadmin/support",
-    icon: "fa-question-circle",
-  },
-];
+
 
 export default function SuperAdminSidebar() {
   const pathname = usePathname();
@@ -161,32 +142,7 @@ export default function SuperAdminSidebar() {
           </div>
 
           {/* Bottom Section */}
-          <div className="sidebar-section sidebar-section-bottom">
-            {!collapsed && <span className="sidebar-section-title">Other</span>}
 
-            {bottomMenus.map((menu) => (
-              <Link
-                key={menu.href}
-                href={menu.href}
-                className={`sidebar-link ${pathname === menu.href ? "sidebar-link-active superadmin-link-active" : ""}`}
-                title={collapsed ? menu.name : ""}
-                onClick={handleMobileLinkClick}
-              >
-                <i className={`fas ${menu.icon} sidebar-link-icon`}></i>
-                {!collapsed && <span>{menu.name}</span>}
-              </Link>
-            ))}
-
-            {/* Logout */}
-            <button
-              onClick={handleLogout}
-              className="sidebar-link sidebar-logout"
-              title={collapsed ? "Logout" : ""}
-            >
-              <i className="fas fa-sign-out-alt sidebar-link-icon"></i>
-              {!collapsed && <span>Logout</span>}
-            </button>
-          </div>
         </nav>
 
         {/* Sidebar Footer */}

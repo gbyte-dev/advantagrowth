@@ -47,7 +47,7 @@ export default function TopBar() {
       // Redirect according to role
       if (role === "staff") {
         router.replace("/owner/login");
-      } else if (role === "superadmin") {
+      } else if (role === "super_admin") {
         router.replace("/superadmin/login");
       } else {
         router.replace("/owner/login");

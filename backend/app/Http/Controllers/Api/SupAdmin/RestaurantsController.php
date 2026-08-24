@@ -14,12 +14,20 @@ class RestaurantsController extends Controller
      */
     public function index()
     {
-        $data=Restaurant::latest()->get();
-        return response()->json([
-            'success'=>true,
-            'message'=>'Restaurants fetched successfully',
-            'data'=> $data,
-        ]);
+        try {
+            $data = Restaurant::latest()->get();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Restaurants fetched successfully',
+                'data' => $data,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch restaurants. Please try again.',
+            ], 500);
+        }
     }
 
     /**
@@ -45,13 +53,21 @@ class RestaurantsController extends Controller
             'opening_time' => 'nullable|date_format:H:i',
             'closing_time' => 'nullable|date_format:H:i',
         ]);
-        $validate['slug'] = Str::slug($validate['name']) . '-' . time();
-        $restaurant=Restaurant::create($validate);
-        return response()->json([
-            'success'=>true,
-            'message'=>'resaurant created successfully',
-            'data'=>$restaurant,
-        ]);
+        try {
+            $validate['slug'] = Str::slug($validate['name']) . '-' . time();
+            $restaurant = Restaurant::create($validate);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Restaurant created successfully',
+                'data' => $restaurant,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to create restaurant. Please try again.',
+            ], 500);
+        }
     }
 
     /**
@@ -59,18 +75,26 @@ class RestaurantsController extends Controller
      */
     public function show(string $id)
     {
-        $restorent = Restaurant::find($id);
-        if(!$restorent){
+        try {
+            $restaurant = Restaurant::find($id);
+            if (!$restaurant) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Restaurant not found',
+                ], 404);
+            }
+
             return response()->json([
-                 'success' => false,
-            'message' => 'Restaurant not found',
-            ],404);
+                'success' => true,
+                'message' => 'Restaurant fetched successfully',
+                'data' => $restaurant,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch restaurant. Please try again.',
+            ], 500);
         }
-        return response()->json([
-            'success'=>true,
-            'message'=>'Restaurant Fetched successfully',
-            'data'=>$restorent,
-        ]);
     }
 
     /**
@@ -104,14 +128,20 @@ class RestaurantsController extends Controller
             'opening_time' => 'nullable|date_format:H:i',
             'closing_time' => 'nullable|date_format:H:i',
         ]);
-        $restaurant->update($validate);
+        try {
+            $restaurant->update($validate);
 
-        return response()->json([
-            'success'=>true,
-            'message'=>'restorent update successfully',
-            'data'=>$restaurant->fresh(),
-        ]);
-
+            return response()->json([
+                'success' => true,
+                'message' => 'Restaurant updated successfully',
+                'data' => $restaurant->fresh(),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update restaurant. Please try again.',
+            ], 500);
+        }
     }
 
     /**
@@ -127,14 +157,21 @@ class RestaurantsController extends Controller
             ], 404);
         }
 
-        $restaurant->is_active = !$restaurant->is_active;
-        $restaurant->save();
+        try {
+            $restaurant->is_active = !$restaurant->is_active;
+            $restaurant->save();
 
-        return response()->json([
-            'success' => true,
-            'message' => $restaurant->is_active ? 'Restaurant unblocked successfully' : 'Restaurant blocked successfully',
-            'is_active' => $restaurant->is_active,
-        ]);
+            return response()->json([
+                'success' => true,
+                'message' => $restaurant->is_active ? 'Restaurant unblocked successfully' : 'Restaurant blocked successfully',
+                'is_active' => $restaurant->is_active,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update restaurant status. Please try again.',
+            ], 500);
+        }
     }
 
     /**
@@ -149,11 +186,18 @@ class RestaurantsController extends Controller
             'message' => 'Restaurant not found',
             ],404);
         }
-        $restaurant->delete();
+        try {
+            $restaurant->delete();
 
-        return response()->json([
-        'success' => true,
-        'message' => 'Restaurant deleted successfully',
-    ]);
+            return response()->json([
+                'success' => true,
+                'message' => 'Restaurant deleted successfully',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete restaurant. Please try again.',
+            ], 500);
+        }
     }
 }

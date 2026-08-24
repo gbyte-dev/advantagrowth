@@ -7833,6 +7833,7 @@
   min-height: calc(100vh - 48px);
   background: var(--superadmin-dashboard-bg);
   overflow-x: hidden;
+  font-family: 'Inter', sans-serif;
 }
 
 .superadmin-main-content {
