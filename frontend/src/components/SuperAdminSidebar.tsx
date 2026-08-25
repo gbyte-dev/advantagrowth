@@ -22,11 +22,11 @@ const menus = [
     icon: "fa-credit-card",
   },
 
-  // {
-  //   name: "System Settings",
-  //   href: "/superadmin/settings",
-  //   icon: "fa-cogs",
-  // },
+  {
+    name: "System Settings",
+    href: "/superadmin/settings",
+    icon: "fa-cogs",
+  },
 ];
 
 
@@ -118,7 +118,7 @@ export default function SuperAdminSidebar() {
         <div className="sidebar-header">
           <Link href="/superadmin/dashboard" className="sidebar-logo">
             <i className="fas fa-shield-alt sidebar-logo-icon superadmin-logo-icon"></i>
-            {!collapsed && <span>Super Admin</span>}
+            {!collapsed && <span className="!text-white">Super Admin</span>}
           </Link>
           <button
             className="sidebar-toggle"

@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\SupAdmin\RestaurantsController;
 use App\Http\Controllers\Api\SupAdmin\SubscriptionController;
+use App\Http\Controllers\Api\SupAdmin\SettingsController;
+use App\Http\Controllers\Api\SupAdmin\WeatherController;
 
 /*
 |--------------------------------------------------------------------------
@@ -13,6 +15,16 @@ use App\Http\Controllers\Api\SupAdmin\SubscriptionController;
 Route::middleware(['auth:sanctum', 'superadmin'])->prefix('superadmin')->group(function () {
 
     Route::prefix('restaurants')->group(function () {
+
+        Route::get('/stats/dashboard', [
+            RestaurantsController::class,
+            'stats'
+        ]);
+
+        Route::get('/stats/revenue-trend', [
+            RestaurantsController::class,
+            'revenueTrend'
+        ]);
 
         Route::get('/', [
             RestaurantsController::class,
@@ -54,6 +66,13 @@ Route::middleware(['auth:sanctum', 'superadmin'])->prefix('superadmin')->group(f
         Route::patch('/{id}/toggle-status', [SubscriptionController::class, 'toggleStatus']);
 
     });
+
+    Route::prefix('settings')->group(function () {
+        Route::get('/', [SettingsController::class, 'index']);
+        Route::put('/', [SettingsController::class, 'update']);
+    });
+
+    Route::get('/weather', [WeatherController::class, 'overview']);
 
 
 });

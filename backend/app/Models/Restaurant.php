@@ -24,6 +24,7 @@ class Restaurant extends Model
 
         'phone',
         'email',
+        'password',
         'website',
 
         'currency',
@@ -33,6 +34,17 @@ class Restaurant extends Model
 
         'is_active',
     ];
+
+    protected $hidden = [
+        'password',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'password' => 'hashed',
+        ];
+    }
 
     public function users(): HasMany
     {

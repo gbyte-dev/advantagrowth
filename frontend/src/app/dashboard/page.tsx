@@ -281,7 +281,7 @@ export default function DashboardPage() {
           setError(
             response.data
               ?.message ||
-              "Unable to load analytics."
+            "Unable to load analytics."
           );
 
           return;
@@ -291,7 +291,7 @@ export default function DashboardPage() {
           response.data
         );
       } catch (
-        err: any
+      err: any
       ) {
         console.error(
           "Analytics loading error:",
@@ -327,7 +327,7 @@ export default function DashboardPage() {
         setError(
           err?.response
             ?.data?.message ||
-            "Unable to load analytics."
+          "Unable to load analytics."
         );
       } finally {
         setLoading(false);
@@ -661,12 +661,11 @@ export default function DashboardPage() {
 
               <button
                 type="button"
-                className={`tab ${
-                  activeTab ===
-                  "day"
+                className={`tab ${activeTab ===
+                    "day"
                     ? "active"
                     : ""
-                }`}
+                  }`}
                 onClick={() => {
                   setShowDateFilter(
                     false
@@ -682,12 +681,11 @@ export default function DashboardPage() {
 
               <button
                 type="button"
-                className={`tab ${
-                  activeTab ===
-                  "week"
+                className={`tab ${activeTab ===
+                    "week"
                     ? "active"
                     : ""
-                }`}
+                  }`}
                 onClick={() => {
                   setShowDateFilter(
                     false
@@ -703,12 +701,11 @@ export default function DashboardPage() {
 
               <button
                 type="button"
-                className={`tab ${
-                  activeTab ===
-                  "month"
+                className={`tab ${activeTab ===
+                    "month"
                     ? "active"
                     : ""
-                }`}
+                  }`}
                 onClick={() => {
                   setShowDateFilter(
                     false
@@ -730,12 +727,11 @@ export default function DashboardPage() {
 
               <button
                 type="button"
-                className={`dashboard-date-button ${
-                  activeTab ===
-                  "custom"
+                className={`dashboard-date-button ${activeTab ===
+                    "custom"
                     ? "dashboard-date-button-active"
                     : ""
-                }`}
+                  }`}
                 onClick={() =>
                   setShowDateFilter(
                     !showDateFilter
@@ -746,21 +742,21 @@ export default function DashboardPage() {
 
                 {activeTab ===
                   "custom" &&
-                analytics
-                  .period_range
-                  ?.start_date &&
-                analytics
-                  .period_range
-                  ?.end_date
+                  analytics
+                    .period_range
+                    ?.start_date &&
+                  analytics
+                    .period_range
+                    ?.end_date
                   ? `${formatDisplayDate(
-                      analytics
-                        .period_range
-                        .start_date
-                    )} - ${formatDisplayDate(
-                      analytics
-                        .period_range
-                        .end_date
-                    )}`
+                    analytics
+                      .period_range
+                      .start_date
+                  )} - ${formatDisplayDate(
+                    analytics
+                      .period_range
+                      .end_date
+                  )}`
                   : "Date"}
               </button>
 
@@ -917,33 +913,33 @@ export default function DashboardPage() {
             .period_range
             ?.end_date && (
 
-          <div className="dashboard-selected-range">
+            <div className="dashboard-selected-range">
 
-            <i className="fas fa-calendar-check"></i>
+              <i className="fas fa-calendar-check"></i>
 
-            Showing data from
+              Showing data from
 
-            <strong>
-              {formatDisplayDate(
-                analytics
-                  .period_range
-                  .start_date
-              )}
-            </strong>
+              <strong>
+                {formatDisplayDate(
+                  analytics
+                    .period_range
+                    .start_date
+                )}
+              </strong>
 
-            to
+              to
 
-            <strong>
-              {formatDisplayDate(
-                analytics
-                  .period_range
-                  .end_date
-              )}
-            </strong>
+              <strong>
+                {formatDisplayDate(
+                  analytics
+                    .period_range
+                    .end_date
+                )}
+              </strong>
 
-          </div>
+            </div>
 
-        )}
+          )}
 
         {/* =====================================================
             ERROR
@@ -983,17 +979,16 @@ export default function DashboardPage() {
             </div>
 
             <div
-              className={`stat-change ${
-                currentStats
+              className={`stat-change ${currentStats
                   .revenue_change >=
-                0
+                  0
                   ? "positive"
                   : "negative"
-              }`}
+                }`}
             >
               {currentStats
                 .revenue_change >=
-              0
+                0
                 ? "↑"
                 : "↓"}{" "}
 
@@ -1022,17 +1017,16 @@ export default function DashboardPage() {
             </div>
 
             <div
-              className={`stat-change ${
-                currentStats
+              className={`stat-change ${currentStats
                   .orders_change >=
-                0
+                  0
                   ? "positive"
                   : "negative"
-              }`}
+                }`}
             >
               {currentStats
                 .orders_change >=
-              0
+                0
                 ? "↑"
                 : "↓"}{" "}
 
@@ -1061,17 +1055,16 @@ export default function DashboardPage() {
             </div>
 
             <div
-              className={`stat-change ${
-                currentStats
+              className={`stat-change ${currentStats
                   .average_order_value_change >=
-                0
+                  0
                   ? "positive"
                   : "negative"
-              }`}
+                }`}
             >
               {currentStats
                 .average_order_value_change >=
-              0
+                0
                 ? "↑"
                 : "↓"}{" "}
 
@@ -1117,7 +1110,7 @@ export default function DashboardPage() {
                 </div>
 
                 {currentRevenueData.length ===
-                0 ? (
+                  0 ? (
 
                   <div className="revenue-table-row">
 
@@ -1198,7 +1191,7 @@ export default function DashboardPage() {
                 </div>
 
                 {topProducts.length ===
-                0 ? (
+                  0 ? (
 
                   <div className="top-products-row">
 
@@ -1296,7 +1289,7 @@ export default function DashboardPage() {
                 </div>
 
                 {lowProducts.length ===
-                0 ? (
+                  0 ? (
 
                   <div className="top-products-row">
 
@@ -1386,7 +1379,7 @@ export default function DashboardPage() {
                 </div>
 
                 {paymentMethods.length ===
-                0 ? (
+                  0 ? (
 
                   <div className="top-products-row">
 

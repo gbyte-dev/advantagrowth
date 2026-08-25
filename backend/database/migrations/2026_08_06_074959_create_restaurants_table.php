@@ -23,6 +23,8 @@ return new class extends Migration
 
             $table->string('email')->unique();
 
+            $table->string('password')->nullable();
+
             $table->string('address')->nullable();
 
             $table->boolean('is_active')->default(true);
