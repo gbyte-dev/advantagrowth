@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 const menus = [
   {
@@ -36,6 +36,8 @@ export default function SuperAdminSidebar() {
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -51,6 +53,16 @@ export default function SuperAdminSidebar() {
     }
 
     return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(e.target as Node)) {
+        setProfileMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const toggleSidebar = () => {
@@ -147,8 +159,25 @@ export default function SuperAdminSidebar() {
 
         {/* Sidebar Footer */}
         {!collapsed && (
-          <div className="sidebar-footer">
-            <Link href="/superadmin/profile" className="sidebar-user-info" style={{ textDecoration: "none", color: "inherit", cursor: "pointer" }}>
+          <div className="sidebar-footer relative" ref={profileMenuRef}>
+            {profileMenuOpen && (
+              <div className="absolute bottom-full left-0 z-30 mb-1.5 w-full overflow-hidden rounded-lg border border-white/10 bg-white/10 py-1 shadow-md backdrop-blur-md">
+                <Link
+                  href="/superadmin/profile"
+                  onClick={() => setProfileMenuOpen(false)}
+                  className="flex items-center gap-2 whitespace-nowrap px-3 py-1.5 text-sm text-gray-200 no-underline transition-colors hover:bg-white/10 hover:text-white"
+                >
+                  <i className="fas fa-user-gear text-xs text-gray-400"></i>
+                  Profile Settings
+                </Link>
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={() => setProfileMenuOpen((v) => !v)}
+              className="sidebar-user-info"
+              style={{ textDecoration: "none", color: "inherit", cursor: "pointer", background: "none", border: "none", width: "100%", textAlign: "left" }}
+            >
               <div className="sidebar-user-avatar superadmin-avatar">
                 <i className="fas fa-circle-user"></i>
               </div>
@@ -156,7 +185,7 @@ export default function SuperAdminSidebar() {
                 <p className="sidebar-user-name">Super Admin</p>
                 <p className="sidebar-user-role">System Control</p>
               </div>
-            </Link>
+            </button>
           </div>
         )}
       </aside>
