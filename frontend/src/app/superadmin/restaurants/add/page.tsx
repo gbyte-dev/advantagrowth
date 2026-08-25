@@ -3,7 +3,7 @@
 import { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Store, Phone, MapPin, Clock } from "lucide-react";
+import { ArrowLeft, Store, Phone, MapPin, Clock, Eye, EyeOff } from "lucide-react";
 import api from "@/lib/axios";
 import SuperAdminSidebar from "@/components/SuperAdminSidebar";
 import CurrencySelect from "@/components/CurrencySelect";
@@ -19,6 +19,7 @@ export default function AddRestaurantPage() {
     const [saving, setSaving] = useState(false);
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
+    const [showPassword, setShowPassword] = useState(false);
 
     useEffect(() => {
         const saved = localStorage.getItem("superAdminSidebarCollapsed");
@@ -44,6 +45,7 @@ export default function AddRestaurantPage() {
         country: "",
         phone: "",
         email: "",
+        password: "",
         website: "",
         currency: "",
         timezone: "",
@@ -67,6 +69,8 @@ export default function AddRestaurantPage() {
         if (!form.name.trim()) newErrors.name = "Restaurant name is required.";
         if (!form.phone.trim()) newErrors.phone = "Phone is required.";
         if (!form.email.trim()) newErrors.email = "Email is required.";
+        if (!form.password.trim()) newErrors.password = "Password is required.";
+        else if (form.password.length < 6) newErrors.password = "Password must be at least 6 characters.";
         return newErrors;
     };
 
@@ -168,6 +172,28 @@ export default function AddRestaurantPage() {
                                         className={`${inputClass} ${errors.email ? "border-red-400 focus:border-red-500 focus:ring-red-100" : ""}`}
                                     />
                                     {errors.email && <p className="mt-1 text-xs text-red-600">{errors.email}</p>}
+                                </div>
+                                <div>
+                                    <label className={labelClass}>Password *</label>
+                                    <div className="relative">
+                                        <input
+                                            type={showPassword ? "text" : "password"}
+                                            name="password"
+                                            autoComplete="new-password"
+                                            value={form.password}
+                                            onChange={handleChange}
+                                            className={`${inputClass} pr-10 ${errors.password ? "border-red-400 focus:border-red-500 focus:ring-red-100" : ""}`}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword((v) => !v)}
+                                            aria-label={showPassword ? "Hide password" : "Show password"}
+                                            className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center justify-center border-0 bg-transparent p-0 text-gray-400 outline-none hover:text-gray-600"
+                                        >
+                                            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                        </button>
+                                    </div>
+                                    {errors.password && <p className="mt-1 text-xs text-red-600">{errors.password}</p>}
                                 </div>
                                 <div className="sm:col-span-2">
                                     <label className={labelClass}>Website</label>

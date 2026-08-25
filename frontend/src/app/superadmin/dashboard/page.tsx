@@ -3,6 +3,9 @@
 
 import { useState, useEffect, useMemo } from "react";
 import SuperAdminSidebar from "@/components/SuperAdminSidebar";
+import WeatherCard from "@/components/WeatherCard";
+import api from "@/lib/axios";
+import { getCurrencySymbol, getCurrencyIcon } from "@/lib/subscriptionFormat";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -22,13 +25,18 @@ const RANGE_OPTIONS: { key: RangeKey; label: string; days: number }[] = [
   { key: "90d", label: "90 Days", days: 90 },
 ];
 
-// TODO: replace with live data once the reporting API is wired up
-const kpis = [
-  { label: "Total Revenue", value: "₹8,42,500", change: 12.4, icon: "fa-indian-rupee-sign", accent: "#7c3aed", bg: "#f5f3ff" },
-  { label: "Total Orders", value: "3,248", change: 8.1, icon: "fa-receipt", accent: "#2563eb", bg: "#eff6ff" },
-  { label: "Active Restaurants", value: "156", change: 3.2, icon: "fa-store", accent: "#16a34a", bg: "#f0fdf4" },
-  { label: "Avg. Customer Spend", value: "₹649", change: -2.1, icon: "fa-user-tag", accent: "#ea580c", bg: "#fff7ed" },
-];
+interface DashboardStats {
+  total_restaurants: number;
+  active_restaurants: number;
+  inactive_restaurants: number;
+  total_revenue: number;
+}
+
+interface RevenueTrendPoint {
+  date: string;
+  current: number;
+  previous: number;
+}
 
 const topRestaurants = [
   { rank: 1, name: "Spice Villa", owner: "Ramesh Kumar", plan: "Premium", orders: 1240, subscriptionDays: 365 },
@@ -44,36 +52,18 @@ const planStyles: Record<string, { bg: string; color: string }> = {
   Basic: { bg: "#f1f5f9", color: "#64748b" },
 };
 
-// Deterministic mock series so the chart stays stable across renders (design-only, no API yet)
-function generateRevenueSeries(days: number) {
-  const data: { date: string; current: number; previous: number }[] = [];
-  const today = new Date();
-  let base = 42000;
-
-  for (let i = days - 1; i >= 0; i--) {
-    const date = new Date(today);
-    date.setDate(date.getDate() - i);
-    const wave = Math.sin(i / 2.3) * 6000;
-    const noise = ((i * 37) % 11) * 900;
-    const current = Math.max(12000, Math.round(base + wave + noise));
-    const previous = Math.max(9000, Math.round(current * (0.82 + (i % 5) * 0.015)));
-
-    data.push({
-      date: date.toLocaleDateString("en-IN", { day: "2-digit", month: "short" }),
-      current,
-      previous,
-    });
-
-    base += days > 30 ? 120 : 40;
-  }
-
-  return data;
-}
-
 export default function SuperAdminDashboard() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [range, setRange] = useState<RangeKey>("30d");
   const [compareEnabled, setCompareEnabled] = useState(true);
+  const [stats, setStats] = useState<DashboardStats>({
+    total_restaurants: 0,
+    active_restaurants: 0,
+    inactive_restaurants: 0,
+    total_revenue: 0,
+  });
+  const [currency, setCurrency] = useState("INR");
+  const [revenueData, setRevenueData] = useState<RevenueTrendPoint[]>([]);
 
   useEffect(() => {
     const saved = localStorage.getItem("superAdminSidebarCollapsed");
@@ -87,8 +77,59 @@ export default function SuperAdminDashboard() {
     return () => window.removeEventListener("superAdminSidebarToggle", handleSidebarToggle as EventListener);
   }, []);
 
+  useEffect(() => {
+    api
+      .get(`/superadmin/restaurants/stats/dashboard?currency=${currency}`)
+      .then((res) => setStats(res.data.data))
+      .catch((err) => console.error("Failed to load dashboard stats:", err));
+  }, [currency]);
+
+  useEffect(() => {
+    api
+      .get("/superadmin/settings")
+      .then((res) => setCurrency(res.data.data.currency))
+      .catch((err) => console.error("Failed to load settings:", err));
+  }, []);
+
+  const kpis = [
+    {
+      label: "Total Revenue",
+      value: `${getCurrencySymbol(currency)}${Number(stats.total_revenue).toLocaleString("en-IN")}`,
+      icon: getCurrencyIcon(currency),
+      accent: "#7c3aed",
+      bg: "#f5f3ff",
+    },
+    {
+      label: "Total Restaurants",
+      value: stats.total_restaurants.toLocaleString("en-IN"),
+      icon: "fa-store",
+      accent: "#2563eb",
+      bg: "#eff6ff",
+    },
+    {
+      label: "Active Restaurants",
+      value: stats.active_restaurants.toLocaleString("en-IN"),
+      icon: "fa-circle-check",
+      accent: "#16a34a",
+      bg: "#f0fdf4",
+    },
+    {
+      label: "Inactive Restaurants",
+      value: stats.inactive_restaurants.toLocaleString("en-IN"),
+      icon: "fa-circle-xmark",
+      accent: "#dc2626",
+      bg: "#fef2f2",
+    },
+  ];
+
   const activeRange = RANGE_OPTIONS.find((r) => r.key === range) ?? RANGE_OPTIONS[2];
-  const revenueData = useMemo(() => generateRevenueSeries(Math.max(activeRange.days, 2)), [activeRange.days]);
+
+  useEffect(() => {
+    api
+      .get(`/superadmin/restaurants/stats/revenue-trend?days=${Math.max(activeRange.days, 2)}&currency=${currency}`)
+      .then((res) => setRevenueData(res.data.data))
+      .catch((err) => console.error("Failed to load revenue trend:", err));
+  }, [activeRange.days, currency]);
 
   const rangeLabel = useMemo(() => {
     const today = new Date();
@@ -152,6 +193,8 @@ export default function SuperAdminDashboard() {
               </label>
             </div>
 
+            <WeatherCard />
+
             {/* KPI overview */}
             <div className="sadash-kpi-grid">
               {kpis.map((kpi) => (
@@ -162,12 +205,6 @@ export default function SuperAdminDashboard() {
                   <div className="sadash-kpi-body">
                     <p className="sadash-kpi-label">{kpi.label}</p>
                     <h3 className="sadash-kpi-value">{kpi.value}</h3>
-                    {compareEnabled && (
-                      <span className={`sadash-kpi-change ${kpi.change >= 0 ? "sadash-change-up" : "sadash-change-down"}`}>
-                        <i className={`fas ${kpi.change >= 0 ? "fa-arrow-up" : "fa-arrow-down"}`}></i>
-                        {Math.abs(kpi.change)}% vs previous period
-                      </span>
-                    )}
                   </div>
                 </div>
               ))}
@@ -200,6 +237,7 @@ export default function SuperAdminDashboard() {
                       tick={{ fontSize: 12, fill: "#64748b" }}
                       axisLine={{ stroke: "#e2e8f0" }}
                       tickLine={false}
+                      tickFormatter={(v: string) => new Date(`${v}T00:00:00`).toLocaleDateString("en-IN", { day: "2-digit", month: "short" })}
                       interval={Math.max(0, Math.ceil(revenueData.length / 7) - 1)}
                       minTickGap={16}
                     />
@@ -207,12 +245,13 @@ export default function SuperAdminDashboard() {
                       tick={{ fontSize: 12, fill: "#64748b" }}
                       axisLine={false}
                       tickLine={false}
-                      tickFormatter={(v: number) => `₹${Math.round(v / 1000)}k`}
+                      tickFormatter={(v: number) => `${getCurrencySymbol(currency)}${Math.round(v / 1000)}k`}
                       width={48}
                     />
                     <Tooltip
+                      labelFormatter={(v: string) => new Date(`${v}T00:00:00`).toLocaleDateString("en-IN", { day: "2-digit", month: "short" })}
                       formatter={(value: number, name: string) => [
-                        `₹${value.toLocaleString("en-IN")}`,
+                        `${getCurrencySymbol(currency)}${value.toLocaleString("en-IN")}`,
                         name === "current" ? "Current period" : "Previous period",
                       ]}
                       contentStyle={{ borderRadius: 8, border: "1px solid #e2e8f0", fontSize: 13 }}
