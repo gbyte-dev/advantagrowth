@@ -453,14 +453,6 @@ export default function ProfilePage() {
 
           <div className="profile-page-header-left">
 
-            <div className="profile-page-eyebrow">
-              <i className="fas fa-user-circle" />
-
-              <span>
-                Owner Account
-              </span>
-            </div>
-
             <h1>
               Manage Your Profile
             </h1>

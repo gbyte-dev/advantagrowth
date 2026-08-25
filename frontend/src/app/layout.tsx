@@ -86,7 +86,7 @@ export default function RootLayout({
         />
       </head>
 
-      <body className="min-h-screen flex flex-col bg-gray-50">
+      <body className="min-h-screen flex flex-col">
 
         {/* GLOBAL TOASTS + CONFIRM MODAL */}
 

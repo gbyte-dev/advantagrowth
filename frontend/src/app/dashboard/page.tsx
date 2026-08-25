@@ -225,7 +225,7 @@ export default function DashboardPage() {
         setError("");
 
         const token =
-          localStorage.getItem(
+          sessionStorage.getItem(
             "token"
           );
 
