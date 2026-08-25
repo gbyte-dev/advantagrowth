@@ -211,8 +211,8 @@ export default function SuperAdminDashboard() {
                       width={48}
                     />
                     <Tooltip
-                      formatter={(value: number, name: string) => [
-                        `₹${value.toLocaleString("en-IN")}`,
+                      formatter={(value, name) => [
+                        `₹${Number(value).toLocaleString("en-IN")}`,
                         name === "current" ? "Current period" : "Previous period",
                       ]}
                       contentStyle={{ borderRadius: 8, border: "1px solid #e2e8f0", fontSize: 13 }}

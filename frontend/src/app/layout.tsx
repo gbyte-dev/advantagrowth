@@ -78,12 +78,6 @@ export default function RootLayout({
           sizes="any"
         />
 
-        {/* Razorpay Checkout */}
-
-        <script
-          src="https://checkout.razorpay.com/v1/checkout.js"
-          async
-        />
       </head>
 
       <body className="min-h-screen flex flex-col">

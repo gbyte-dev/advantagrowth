@@ -8,6 +8,21 @@ return new class extends Migration
 {
     public function up(): void
     {
+        /*
+        |--------------------------------------------------------------------------
+        | POS PAYMENTS
+        |--------------------------------------------------------------------------
+        |
+        | Some existing databases may already contain this table even when
+        | Laravel's migrations table shows this migration as pending.
+        | Skip creation safely in that case.
+        |
+        */
+
+        if (Schema::hasTable('pos_payments')) {
+            return;
+        }
+
         Schema::create('pos_payments', function (Blueprint $table) {
             $table->id();
 
@@ -59,7 +74,10 @@ return new class extends Migration
             );
 
             $table->index(
-                ['restaurant_id', 'order_id'],
+                [
+                    'restaurant_id',
+                    'order_id',
+                ],
                 'pos_payments_restaurant_order_index'
             );
         });

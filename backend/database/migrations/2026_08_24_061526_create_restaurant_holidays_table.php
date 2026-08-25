@@ -8,6 +8,20 @@ return new class extends Migration
 {
     public function up(): void
     {
+        /*
+        |--------------------------------------------------------------------------
+        | Safety Check
+        |--------------------------------------------------------------------------
+        |
+        | Prevent migration failure if the table already exists
+        | on another/local database but migration history is missing.
+        |
+        */
+
+        if (Schema::hasTable('restaurant_holidays')) {
+            return;
+        }
+
         Schema::create('restaurant_holidays', function (Blueprint $table) {
             $table->id();
 

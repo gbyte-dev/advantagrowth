@@ -8,81 +8,117 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('menu_categories', function (Blueprint $table) {
-            $table->foreignId('pos_connection_id')
-                ->nullable()
-                ->after('restaurant_id')
-                ->constrained('pos_connections')
-                ->nullOnDelete();
+        /*
+        |--------------------------------------------------------------------------
+        | MENU CATEGORIES
+        |--------------------------------------------------------------------------
+        */
 
-            $table->string(
-                'external_category_id',
-                191
-            )
-                ->nullable()
-                ->after('pos_connection_id');
+        if (Schema::hasTable('menu_categories')) {
 
-            $table->unique(
-                [
-                    'pos_connection_id',
-                    'external_category_id',
-                ],
-                'menu_categories_pos_external_unique'
-            );
-        });
+            if (!Schema::hasColumn('menu_categories', 'pos_connection_id')) {
+                Schema::table('menu_categories', function (Blueprint $table) {
+                    $table->foreignId('pos_connection_id')
+                        ->nullable()
+                        ->after('restaurant_id')
+                        ->constrained('pos_connections')
+                        ->nullOnDelete();
+                });
+            }
 
-        Schema::table('menu_items', function (Blueprint $table) {
-            $table->foreignId('pos_connection_id')
-                ->nullable()
-                ->after('restaurant_id')
-                ->constrained('pos_connections')
-                ->nullOnDelete();
+            if (!Schema::hasColumn('menu_categories', 'external_category_id')) {
+                Schema::table('menu_categories', function (Blueprint $table) {
+                    $table->string(
+                        'external_category_id',
+                        191
+                    )
+                        ->nullable()
+                        ->after('pos_connection_id');
+                });
+            }
+        }
 
-            $table->string(
-                'external_item_id',
-                191
-            )
-                ->nullable()
-                ->after('pos_connection_id');
+        /*
+        |--------------------------------------------------------------------------
+        | MENU ITEMS
+        |--------------------------------------------------------------------------
+        */
 
-            $table->unique(
-                [
-                    'pos_connection_id',
-                    'external_item_id',
-                ],
-                'menu_items_pos_external_unique'
-            );
-        });
+        if (Schema::hasTable('menu_items')) {
+
+            if (!Schema::hasColumn('menu_items', 'pos_connection_id')) {
+                Schema::table('menu_items', function (Blueprint $table) {
+                    $table->foreignId('pos_connection_id')
+                        ->nullable()
+                        ->after('restaurant_id')
+                        ->constrained('pos_connections')
+                        ->nullOnDelete();
+                });
+            }
+
+            if (!Schema::hasColumn('menu_items', 'external_item_id')) {
+                Schema::table('menu_items', function (Blueprint $table) {
+                    $table->string(
+                        'external_item_id',
+                        191
+                    )
+                        ->nullable()
+                        ->after('pos_connection_id');
+                });
+            }
+        }
     }
 
     public function down(): void
     {
-        Schema::table('menu_items', function (Blueprint $table) {
-            $table->dropUnique(
-                'menu_items_pos_external_unique'
-            );
+        /*
+        |--------------------------------------------------------------------------
+        | MENU ITEMS
+        |--------------------------------------------------------------------------
+        */
 
-            $table->dropConstrainedForeignId(
-                'pos_connection_id'
-            );
+        if (Schema::hasTable('menu_items')) {
 
-            $table->dropColumn(
-                'external_item_id'
-            );
-        });
+            if (Schema::hasColumn('menu_items', 'pos_connection_id')) {
+                Schema::table('menu_items', function (Blueprint $table) {
+                    $table->dropConstrainedForeignId(
+                        'pos_connection_id'
+                    );
+                });
+            }
 
-        Schema::table('menu_categories', function (Blueprint $table) {
-            $table->dropUnique(
-                'menu_categories_pos_external_unique'
-            );
+            if (Schema::hasColumn('menu_items', 'external_item_id')) {
+                Schema::table('menu_items', function (Blueprint $table) {
+                    $table->dropColumn(
+                        'external_item_id'
+                    );
+                });
+            }
+        }
 
-            $table->dropConstrainedForeignId(
-                'pos_connection_id'
-            );
+        /*
+        |--------------------------------------------------------------------------
+        | MENU CATEGORIES
+        |--------------------------------------------------------------------------
+        */
 
-            $table->dropColumn(
-                'external_category_id'
-            );
-        });
+        if (Schema::hasTable('menu_categories')) {
+
+            if (Schema::hasColumn('menu_categories', 'pos_connection_id')) {
+                Schema::table('menu_categories', function (Blueprint $table) {
+                    $table->dropConstrainedForeignId(
+                        'pos_connection_id'
+                    );
+                });
+            }
+
+            if (Schema::hasColumn('menu_categories', 'external_category_id')) {
+                Schema::table('menu_categories', function (Blueprint $table) {
+                    $table->dropColumn(
+                        'external_category_id'
+                    );
+                });
+            }
+        }
     }
 };

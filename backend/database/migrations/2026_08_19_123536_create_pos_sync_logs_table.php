@@ -8,6 +8,16 @@ return new class extends Migration
 {
     public function up(): void
     {
+        /*
+        |--------------------------------------------------------------------------
+        | Prevent Duplicate Table Error
+        |--------------------------------------------------------------------------
+        */
+
+        if (Schema::hasTable('pos_sync_logs')) {
+            return;
+        }
+
         Schema::create('pos_sync_logs', function (Blueprint $table) {
             $table->id();
 
