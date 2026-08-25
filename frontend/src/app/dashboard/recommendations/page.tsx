@@ -115,11 +115,11 @@ const initialRecommendations: Recommendation[] = [
 ];
 
 const tabs = [
-  { key: "all", label: "All Recommendations", icon: "fa-table-cells-large" },
-  { key: "Operations", label: "Operations", icon: "fa-gear" },
-  { key: "Menu", label: "Menu", icon: "fa-utensils" },
-  { key: "Marketing", label: "Marketing", icon: "fa-bullhorn" },
-  { key: "Inventory", label: "Inventory", icon: "fa-box" },
+  { key: "all", label: "All" },
+  { key: "Operations", label: "Operations" },
+  { key: "Menu", label: "Menu" },
+  { key: "Marketing", label: "Marketing" },
+  { key: "Inventory", label: "Inventory" },
 ];
 
 export default function RecommendationsPage() {
@@ -131,6 +131,8 @@ export default function RecommendationsPage() {
   const [generating, setGenerating] = useState(false);
   const [selected, setSelected] =
     useState<Recommendation | null>(null);
+  const [openMenuId, setOpenMenuId] =
+    useState<number | null>(null);
 
   const filteredRecommendations = useMemo(() => {
     return recommendations.filter((item) => {
@@ -228,33 +230,6 @@ const handleGenerate = async () => {
           </button>
         </div>
 
-        {/* AI INFO BANNER */}
-        <div className="recommendations-ai-banner">
-          <div className="recommendations-ai-icon">
-            <i className="fas fa-wand-magic-sparkles"></i>
-          </div>
-
-          <div className="recommendations-ai-content">
-            <strong>
-              Insights powered by AI to help grow your business.
-            </strong>
-
-            <p>
-              Our AI analyzes sales, orders, menu performance
-              and customer behavior to provide actionable
-              recommendations.
-            </p>
-          </div>
-
-          <button
-            type="button"
-            className="recommendations-how-btn"
-          >
-            How it works
-            <i className="fas fa-circle-info"></i>
-          </button>
-        </div>
-
         {/* FILTERS */}
         <div className="recommendations-toolbar">
           <div className="recommendations-tabs">
@@ -279,8 +254,6 @@ const handleGenerate = async () => {
                     setActiveTab(tab.key)
                   }
                 >
-                  <i className={`fas ${tab.icon}`}></i>
-
                   <span>{tab.label}</span>
 
                   <span className="recommendations-tab-count">
@@ -343,92 +316,103 @@ const handleGenerate = async () => {
                   key={item.id}
                   className="recommendation-card"
                 >
-                  <div className="recommendation-card-top">
-                    <div
-                      className={`recommendation-main-icon recommendation-main-icon-${item.accent}`}
-                    >
-                      <i
-                        className={`fas ${item.icon}`}
-                      ></i>
-                    </div>
+                  <div
+                    className={`recommendation-main-icon recommendation-main-icon-${item.accent}`}
+                  >
+                    <i
+                      className={`fas ${item.icon}`}
+                    ></i>
+                  </div>
 
-                    <div className="recommendation-heading">
-                      <h2>{item.title}</h2>
+                  <div className="recommendation-card-body">
+                    <div className="recommendation-card-top">
+                      <div className="recommendation-heading">
+                        <h2>{item.title}</h2>
 
-                      <div className="recommendation-badges">
-                        <span
-                          className={`recommendation-confidence ${
-                            item.confidence ===
-                            "High Confidence"
-                              ? "confidence-high"
-                              : item.confidence ===
-                                "Medium Confidence"
-                              ? "confidence-medium"
-                              : "confidence-low"
-                          }`}
-                        >
-                          {item.confidence}
+                        <div className="recommendation-badges">
+                          <span
+                            className={`recommendation-category category-${item.category.toLowerCase()}`}
+                          >
+                            {item.category}
+                          </span>
+
+                          <span
+                            className={`recommendation-priority priority-${item.priority}`}
+                          >
+                            {item.priority} priority
+                          </span>
+
+                          <span
+                            className={`recommendation-confidence ${
+                              item.confidence ===
+                              "High Confidence"
+                                ? "confidence-high"
+                                : item.confidence ===
+                                  "Medium Confidence"
+                                ? "confidence-medium"
+                                : "confidence-low"
+                            }`}
+                          >
+                            {item.confidence}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="recommendation-meta">
+                        <span>
+                          <i className="fas fa-calendar-days"></i>
+                          {item.date}
                         </span>
 
-                        <span
-                          className={`recommendation-category category-${item.category.toLowerCase()}`}
-                        >
-                          {item.category}
-                        </span>
+                        <div className="recommendation-menu">
+                          <button
+                            type="button"
+                            className="recommendation-menu-btn"
+                            onClick={() =>
+                              setOpenMenuId((current) =>
+                                current === item.id
+                                  ? null
+                                  : item.id
+                              )
+                            }
+                          >
+                            <i className="fas fa-ellipsis-vertical"></i>
+                          </button>
 
-                        <span
-                          className={`recommendation-priority priority-${item.priority}`}
-                        >
-                          {item.priority} priority
-                        </span>
+                          {openMenuId === item.id && (
+                            <div className="recommendation-menu-dropdown">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  dismissRecommendation(item.id);
+                                  setOpenMenuId(null);
+                                }}
+                              >
+                                <i className="fas fa-trash"></i>
+                                Dismiss
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
 
-                    <div className="recommendation-meta">
-                      <span>{item.date}</span>
+                    <p className="recommendation-description">
+                      {item.description}
+                    </p>
 
+                    <div className="recommendation-card-footer">
                       <button
                         type="button"
-                        className="recommendation-dismiss"
+                        className="recommendation-details-link"
                         onClick={() =>
-                          dismissRecommendation(item.id)
+                          setSelected(item)
                         }
                       >
-                        Dismiss
+                        View Details
+                        <i className="fas fa-arrow-right"></i>
                       </button>
                     </div>
-                  </div>
-
-                  <p className="recommendation-description">
-                    {item.description}
-                  </p>
-
-                  <div className="recommendation-detail-grid">
-                    <div className="recommendation-detail">
-                      <span>
-                        {item.problemLabel}
-                      </span>
-
-                      <p>{item.problem}</p>
-                    </div>
-
-                    <div className="recommendation-detail">
-                      <span>
-                        {item.opportunityLabel}
-                      </span>
-
-                      <p>{item.opportunity}</p>
-                    </div>
-
-                    <button
-                      type="button"
-                      className="recommendation-details-btn"
-                      onClick={() =>
-                        setSelected(item)
-                      }
-                    >
-                      View Details
-                    </button>
                   </div>
                 </article>
               ))
@@ -443,7 +427,7 @@ const handleGenerate = async () => {
             <div className="recommendations-side-card">
               <div className="recommendations-side-title">
                 <i className="fas fa-chart-column"></i>
-                <h3>Recommendation Summary</h3>
+                <h3>Summary</h3>
               </div>
 
               <div className="recommendations-summary-list">
@@ -525,49 +509,34 @@ const handleGenerate = async () => {
               </div>
             </div>
 
-            {/* AI INSIGHTS */}
+            {/* WHY THESE RECOMMENDATIONS */}
             <div className="recommendations-side-card">
               <div className="recommendations-side-title">
                 <i className="fas fa-brain"></i>
-                <h3>AI Insights</h3>
+                <h3>Why these recommendations?</h3>
               </div>
 
               <div className="recommendations-insight-list">
                 <div>
-                  <i className="fas fa-circle-check"></i>
-                  Based on restaurant performance data
+                  <span className="insight-check">
+                    <i className="fas fa-check"></i>
+                  </span>
+                  Based on real performance data
                 </div>
 
                 <div>
-                  <i className="fas fa-circle-check"></i>
-                  Updated with new operational insights
+                  <span className="insight-check">
+                    <i className="fas fa-check"></i>
+                  </span>
+                  Updated with latest insights
                 </div>
 
                 <div>
-                  <i className="fas fa-circle-check"></i>
-                  Tailored to your restaurant
+                  <span className="insight-check">
+                    <i className="fas fa-check"></i>
+                  </span>
+                  Tailored for your restaurant
                 </div>
-
-                <div>
-                  <i className="fas fa-circle-check"></i>
-                  Actionable recommendations
-                </div>
-              </div>
-            </div>
-
-            {/* TIP */}
-            <div className="recommendations-tip-card">
-              <div className="recommendations-tip-icon">
-                <i className="fas fa-lightbulb"></i>
-              </div>
-
-              <div>
-                <h3>Tip</h3>
-
-                <p>
-                  New data can unlock better recommendations.
-                  Keep your menu and orders up to date.
-                </p>
               </div>
             </div>
 
