@@ -26,6 +26,11 @@ Route::middleware(['auth:sanctum', 'superadmin'])->prefix('superadmin')->group(f
             'revenueTrend'
         ]);
 
+        Route::get('/stats/top-performing', [
+            RestaurantsController::class,
+            'topPerforming'
+        ]);
+
         Route::get('/', [
             RestaurantsController::class,
             'index'

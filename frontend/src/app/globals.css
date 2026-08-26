@@ -7872,6 +7872,14 @@ html {
   font-family: 'Inter', sans-serif;
 }
 
+.superadmin-layout input,
+.superadmin-layout textarea,
+.superadmin-layout select,
+.superadmin-layout button,
+.superadmin-layout ::placeholder {
+  font-family: inherit;
+}
+
 .superadmin-main-content {
   flex: 1;
   min-width: 0;
@@ -8252,177 +8260,9 @@ html {
   border-radius: 8px;
 }
 
-/* ============================================
-   RESTAURANT LIST
-   ============================================ */
-
-.sadash-restaurant-head {
-  display: grid;
-  grid-template-columns: 40px 1fr 80px 100px 120px;
-  gap: 1rem;
-  padding: 0.6rem 1.5rem;
-  border-bottom: 1px solid var(--superadmin-border);
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--superadmin-text-muted);
-  font-weight: 600;
-}
-
-.sadash-head-right {
-  text-align: right;
-}
-
-.sadash-restaurant-list {
-  display: flex;
-  flex-direction: column;
-}
-
-.sadash-restaurant-row {
-  display: grid;
-  grid-template-columns: 40px 1fr 80px 100px 120px;
-  gap: 1rem;
-  padding: 0.8rem 1.5rem;
-  align-items: center;
-  border-bottom: 1px solid var(--superadmin-border);
-  transition: var(--superadmin-transition);
-}
-
-.sadash-restaurant-row:hover {
-  background: rgba(20, 10, 77, 0.02);
-}
-
-.sadash-restaurant-row:last-child {
-  border-bottom: none;
-}
-
-.sadash-restaurant-rank {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--superadmin-text-muted);
-  text-align: center;
-}
-
-.sadash-restaurant-rank:first-child {
-  color: var(--superadmin-gold-dark);
-}
-
-.sadash-restaurant-info {
-  display: flex;
-  flex-direction: column;
-}
-
-.sadash-restaurant-name {
-  font-family: 'Inter', sans-serif;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #1e293b;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.sadash-restaurant-plan {
-  display: inline-block;
-  justify-self: center;
-  flex-shrink: 0;
-  font-family: 'Inter', sans-serif;
-  font-size: 0.625rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-  padding: 0.0625rem 0.4375rem;
-  border-radius: 999px;
-}
-
-.sadash-restaurant-owner {
-  font-size: 0.75rem;
-  color: var(--superadmin-text-secondary);
-  margin: 0.1rem 0 0;
-}
-
-.sadash-restaurant-plan {
-  display: inline-flex;
-  padding: 0.15rem 0.6rem;
-  border-radius: 50px;
-  font-size: 0.7rem;
-  font-weight: 500;
-  width: fit-content;
-}
-
-.sadash-restaurant-stats {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.5rem;
-  align-items: center;
-}
-
-.sadash-restaurant-orders {
-  font-size: 0.8rem;
-  color: var(--superadmin-text-secondary);
-}
-
-
-.sadash-restaurant-duration {
-  font-family: 'Inter', sans-serif;
-  font-size: 0.875rem;
-  font-weight: 700;
-  color: #1e293b;
-}
-
-/* From tablet width up, lay the list out as a table that spans the full panel width,
-   with Restaurant / Plan / Orders / Duration sharing the row equally */
-@media (min-width: 641px) {
-  .sadash-restaurant-head,
-  .sadash-restaurant-row {
-    grid-template-columns: 28px repeat(4, 1fr);
-    column-gap: 1.5rem;
-  }
-
-  .sadash-restaurant-head {
-    display: grid;
-    padding: 0 0.5rem 0.625rem;
-    border-bottom: 1px solid #f1f5f9;
-    margin-bottom: 0.25rem;
-  }
-
-  .sadash-restaurant-head span {
-    font-family: 'Inter', sans-serif;
-    font-size: 0.6875rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-    color: #94a3b8;
-  }
-
-  .sadash-restaurant-head .sadash-head-center {
-    text-align: center;
-  }
-
-  .sadash-restaurant-row {
-    display: grid;
-    align-items: center;
-  }
-
-  .sadash-restaurant-stats {
-    display: contents;
-  }
-
-  .sadash-restaurant-orders,
-  .sadash-restaurant-duration {
-    text-align: center;
-  }
-}
-
 @media (max-width: 900px) {
   .sadash-kpi-grid {
     grid-template-columns: repeat(2, 1fr);
-  }
-
-  .sadash-restaurant-head,
-  .sadash-restaurant-row {
-    grid-template-columns: 30px 1fr 70px 80px 100px;
-    gap: 0.8rem;
   }
 
   .sadash-filter-bar {
@@ -8470,44 +8310,6 @@ html {
     width: 40px;
     height: 40px;
     font-size: 1rem;
-  }
-
-  .sadash-restaurant-head,
-  .sadash-restaurant-row {
-    grid-template-columns: 25px 1fr 60px;
-    gap: 0.6rem;
-    padding: 0.6rem 1rem;
-  }
-
-  .sadash-restaurant-head span:nth-child(4),
-  .sadash-restaurant-head span:nth-child(5),
-  .sadash-restaurant-row .sadash-restaurant-plan,
-  .sadash-restaurant-row .sadash-restaurant-stats {
-    display: none;
-  }
-
-  .sadash-restaurant-row .sadash-restaurant-stats {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 0.1rem;
-  }
-
-  .sadash-restaurant-head span:nth-child(3) {
-    display: none;
-  }
-
-  .sadash-restaurant-row {
-    grid-template-columns: 25px 1fr 80px;
-  }
-
-  .sadash-restaurant-revenue {
-    min-width: unset;
-    font-size: 0.8rem;
-  }
-
-  .sadash-restaurant-orders {
-    font-size: 0.7rem;
   }
 
   .sadash-panel-header {
@@ -8626,28 +8428,6 @@ html {
     transform: translateX(12px);
   }
 
-  .sadash-restaurant-head,
-  .sadash-restaurant-row {
-    padding: 0.4rem 0.8rem;
-    grid-template-columns: 20px 1fr 60px;
-    gap: 0.4rem;
-  }
-
-  .sadash-restaurant-name {
-    font-size: 0.8rem;
-  }
-
-  .sadash-restaurant-owner {
-    font-size: 0.65rem;
-  }
-
-  .sadash-restaurant-rank {
-    font-size: 0.7rem;
-  }
-
-  .sadash-restaurant-revenue {
-    font-size: 0.75rem;
-  }
 }
 
 /* ============================================
@@ -8660,16 +8440,9 @@ html {
   outline-offset: 2px;
 }
 
-.sadash-restaurant-row:focus-visible {
-  outline: 2px solid var(--superadmin-gold);
-  outline-offset: -2px;
-  border-radius: 4px;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .sadash-kpi-card,
   .sadash-panel,
-  .sadash-restaurant-row,
   .sadash-range-btn,
   .sadash-toggle-track,
   .sadash-toggle-track .sadash-toggle-thumb {
@@ -8679,27 +8452,6 @@ html {
   .sadash-kpi-card:hover {
     transform: none !important;
   }
-}
-
-/* ============================================
-   SCROLLBAR STYLING
-   ============================================ */
-
-.sadash-restaurant-list::-webkit-scrollbar {
-  width: 4px;
-}
-
-.sadash-restaurant-list::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.sadash-restaurant-list::-webkit-scrollbar-thumb {
-  background: rgba(253, 203, 110, 0.3);
-  border-radius: 4px;
-}
-
-.sadash-restaurant-list::-webkit-scrollbar-thumb:hover {
-  background: rgba(253, 203, 110, 0.5);
 }
 
 /* ============================================

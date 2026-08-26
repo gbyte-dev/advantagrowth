@@ -154,7 +154,7 @@ export default function SubscriptionsPage() {
         <div className="superadmin-layout">
             <SuperAdminSidebar />
             <main className={`superadmin-main-content ${sidebarCollapsed ? "sidebar-collapsed-main" : "sidebar-expanded-main"}`}>
-                <div className="overflow-x-hidden pt-20 sm:pt-24 lg:pt-0" style={{ fontFamily: "'Inter', sans-serif" }}>
+                <div className="overflow-x-hidden pt-20 sm:pt-24 lg:pt-3" style={{ fontFamily: "'Inter', sans-serif" }}>
                     {loading ? (
                         <div className="flex min-h-[calc(100vh-42px)] flex-col items-center justify-center gap-3">
                             <div className="h-10 w-10 animate-spin rounded-full border-4 border-violet-200 border-t-violet-600" />
@@ -180,8 +180,8 @@ export default function SubscriptionsPage() {
                         </div>
                     ) : (
                         <>
-                            <div className="mb-6 flex flex-col items-start gap-3 md:flex-row md:items-center md:justify-between">
-                                <div>
+                            <div className="mb-6 flex flex-col items-start gap-3 border-b border-gray-200 pb-5 md:flex-row md:items-center md:justify-between">
+                                <div className="pl-px">
                                     <h1 className="text-xl font-bold text-gray-900 sm:text-2xl">Subscriptions</h1>
                                     <p className="mt-1 text-sm text-gray-500">{subscriptions.length} total</p>
                                 </div>
@@ -240,7 +240,7 @@ export default function SubscriptionsPage() {
                                                 <th className="w-[15%] px-3 py-3.5 text-left text-sm font-semibold uppercase tracking-wider text-gray-500">Price</th>
                                                 <th className="w-[20%] px-3 py-3.5 text-left text-sm font-semibold uppercase tracking-wider text-gray-500">Billing</th>
                                                 <th className="w-[15%] px-3 py-3.5 text-left text-sm font-semibold uppercase tracking-wider text-gray-500">Status</th>
-                                                <th className="w-[20%] px-3 py-3.5 text-right text-sm font-semibold uppercase tracking-wider text-gray-500">Actions</th>
+                                                <th className="w-[20%] px-3 py-3.5 text-center text-sm font-semibold uppercase tracking-wider text-gray-500">Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-gray-100">
@@ -280,7 +280,7 @@ export default function SubscriptionsPage() {
                                                         </span>
                                                     </td>
                                                     <td className="px-2 py-2.5">
-                                                        <div className="flex items-center justify-end gap-1.5">
+                                                        <div className="flex items-center justify-center gap-1.5">
                                                             <Link
                                                                 href={`/superadmin/subscriptions/${s.id}/edit`}
                                                                 aria-label="Edit subscription"
