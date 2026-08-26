@@ -154,9 +154,12 @@ export default function SuperAdminProfilePage() {
         <div className="superadmin-layout">
             <SuperAdminSidebar />
             <main className={`superadmin-main-content ${sidebarCollapsed ? "sidebar-collapsed-main" : "sidebar-expanded-main"}`}>
-                <div className="mx-auto max-w-5xl overflow-x-hidden pt-20 sm:pt-24 lg:pt-0" style={{ fontFamily: "'Inter', sans-serif" }}>
-                    <div className="mb-6 flex items-center justify-between gap-3">
-                        <h1 className="text-2xl font-bold text-gray-900">Profile Settings</h1>
+                <div className="mx-auto max-w-5xl overflow-x-hidden pt-20 sm:pt-24 lg:pt-3" style={{ fontFamily: "'Inter', sans-serif" }}>
+                    <div className="mb-6 flex flex-col items-start justify-between gap-3 border-b border-gray-200 pb-5 sm:flex-row sm:items-center">
+                        <div className="pl-px">
+                            <h1 className="text-2xl font-bold text-gray-900">Profile Settings</h1>
+                            <p className="mt-1 text-sm text-gray-500">Manage your account details and password.</p>
+                        </div>
                         <Link
                             href="/superadmin/dashboard"
                             className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white no-underline shadow-sm transition-colors hover:bg-violet-700"
@@ -171,7 +174,7 @@ export default function SuperAdminProfilePage() {
                             <div className="h-10 w-10 animate-spin rounded-full border-4 border-violet-200 border-t-violet-600" />
                         </div>
                     ) : (
-                        <div className="space-y-6">
+                        <div className="space-y-3">
                             {loadError && (
                                 <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
                                     {loadError}

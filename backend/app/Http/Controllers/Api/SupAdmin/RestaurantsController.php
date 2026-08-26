@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Restaurant;
 use App\Models\Subscription;
+use App\Models\Order;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
@@ -67,11 +68,17 @@ class RestaurantsController extends Controller
             $activeRestaurants = Restaurant::where('is_active', true)->count();
             $inactiveRestaurants = Restaurant::where('is_active', false)->count();
 
-            $activeSubscriptions = Subscription::where('is_active', true)->get(['price', 'currency']);
-            $totalRevenue = $activeSubscriptions->sum(function ($subscription) use ($targetCurrency, $rates) {
+            // "Total Revenue" reflects real order revenue across all restaurants —
+            // the same figure the Top Performing Restaurants table is ranked by.
+            $restaurantCurrencies = Restaurant::pluck('currency', 'id');
+            $paidOrders = Order::where('payment_status', 'paid')->get(['restaurant_id', 'total']);
+
+            $totalRevenue = $paidOrders->sum(function ($order) use ($restaurantCurrencies, $targetCurrency, $rates) {
+                $fromCurrency = strtoupper($restaurantCurrencies->get($order->restaurant_id) ?: 'INR');
+
                 return $this->convertCurrency(
-                    (float) $subscription->price,
-                    strtoupper($subscription->currency ?? 'USD'),
+                    (float) $order->total,
+                    $fromCurrency,
                     $targetCurrency,
                     $rates
                 );
@@ -150,6 +157,61 @@ class RestaurantsController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to fetch revenue trend.',
+            ], 500);
+        }
+    }
+
+    /**
+     * Top performing restaurants, ranked by paid order revenue.
+     */
+    public function topPerforming(Request $request)
+    {
+        try {
+            $targetCurrency = strtoupper($request->query('currency', 'INR'));
+            $limit = max(1, (int) $request->query('limit', 5));
+            $rates = $this->getExchangeRates();
+
+            $restaurants = Restaurant::with(['users' => function ($query) {
+                $query->where('role', 'owner');
+            }])->get();
+
+            $ranked = $restaurants->map(function ($restaurant) use ($targetCurrency, $rates) {
+                $ordersQuery = Order::where('restaurant_id', $restaurant->id);
+                $ordersCount = (clone $ordersQuery)->count();
+                $paidTotal = (clone $ordersQuery)->where('payment_status', 'paid')->sum('total');
+
+                $revenue = $this->convertCurrency(
+                    (float) $paidTotal,
+                    strtoupper($restaurant->currency ?: 'INR'),
+                    $targetCurrency,
+                    $rates
+                );
+
+                $owner = $restaurant->users->first();
+
+                return [
+                    'id' => $restaurant->id,
+                    'name' => $restaurant->name,
+                    'owner' => $owner->owner_name ?? '—',
+                    'orders_count' => $ordersCount,
+                    'revenue' => round($revenue, 2),
+                    'is_active' => (bool) $restaurant->is_active,
+                    'days_active' => (int) $restaurant->created_at->diffInDays(now()),
+                ];
+            })
+                ->sortByDesc('revenue')
+                ->take($limit)
+                ->values();
+
+            return response()->json([
+                'success' => true,
+                'data' => $ranked,
+                'currency' => $targetCurrency,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch top performing restaurants.',
             ], 500);
         }
     }

@@ -113,7 +113,7 @@ export default function SuperAdminSidebar() {
         onClick={toggleSidebar}
       ></div>
 
-      <aside className={`superadmin-sidebar ${collapsed ? "sidebar-collapsed" : ""}`}>
+      <aside className={`superadmin-sidebar !bg-[#040a17] ${collapsed ? "sidebar-collapsed" : ""}`}>
         {/* Sidebar Header */}
         <div className="sidebar-header">
           <Link href="/superadmin/dashboard" className="sidebar-logo">
@@ -132,7 +132,7 @@ export default function SuperAdminSidebar() {
 
         {/* Navigation */}
         <nav className="sidebar-nav">
-          <div className="sidebar-section">
+          <div className="sidebar-section !gap-1.5">
             {!collapsed && <span className="sidebar-section-title">Main Menu</span>}
 
             {menus.map((menu) => {
@@ -141,7 +141,7 @@ export default function SuperAdminSidebar() {
                 <Link
                   key={menu.href}
                   href={menu.href}
-                  className={`sidebar-link ${active ? "sidebar-link-active superadmin-link-active" : ""}`}
+                  className={`sidebar-link !min-h-0 !py-3 ${active ? "sidebar-link-active superadmin-link-active" : ""}`}
                   title={collapsed ? menu.name : ""}
                   onClick={handleMobileLinkClick}
                 >

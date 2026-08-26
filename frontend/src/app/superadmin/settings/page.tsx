@@ -53,8 +53,8 @@ export default function SuperAdminSettingsPage() {
         <div className="superadmin-layout">
             <SuperAdminSidebar />
             <main className={`superadmin-main-content ${sidebarCollapsed ? "sidebar-collapsed-main" : "sidebar-expanded-main"}`}>
-                <div className="mx-auto max-w-3xl overflow-x-hidden pt-20 sm:pt-24 lg:pt-0" style={{ fontFamily: "'Inter', sans-serif" }}>
-                    <div className="mb-6 border-b border-gray-200 pb-5">
+                <div className="mx-auto max-w-5xl overflow-x-hidden pt-20 sm:pt-24 lg:pt-3" style={{ fontFamily: "'Inter', sans-serif" }}>
+                    <div className="mb-6 border-b border-gray-200 pb-5 pl-px">
                         <h1 className="text-2xl font-bold text-gray-900">System Settings</h1>
                         <p className="mt-1 text-sm text-gray-500">Configure platform-wide preferences.</p>
                     </div>

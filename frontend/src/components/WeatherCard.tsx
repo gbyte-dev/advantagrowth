@@ -66,28 +66,31 @@ export default function WeatherCard() {
     const [error, setError] = useState("");
 
     useEffect(() => {
+        const fetchWeather = (params?: { latitude: number; longitude: number }) => {
+            api
+                .get("/superadmin/weather", { params })
+                .then((res) => setData(res.data))
+                .catch((err) => setError(err.response?.data?.message || "Failed to load weather."))
+                .finally(() => setLoading(false));
+        };
+
         if (!navigator.geolocation) {
-            setError("Location access is not supported by this browser.");
-            setLoading(false);
+            // No geolocation support at all — fall back straight to the server's IP-based location.
+            fetchWeather();
             return;
         }
 
         navigator.geolocation.getCurrentPosition(
             (position) => {
-                api
-                    .get("/superadmin/weather", {
-                        params: {
-                            latitude: position.coords.latitude,
-                            longitude: position.coords.longitude,
-                        },
-                    })
-                    .then((res) => setData(res.data))
-                    .catch((err) => setError(err.response?.data?.message || "Failed to load weather."))
-                    .finally(() => setLoading(false));
+                fetchWeather({
+                    latitude: position.coords.latitude,
+                    longitude: position.coords.longitude,
+                });
             },
             () => {
-                setError("Location permission denied. Enable it to see live weather.");
-                setLoading(false);
+                // Permission denied or unavailable — fall back to the server's IP-based location
+                // instead of giving up, so the widget still shows something useful.
+                fetchWeather();
             }
         );
     }, []);

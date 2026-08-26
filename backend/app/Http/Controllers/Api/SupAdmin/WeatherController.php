@@ -13,12 +13,28 @@ class WeatherController extends Controller
     public function overview(Request $request)
     {
         $validated = $request->validate([
-            'latitude' => 'required|numeric|between:-90,90',
-            'longitude' => 'required|numeric|between:-180,180',
+            'latitude' => 'nullable|numeric|between:-90,90',
+            'longitude' => 'nullable|numeric|between:-180,180',
         ]);
 
-        $latitude = (float) $validated['latitude'];
-        $longitude = (float) $validated['longitude'];
+        $latitude = isset($validated['latitude']) ? (float) $validated['latitude'] : null;
+        $longitude = isset($validated['longitude']) ? (float) $validated['longitude'] : null;
+
+        // No coordinates from the browser (permission denied/unsupported) —
+        // fall back to an approximate location resolved from the IP address.
+        if ($latitude === null || $longitude === null) {
+            $ipLocation = $this->locateByIp();
+
+            if (!$ipLocation) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Could not determine your location. Please allow location access and try again.',
+                ], 422);
+            }
+
+            $latitude = $ipLocation['latitude'];
+            $longitude = $ipLocation['longitude'];
+        }
 
         // Round to ~1km precision so nearby requests within the cache
         // window share a cached response instead of re-fetching.
@@ -34,6 +50,42 @@ class WeatherController extends Controller
         }
 
         return response()->json($result);
+    }
+
+    /**
+     * Resolve an approximate latitude/longitude from the server's public IP,
+     * used as a fallback when the browser doesn't provide precise coordinates.
+     * Cached for a day since a server's IP-based location doesn't change often.
+     */
+    private function locateByIp(): ?array
+    {
+        $cached = Cache::get('weather_ip_location');
+        if ($cached) {
+            return $cached;
+        }
+
+        try {
+            // No IP passed — the service geolocates whoever is making the request,
+            // i.e. this server, which is the right fallback for a single-deployment app.
+            $response = Http::withOptions(['verify' => false])
+                ->timeout(5)
+                ->get('http://ip-api.com/json/');
+
+            if ($response->successful() && $response->json('status') === 'success') {
+                $location = [
+                    'latitude' => (float) $response->json('lat'),
+                    'longitude' => (float) $response->json('lon'),
+                ];
+
+                Cache::put('weather_ip_location', $location, now()->addDay());
+
+                return $location;
+            }
+        } catch (\Throwable $e) {
+            // fall through to null below
+        }
+
+        return null;
     }
 
     private function fetchWeather(float $latitude, float $longitude): array

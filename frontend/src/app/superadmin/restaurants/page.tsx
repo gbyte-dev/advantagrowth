@@ -158,7 +158,7 @@ export default function RestaurantPage() {
         <div className="superadmin-layout">
             <SuperAdminSidebar />
             <main className={`superadmin-main-content ${sidebarCollapsed ? "sidebar-collapsed-main" : "sidebar-expanded-main"}`}>
-                <div className="overflow-x-hidden pt-20 sm:pt-24 lg:pt-0" style={{ fontFamily: "'Inter', sans-serif" }}>
+                <div className="overflow-x-hidden pt-20 sm:pt-24 lg:pt-3" style={{ fontFamily: "'Inter', sans-serif" }}>
                     {loading ? (
                         <div className="flex min-h-[calc(100vh-42px)] flex-col items-center justify-center gap-3">
 
@@ -185,8 +185,8 @@ export default function RestaurantPage() {
                         </div>
                     ) : (
                         <>
-                            <div className="mb-6 flex flex-col items-start gap-3 md:flex-row md:items-center md:justify-between">
-                                <div>
+                            <div className="mb-6 flex flex-col items-start gap-3 border-b border-gray-200 pb-5 md:flex-row md:items-center md:justify-between">
+                                <div className="pl-px">
                                     <h1 className="text-xl font-bold text-gray-900 sm:text-2xl">Restaurants</h1>
                                     <p className="mt-1 text-sm text-gray-500">{restaurants.length} total</p>
                                 </div>
@@ -243,11 +243,11 @@ export default function RestaurantPage() {
                                         <thead>
                                             <tr className="divide-x divide-gray-200 border-b-2 border-gray-200 bg-gray-50">
                                                 <th className="w-[25%] px-3 py-3.5 text-left text-sm font-semibold uppercase tracking-wider text-gray-500">Restaurant</th>
-                                                <th className="w-[17%] px-3 py-3.5 text-left text-sm font-semibold uppercase tracking-wider text-gray-500">Category</th>
+                                                <th className="w-[15%] px-3 py-3.5 text-left text-sm font-semibold uppercase tracking-wider text-gray-500">Category</th>
                                                 <th className="w-[14%] px-3 py-3.5 text-left text-sm font-semibold uppercase tracking-wider text-gray-500">Phone</th>
-                                                <th className="w-[20%] px-3 py-3.5 text-left text-sm font-semibold uppercase tracking-wider text-gray-500">Email</th>
-                                                <th className="w-[10%] px-3 py-3.5 text-left text-sm font-semibold uppercase tracking-wider text-gray-500">Status</th>
-                                                <th className="w-[14%] px-3 py-3.5 text-right text-sm font-semibold uppercase tracking-wider text-gray-500">Actions</th>
+                                                <th className="w-[19%] px-3 py-3.5 text-left text-sm font-semibold uppercase tracking-wider text-gray-500">Email</th>
+                                                <th className="w-[13%] px-3 py-3.5 text-left text-sm font-semibold uppercase tracking-wider text-gray-500">Status</th>
+                                                <th className="w-[14%] px-3 py-3.5 text-center text-sm font-semibold uppercase tracking-wider text-gray-500">Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-gray-100">
@@ -268,7 +268,7 @@ export default function RestaurantPage() {
                                                             </span>
                                                             <div className="min-w-0">
                                                                 <p className="m-0 truncate font-normal text-gray-700">{r.name}</p>
-                                                                <p className="m-0 truncate font-mono text-sm text-gray-400">{r.slug}</p>
+                                                                <p className="m-0 truncate text-sm text-gray-400">{r.slug}</p>
                                                             </div>
                                                         </div>
                                                     </td>
@@ -276,7 +276,7 @@ export default function RestaurantPage() {
                                                     <td className="truncate px-3 py-2.5 font-normal text-gray-700">{r.phone}</td>
                                                     <td className="truncate px-3 py-2.5 font-normal text-gray-700">{r.email}</td>
 
-                                                    <td className="px-3 py-2.5">
+                                                    <td className="whitespace-nowrap px-3 py-2.5">
                                                         <span
                                                             className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold ${r.is_active
                                                                 ? "bg-green-50 text-green-700"
@@ -288,7 +288,7 @@ export default function RestaurantPage() {
                                                         </span>
                                                     </td>
                                                     <td className="px-2 py-2.5">
-                                                        <div className="flex items-center justify-end gap-1.5">
+                                                        <div className="flex items-center justify-center gap-1.5">
                                                             <Link
                                                                 href={`/superadmin/restaurants/${r.id}/edit`}
                                                                 aria-label="Edit restaurant"

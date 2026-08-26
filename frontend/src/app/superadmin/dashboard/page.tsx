@@ -38,19 +38,15 @@ interface RevenueTrendPoint {
   previous: number;
 }
 
-const topRestaurants = [
-  { rank: 1, name: "Spice Villa", owner: "Ramesh Kumar", plan: "Premium", orders: 1240, subscriptionDays: 365 },
-  { rank: 2, name: "La Bella Italia", owner: "Priya Singh", plan: "Premium", orders: 980, subscriptionDays: 365 },
-  { rank: 3, name: "Biryani House", owner: "Arjun Mehta", plan: "Standard", orders: 875, subscriptionDays: 180 },
-  { rank: 4, name: "Dragon Bowl", owner: "Sana Khan", plan: "Standard", orders: 620, subscriptionDays: 180 },
-  { rank: 5, name: "Cafe Mocha", owner: "Vikram Rao", plan: "Basic", orders: 410, subscriptionDays: 30 },
-];
-
-const planStyles: Record<string, { bg: string; color: string }> = {
-  Premium: { bg: "#f5f3ff", color: "#7c3aed" },
-  Standard: { bg: "#eff6ff", color: "#2563eb" },
-  Basic: { bg: "#f1f5f9", color: "#64748b" },
-};
+interface TopRestaurant {
+  id: number;
+  name: string;
+  owner: string;
+  orders_count: number;
+  revenue: number;
+  is_active: boolean;
+  days_active: number;
+}
 
 export default function SuperAdminDashboard() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -64,6 +60,7 @@ export default function SuperAdminDashboard() {
   });
   const [currency, setCurrency] = useState("INR");
   const [revenueData, setRevenueData] = useState<RevenueTrendPoint[]>([]);
+  const [topRestaurants, setTopRestaurants] = useState<TopRestaurant[]>([]);
 
   useEffect(() => {
     const saved = localStorage.getItem("superAdminSidebarCollapsed");
@@ -90,6 +87,13 @@ export default function SuperAdminDashboard() {
       .then((res) => setCurrency(res.data.data.currency))
       .catch((err) => console.error("Failed to load settings:", err));
   }, []);
+
+  useEffect(() => {
+    api
+      .get(`/superadmin/restaurants/stats/top-performing?currency=${currency}&limit=5`)
+      .then((res) => setTopRestaurants(res.data.data))
+      .catch((err) => console.error("Failed to load top restaurants:", err));
+  }, [currency]);
 
   const kpis = [
     {
@@ -147,7 +151,7 @@ export default function SuperAdminDashboard() {
       <main className={`superadmin-main-content ${sidebarCollapsed ? "sidebar-collapsed-main" : "sidebar-expanded-main"}`}>
         <div className="dashboard-page">
           <div className="dashboard-container">
-            <div className="superadmin-hero">
+            <div className="superadmin-hero mt-4">
               <div className="superadmin-hero-glow superadmin-hero-glow-1"></div>
               <div className="superadmin-hero-glow superadmin-hero-glow-2"></div>
               <div className="superadmin-hero-content">
@@ -280,33 +284,45 @@ export default function SuperAdminDashboard() {
                   <p>Ranked by revenue across the platform</p>
                 </div>
               </div>
-              <div className="sadash-restaurant-head" aria-hidden="true">
-                <span></span>
-                <span>Restaurant</span>
-                <span className="sadash-head-center">Plan</span>
-                <span className="sadash-head-center">Orders</span>
-                <span className="sadash-head-center">Duration</span>
-              </div>
-              <div className="sadash-restaurant-list">
-                {topRestaurants.map((r) => {
-                  const plan = planStyles[r.plan];
-                  return (
-                    <div className="sadash-restaurant-row" key={r.rank}>
-                      <span className="sadash-restaurant-rank">{r.rank}</span>
-                      <div className="sadash-restaurant-info">
-                        <p className="sadash-restaurant-name">{r.name}</p>
-                        <p className="sadash-restaurant-owner">{r.owner}</p>
-                      </div>
-                      <span className="sadash-restaurant-plan" style={{ background: plan.bg, color: plan.color }}>
-                        {r.plan}
-                      </span>
-                      <div className="sadash-restaurant-stats">
-                        <span className="sadash-restaurant-orders">{r.orders} orders</span>
-                        <span className="sadash-restaurant-duration">{r.subscriptionDays} days</span>
-                      </div>
-                    </div>
-                  );
-                })}
+              <div className="scrollbar-hide overflow-x-auto px-2 py-2 sm:px-4">
+                <table className="min-w-[640px] text-base lg:min-w-0 lg:w-full lg:table-fixed">
+                  <thead>
+                    <tr className="divide-x divide-gray-200 border-b-2 border-gray-200 bg-gray-50">
+                      <th className="w-[8%] px-3 py-3.5 text-left text-sm font-semibold uppercase tracking-wider text-gray-500">#</th>
+                      <th className="w-[37%] px-3 py-3.5 text-left text-sm font-semibold uppercase tracking-wider text-gray-500">Restaurant</th>
+                      <th className="w-[20%] px-3 py-3.5 text-left text-sm font-semibold uppercase tracking-wider text-gray-500">Revenue</th>
+                      <th className="w-[17%] px-3 py-3.5 text-left text-sm font-semibold uppercase tracking-wider text-gray-500">Orders</th>
+                      <th className="w-[18%] px-3 py-3.5 text-left text-sm font-semibold uppercase tracking-wider text-gray-500">On Platform</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {topRestaurants.length === 0 && (
+                      <tr>
+                        <td colSpan={5} className="px-5 py-14 text-center text-sm text-gray-500">
+                          No restaurant activity yet.
+                        </td>
+                      </tr>
+                    )}
+                    {topRestaurants.map((r, index) => (
+                      <tr key={r.id} className="divide-x divide-gray-100 transition-colors hover:bg-gray-50/80">
+                        <td className={`px-3 py-2.5 text-sm font-bold ${index === 0 ? "text-amber-500" : "text-gray-400"}`}>
+                          {index + 1}
+                        </td>
+                        <td className="px-3 py-2.5">
+                          <p className="m-0 truncate font-normal text-gray-700">{r.name}</p>
+                          <p className="m-0 truncate text-sm text-gray-400">{r.owner}</p>
+                        </td>
+                        <td className="px-3 py-2.5">
+                          <span className="inline-flex items-center rounded-full bg-violet-50 px-3 py-1 text-sm font-semibold text-violet-600">
+                            {getCurrencySymbol(currency)}{r.revenue.toLocaleString("en-IN")}
+                          </span>
+                        </td>
+                        <td className="truncate px-3 py-2.5 font-normal text-gray-700">{r.orders_count} orders</td>
+                        <td className="truncate px-3 py-2.5 font-normal text-gray-700">{r.days_active} days</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
