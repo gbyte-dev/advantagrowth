@@ -110,7 +110,6 @@ class PosConnectionController extends Controller
                 Rule::in([
                     'Toast POS',
                     'Restolution',
-                    'Custom API',
                 ]),
             ],
 
@@ -325,7 +324,6 @@ class PosConnectionController extends Controller
                 Rule::in([
                     'Toast POS',
                     'Restolution',
-                    'Custom API',
                 ]),
             ],
 
@@ -371,19 +369,43 @@ class PosConnectionController extends Controller
         ]);
 
         /*
-        |--------------------------------------------------------------------------
-        | Toast requires selected restaurant
-        |--------------------------------------------------------------------------
-        */
+|--------------------------------------------------------------------------
+| Toast selected restaurant requirement
+|--------------------------------------------------------------------------
+|
+*/
+
+        $baseUrlHost = strtolower(
+            (string) parse_url(
+                $validated['base_url'],
+                PHP_URL_HOST
+            )
+        );
+
+        $isMockToast =
+            $validated['provider'] === 'Toast POS'
+            &&
+            app()->environment([
+                'local',
+                'testing',
+            ])
+            &&
+            in_array(
+                $baseUrlHost,
+                [
+                    '127.0.0.1',
+                    'localhost',
+                ],
+                true
+            );
 
         if (
-            $validated['provider']
-                === 'Toast POS'
+            $validated['provider'] === 'Toast POS'
+            &&
+            !$isMockToast
             &&
             empty(
-                $validated[
-                    'external_merchant_id'
-                ]
+                $validated['external_merchant_id']
             )
         ) {
             return response()->json([
@@ -393,7 +415,6 @@ class PosConnectionController extends Controller
                     'Please select a Toast restaurant.',
             ], 422);
         }
-
         try {
             /*
             |--------------------------------------------------------------------------
@@ -749,57 +770,188 @@ class PosConnectionController extends Controller
     }
 
     /**
-     * Delete one POS connection.
-     */
-    public function destroy(
-        Request $request,
-        PosConnection $posConnection
+ * Delete one POS connection and all data synced from it.
+ */
+public function destroy(
+    Request $request,
+    PosConnection $posConnection
+) {
+    $user = $request->user();
+
+    if (
+        !$user ||
+        !$user->restaurant_id
     ) {
-        $user = $request->user();
+        return response()->json([
+            'success' => false,
+            'message' =>
+                'Restaurant not found.',
+        ], 404);
+    }
 
-        if (!$user || !$user->restaurant_id) {
-            return response()->json([
-                'success' => false,
+    /*
+    |--------------------------------------------------------------------------
+    | Ownership Check
+    |--------------------------------------------------------------------------
+    */
 
-                'message' =>
-                    'Restaurant not found.',
-            ], 404);
-        }
+    if (
+        (int) $posConnection->restaurant_id
+        !==
+        (int) $user->restaurant_id
+    ) {
+        return response()->json([
+            'success' => false,
+            'message' =>
+                'POS connection not found.',
+        ], 404);
+    }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Ownership check
-        |--------------------------------------------------------------------------
-        */
-
-        if (
-            (int) $posConnection->restaurant_id
-            !==
-            (int) $user->restaurant_id
+    try {
+        DB::transaction(function () use (
+            $posConnection,
+            $user
         ) {
-            return response()->json([
-                'success' => false,
+            $connectionId =
+                $posConnection->id;
 
-                'message' =>
-                    'POS connection not found.',
-            ], 404);
-        }
+            $restaurantId =
+                $user->restaurant_id;
 
-        /*
-        |--------------------------------------------------------------------------
-        | Delete
-        |--------------------------------------------------------------------------
-        */
+            /*
+            |--------------------------------------------------------------------------
+            | POS PAYMENTS
+            |--------------------------------------------------------------------------
+            */
 
-        $posConnection->delete();
+            DB::table('pos_payments')
+                ->where(
+                    'restaurant_id',
+                    $restaurantId
+                )
+                ->where(
+                    'pos_connection_id',
+                    $connectionId
+                )
+                ->delete();
+
+            /*
+            |--------------------------------------------------------------------------
+            | POS ORDER ITEMS
+            |--------------------------------------------------------------------------
+            |
+            | order_items does not have pos_connection_id,
+            | therefore remove items belonging to POS orders first.
+            |
+            */
+
+            $orderIds =
+                DB::table('orders')
+                    ->where(
+                        'restaurant_id',
+                        $restaurantId
+                    )
+                    ->where(
+                        'pos_connection_id',
+                        $connectionId
+                    )
+                    ->pluck('id');
+
+            if ($orderIds->isNotEmpty()) {
+                DB::table('order_items')
+                    ->whereIn(
+                        'order_id',
+                        $orderIds
+                    )
+                    ->delete();
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | POS ORDERS
+            |--------------------------------------------------------------------------
+            */
+
+            DB::table('orders')
+                ->where(
+                    'restaurant_id',
+                    $restaurantId
+                )
+                ->where(
+                    'pos_connection_id',
+                    $connectionId
+                )
+                ->delete();
+
+            /*
+            |--------------------------------------------------------------------------
+            | POS MENU ITEMS
+            |--------------------------------------------------------------------------
+            */
+
+            DB::table('menu_items')
+                ->where(
+                    'restaurant_id',
+                    $restaurantId
+                )
+                ->where(
+                    'pos_connection_id',
+                    $connectionId
+                )
+                ->delete();
+
+            /*
+            |--------------------------------------------------------------------------
+            | POS MENU CATEGORIES
+            |--------------------------------------------------------------------------
+            */
+
+            DB::table('menu_categories')
+                ->where(
+                    'restaurant_id',
+                    $restaurantId
+                )
+                ->where(
+                    'pos_connection_id',
+                    $connectionId
+                )
+                ->delete();
+
+            /*
+            |--------------------------------------------------------------------------
+            | POS LOCATIONS + SYNC LOGS
+            |--------------------------------------------------------------------------
+            |
+            | Their foreign keys already use cascadeOnDelete(),
+            | so deleting the connection removes them automatically.
+            |
+            */
+
+            $posConnection->delete();
+        });
 
         return response()->json([
             'success' => true,
 
             'message' =>
-                'POS connection deleted successfully.',
+                'POS connection and synced data deleted successfully.',
         ]);
+    } catch (Throwable $exception) {
+        report($exception);
+
+        return response()->json([
+            'success' => false,
+
+            'message' =>
+                'Unable to delete POS connection.',
+
+            'error' =>
+                config('app.debug')
+                    ? $exception->getMessage()
+                    : null,
+        ], 422);
     }
+}
 
     /**
      * Synchronize one POS connection.

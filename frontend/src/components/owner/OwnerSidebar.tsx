@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import api from "@/lib/axios";
 
 const menus = [
   {
@@ -26,9 +27,9 @@ const menus = [
     icon: "fa-lightbulb",
   },
   {
-  name: "Weather Dashboard",
-  href: "/dashboard/weather",
-  icon: "fa-cloud-sun",
+    name: "Weather Dashboard",
+    href: "/dashboard/weather",
+    icon: "fa-cloud-sun",
   },
 ];
 
@@ -91,7 +92,7 @@ export default function OwnerSidebar() {
     const loadOwner = async () => {
       try {
         const token =
-          localStorage.getItem(
+          sessionStorage.getItem(
             "token"
           );
 
@@ -100,27 +101,12 @@ export default function OwnerSidebar() {
         }
 
         const response =
-          await fetch(
-            "http://127.0.0.1:8000/api/auth/me",
-            {
-              method: "GET",
-
-              headers: {
-                Authorization:
-                  `Bearer ${token}`,
-
-                Accept:
-                  "application/json",
-              },
-            }
+          await api.get(
+            "/auth/me"
           );
 
-        if (!response.ok) {
-          return;
-        }
-
         const user =
-          await response.json();
+          response.data;
 
         setOwner({
           owner_name:
@@ -299,7 +285,7 @@ export default function OwnerSidebar() {
 
   const profileActive =
     pathname ===
-      "/dashboard/profile" ||
+    "/dashboard/profile" ||
     pathname.startsWith(
       "/dashboard/profile/"
     );
@@ -309,23 +295,21 @@ export default function OwnerSidebar() {
       {/* Mobile Overlay */}
 
       <div
-        className={`sidebar-overlay ${
-          isMobile &&
-          !collapsed
+        className={`sidebar-overlay ${isMobile &&
+            !collapsed
             ? "sidebar-overlay-visible"
             : ""
-        }`}
+          }`}
         onClick={
           toggleSidebar
         }
       />
 
       <aside
-        className={`owner-sidebar ${
-          collapsed
+        className={`owner-sidebar ${collapsed
             ? "sidebar-collapsed"
             : ""
-        }`}
+          }`}
       >
         {/* Sidebar Header */}
 
@@ -364,11 +348,10 @@ export default function OwnerSidebar() {
             }
           >
             <i
-              className={`fas fa-${
-                collapsed
+              className={`fas fa-${collapsed
                   ? "chevron-right"
                   : "chevron-left"
-              }`}
+                }`}
             />
           </button>
         </div>
@@ -392,11 +375,10 @@ export default function OwnerSidebar() {
                     href={
                       menu.href
                     }
-                    className={`sidebar-link ${
-                      active
+                    className={`sidebar-link ${active
                         ? "sidebar-link-active"
                         : ""
-                    }`}
+                      }`}
                     title={
                       collapsed
                         ? menu.name
@@ -460,11 +442,10 @@ export default function OwnerSidebar() {
             onClick={
               handleMobileLinkClick
             }
-            className={`sidebar-user-info ${
-              profileActive
+            className={`sidebar-user-info ${profileActive
                 ? "sidebar-user-info-active"
                 : ""
-            }`}
+              }`}
             title={
               collapsed
                 ? "Profile"

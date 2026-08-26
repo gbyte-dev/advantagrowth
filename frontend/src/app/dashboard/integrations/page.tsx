@@ -62,7 +62,7 @@ type PosLocation = {
   timezone?: string | null;
 };
 
-type ToastRestaurantOption = {
+type PosRestaurantOption = {
   restaurant_guid?: string | null;
   restaurant_name?: string | null;
   location_name?: string | null;
@@ -80,7 +80,7 @@ type PosTestResult = {
 
   restaurants_count?: number;
 
-  restaurants?: ToastRestaurantOption[];
+  restaurants?: PosRestaurantOption[];
 };
 
 type ApiConnection = {
@@ -136,7 +136,6 @@ type SyncLog = {
 const connectionProviders = [
   "Toast POS",
   "Restolution",
-  "Custom API",
 ];
 
 const supportedProviders = [
@@ -225,8 +224,17 @@ export default function IntegrationsPage() {
   const isRestolution =
     form.provider === "Restolution";
 
-  const hasToastRestaurants =
-    isToast &&
+  const isMockToast = isToast &&
+    (
+      form.baseUrl.includes("127.0.0.1") ||
+      form.baseUrl.includes("localhost")
+    );
+    
+  const hasSelectableRestaurants =
+    (
+      (isToast && !isMockToast) ||
+      isRestolution
+    ) &&
     Array.isArray(testResult?.restaurants) &&
     testResult.restaurants.length > 0;
 
@@ -241,6 +249,8 @@ export default function IntegrationsPage() {
 
     accessToken: isToast
       ? "Client Secret"
+      : isRestolution
+      ? "Secret"
       : "Access Token",
 
     apiKeyPlaceholder: isToast
@@ -252,13 +262,13 @@ export default function IntegrationsPage() {
     accessTokenPlaceholder: isToast
       ? "Enter Toast Client Secret"
       : isRestolution
-      ? "Enter Restolution Access Token"
+      ? "Enter Restolution Secret"
       : "Enter Access Token",
 
     baseUrlPlaceholder: isToast
-      ? "Enter Toast API Base URL"
+      ? "e.g. http://127.0.0.1:8001/api/mock-pos"
       : isRestolution
-      ? "Enter Restolution API Base URL"
+      ? "https://restolution.fi/resto/api"
       : "https://api.example.com",
   };
 
@@ -406,7 +416,7 @@ export default function IntegrationsPage() {
 
     /*
      * Restaurant selection must NOT clear
-     * the successful Toast test result.
+     * the successful POS test result.
      */
 
     if (name === "restaurantGuid") {
@@ -497,8 +507,11 @@ export default function IntegrationsPage() {
 
       if (
         isToast &&
-        (!form.apiKey.trim() ||
-          !form.accessToken.trim())
+        !isMockToast &&
+        (
+          !form.apiKey.trim() ||
+          !form.accessToken.trim()
+        )
       ) {
         setTestError(
           "Toast Client ID and Client Secret are required."
@@ -514,11 +527,13 @@ export default function IntegrationsPage() {
 
       if (
         isRestolution &&
-        !form.apiKey.trim() &&
-        !form.accessToken.trim()
+        (
+          !form.apiKey.trim() ||
+          !form.accessToken.trim()
+        )
       ) {
         setTestError(
-          "Restolution API credentials are required."
+          "Restolution API Key and Secret are required."
         );
 
         return;
@@ -531,7 +546,7 @@ export default function IntegrationsPage() {
         setTestResult(null);
 
         /*
-         * Old selected Toast restaurant
+         * Old selected POS restaurant
          * should be cleared before a new test.
          */
 
@@ -588,18 +603,20 @@ export default function IntegrationsPage() {
           );
 
           /*
-           * If Toast has exactly one accessible
+           * If Toast or Restolution has exactly one accessible
            * restaurant, automatically select it.
            */
 
           const restaurants:
-            ToastRestaurantOption[] =
+            PosRestaurantOption[] =
               response.data?.restaurants ||
               [];
 
           if (
-            form.provider ===
-              "Toast POS" &&
+            (
+              form.provider === "Toast POS" ||
+              form.provider === "Restolution"
+            ) &&
             restaurants.length === 1 &&
             restaurants[0]
               ?.restaurant_guid
@@ -657,8 +674,11 @@ export default function IntegrationsPage() {
 
     if (
       isToast &&
-      (!form.apiKey.trim() ||
-        !form.accessToken.trim())
+      !isMockToast &&
+      (
+        !form.apiKey.trim() ||
+        !form.accessToken.trim()
+      )
     ) {
       showWarning(
         "Toast Client ID and Client Secret are required."
@@ -669,11 +689,13 @@ export default function IntegrationsPage() {
 
     if (
       isRestolution &&
-      !form.apiKey.trim() &&
-      !form.accessToken.trim()
+      (
+        !form.apiKey.trim() ||
+        !form.accessToken.trim()
+      )
     ) {
       showWarning(
-        "Restolution API credentials are required."
+        "Restolution API Key and Secret are required."
       );
 
       return;
@@ -692,16 +714,18 @@ export default function IntegrationsPage() {
     }
 
     /*
-     * Toast restaurant selection required
-     * whenever accessible restaurants exist.
+     * Real Toast and Restolution require a selected restaurant
+     * whenever the provider returns selectable restaurants.
      */
 
     if (
-      hasToastRestaurants &&
+      hasSelectableRestaurants &&
       !form.restaurantGuid
     ) {
       showWarning(
-        "Please select a Toast restaurant."
+        isRestolution
+          ? "Please select a Restolution restaurant."
+          : "Please select a Toast restaurant."
       );
 
       return;
@@ -743,7 +767,7 @@ export default function IntegrationsPage() {
               form.baseUrl.trim(),
 
             external_merchant_id:
-              isToast
+              (isToast || isRestolution)
                 ? form.restaurantGuid ||
                   null
                 : null,
@@ -815,7 +839,7 @@ const handleDelete = async (
         `Are you sure you want to delete ${
           connection?.label ||
           "this POS connection"
-        }? Existing synced data will remain, but this connection will no longer sync.`,
+        }? Synced data from this POS connection will also be removed.`,
 
       confirmText:
         "Delete Connection",
@@ -1143,10 +1167,7 @@ const handleDelete = async (
                               provider
                             }
                           >
-                            {provider ===
-                            "Custom API"
-                              ? "Custom API (Development)"
-                              : provider}
+                            {provider}
                           </option>
                         )
                       )}
@@ -1196,7 +1217,10 @@ const handleDelete = async (
                   <label>
                     {credentialLabels.apiKey}
 
-                    {isToast && (
+                    {(
+                      (isToast && !isMockToast) ||
+                      isRestolution
+                    ) && (
                       <span className="required">
                         *
                       </span>
@@ -1237,7 +1261,10 @@ const handleDelete = async (
                   <label>
                     {credentialLabels.accessToken}
 
-                    {isToast && (
+                    {(
+                      (isToast && !isMockToast) ||
+                      isRestolution
+                    ) && (
                       <span className="required">
                         *
                       </span>
@@ -1301,13 +1328,15 @@ const handleDelete = async (
 
                 </div>
 
-                {/* TOAST RESTAURANT SELECTOR */}
+                {/* POS RESTAURANT SELECTOR */}
 
-                {hasToastRestaurants && (
+                {hasSelectableRestaurants && (
                   <div className="form-group full-width">
 
                     <label>
-                      Toast Restaurant
+                      {isRestolution
+                        ? "Restolution Restaurant"
+                        : "Toast Restaurant"}
 
                       <span className="required">
                         *
@@ -1329,7 +1358,9 @@ const handleDelete = async (
                       >
 
                         <option value="">
-                          Select Toast Restaurant
+                          {isRestolution
+                            ? "Select Restolution Restaurant"
+                            : "Select Toast Restaurant"}
                         </option>
 
                         {testResult!.restaurants!.map(
@@ -1673,7 +1704,7 @@ const handleDelete = async (
                     testing ||
                     connecting ||
                     !testResult?.success ||
-                    (hasToastRestaurants &&
+                    (hasSelectableRestaurants &&
                       !form.restaurantGuid)
                   }
                 >

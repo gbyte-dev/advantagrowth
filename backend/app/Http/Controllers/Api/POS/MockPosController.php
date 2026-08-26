@@ -1397,4 +1397,559 @@ class MockPosController extends Controller
             ],
         ];
     }
+
+    public function restolution(
+    \Illuminate\Http\Request $request
+) {
+    /*
+    |--------------------------------------------------------------------------
+    | Read Restolution-style request payload
+    |--------------------------------------------------------------------------
+    |
+    | RestolutionProvider sends:
+    |
+    | request = JSON string
+    |
+    */
+
+    $rawRequest =
+        $request->input('request');
+
+    if (!$rawRequest) {
+        return response()->json([
+            'success' => false,
+
+            'error' => [
+                'message' =>
+                    'Mock Restolution request payload is missing.',
+            ],
+        ], 422);
+    }
+
+    $payload =
+        json_decode(
+            $rawRequest,
+            true
+        );
+
+    if (!is_array($payload)) {
+        return response()->json([
+            'success' => false,
+
+            'error' => [
+                'message' =>
+                    'Mock Restolution request payload is invalid.',
+            ],
+        ], 422);
+    }
+
+    $method =
+        $payload['method']
+        ?? null;
+
+    $params =
+        $payload['params']
+        ?? [];
+
+    /*
+    |--------------------------------------------------------------------------
+    | LIST RESTAURANTS
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+        $method ===
+        'listRestaurants'
+    ) {
+        $includeArticles =
+            (bool) (
+                $params[
+                    'includeArticles'
+                ]
+                ?? false
+            );
+
+        $restaurant = [
+            'businessUnitUUID' =>
+                'resto-demo-001',
+
+            'restaurantID' =>
+                'RESTO-001',
+
+            'clientUUID' =>
+                'advanta-restolution-demo',
+
+            'name' =>
+                'Advanta Restolution Demo',
+
+            'contact' => [
+                'companyName' =>
+                    'Advanta Restolution Demo Ltd',
+
+                'phoneNr' =>
+                    '+358401234567',
+
+                'mobilePhoneNr' =>
+                    '+358409876543',
+
+                'emailAddress' =>
+                    'restolution-demo@example.com',
+
+                'street' =>
+                    'Demo Street 10',
+
+                'city' =>
+                    'Helsinki',
+
+                'postIndex' =>
+                    '00100',
+            ],
+        ];
+
+        /*
+        |--------------------------------------------------------------------------
+        | Include menu/articles when requested
+        |--------------------------------------------------------------------------
+        */
+
+        if ($includeArticles) {
+            $restaurant['menus'] = [
+                [
+                    'menuID' =>
+                        'MENU-MAIN',
+
+                    'name' =>
+                        'Main Menu',
+
+                    'articles' => [
+                        [
+                            'articleID' =>
+                                'RESTO-ITEM-001',
+
+                            'name' =>
+                                'Grilled Salmon',
+
+                            'description' =>
+                                'Fresh grilled salmon',
+
+                            'type' =>
+                                'SALE',
+
+                            /*
+                             * RestolutionProvider converts cents
+                             * to currency values.
+                             */
+
+                            'prices' => [
+                                [
+                                    'price' =>
+                                        2490,
+                                ],
+                            ],
+                        ],
+
+                        [
+                            'articleID' =>
+                                'RESTO-ITEM-002',
+
+                            'name' =>
+                                'Margherita Pizza',
+
+                            'description' =>
+                                'Classic tomato and mozzarella pizza',
+
+                            'type' =>
+                                'SALE',
+
+                            'prices' => [
+                                [
+                                    'price' =>
+                                        1590,
+                                ],
+                            ],
+                        ],
+
+                        [
+                            'articleID' =>
+                                'RESTO-ITEM-003',
+
+                            'name' =>
+                                'Caesar Salad',
+
+                            'description' =>
+                                'Fresh Caesar salad',
+
+                            'type' =>
+                                'SALE',
+
+                            'prices' => [
+                                [
+                                    'price' =>
+                                        1290,
+                                ],
+                            ],
+                        ],
+
+                        [
+                            'articleID' =>
+                                'RESTO-ITEM-004',
+
+                            'name' =>
+                                'Cheesecake',
+
+                            'description' =>
+                                'Classic cheesecake',
+
+                            'type' =>
+                                'SALE',
+
+                            'prices' => [
+                                [
+                                    'price' =>
+                                        890,
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ];
+        }
+
+        return response()->json([
+            'success' =>
+                true,
+
+            'response' => [
+                'restaurants' => [
+                    $restaurant,
+                ],
+            ],
+        ]);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | GET RECEIPTS
+    |--------------------------------------------------------------------------
+    |
+    | Simulates completed restaurant sales.
+    |
+    */
+
+    if (
+        $method ===
+        'getReceipts'
+    ) {
+        $now =
+            now();
+
+        $receipts = [
+            [
+                'receiptUUID' =>
+                    'RESTO-RECEIPT-1001',
+
+                'receiptID' =>
+                    '1001',
+
+                'businessUnitUUID' =>
+                    'resto-demo-001',
+
+                'restaurantID' =>
+                    'RESTO-001',
+
+                'receiptType' =>
+                    'NORMAL',
+
+                'tableCode' =>
+                    'T-01',
+
+                'customerName' =>
+                    'Restolution Customer 1',
+
+                'timestamp' =>
+                    $now
+                        ->copy()
+                        ->subHours(2)
+                        ->toIso8601String(),
+
+                'freeText' =>
+                    'No special instructions',
+
+                'receiptRows' => [
+                    [
+                        'saleID' =>
+                            'SALE-1001-1',
+
+                        'articleID' =>
+                            'RESTO-ITEM-001',
+
+                        'articleName' =>
+                            'Grilled Salmon',
+
+                        /*
+                         * Quantity is thousandths.
+                         * 1000 = quantity 1.
+                         */
+
+                        'quantity' =>
+                            1000,
+
+                        /*
+                         * Monetary values in cents.
+                         */
+
+                        'price' =>
+                            2490,
+
+                        'amount' =>
+                            2490,
+                    ],
+
+                    [
+                        'saleID' =>
+                            'SALE-1001-2',
+
+                        'articleID' =>
+                            'RESTO-ITEM-004',
+
+                        'articleName' =>
+                            'Cheesecake',
+
+                        'quantity' =>
+                            1000,
+
+                        'price' =>
+                            890,
+
+                        'amount' =>
+                            890,
+                    ],
+                ],
+
+                'paymentRows' => [
+                    [
+                        'transactionId' =>
+                            'RESTO-PAY-1001',
+
+                        'paymentName' =>
+                            'card',
+
+                        'paymentCode' =>
+                            'CARD',
+
+                        'amount' =>
+                            3380,
+
+                        'tip' =>
+                            200,
+
+                        'transactionTimestamp' =>
+                            $now
+                                ->copy()
+                                ->subHours(2)
+                                ->toIso8601String(),
+                    ],
+                ],
+            ],
+
+            [
+                'receiptUUID' =>
+                    'RESTO-RECEIPT-1002',
+
+                'receiptID' =>
+                    '1002',
+
+                'businessUnitUUID' =>
+                    'resto-demo-001',
+
+                'restaurantID' =>
+                    'RESTO-001',
+
+                'receiptType' =>
+                    'NORMAL',
+
+                'tableCode' =>
+                    null,
+
+                'customerName' =>
+                    'Restolution Customer 2',
+
+                'timestamp' =>
+                    $now
+                        ->copy()
+                        ->subDay()
+                        ->toIso8601String(),
+
+                'receiptRows' => [
+                    [
+                        'saleID' =>
+                            'SALE-1002-1',
+
+                        'articleID' =>
+                            'RESTO-ITEM-002',
+
+                        'articleName' =>
+                            'Margherita Pizza',
+
+                        'quantity' =>
+                            2000,
+
+                        'price' =>
+                            1590,
+
+                        'amount' =>
+                            3180,
+                    ],
+                ],
+
+                'paymentRows' => [
+                    [
+                        'transactionId' =>
+                            'RESTO-PAY-1002',
+
+                        'paymentName' =>
+                            'cash',
+
+                        'paymentCode' =>
+                            'CASH',
+
+                        'amount' =>
+                            3180,
+
+                        'tip' =>
+                            0,
+
+                        'transactionTimestamp' =>
+                            $now
+                                ->copy()
+                                ->subDay()
+                                ->toIso8601String(),
+                    ],
+                ],
+            ],
+
+            [
+                'receiptUUID' =>
+                    'RESTO-RECEIPT-1003',
+
+                'receiptID' =>
+                    '1003',
+
+                'businessUnitUUID' =>
+                    'resto-demo-001',
+
+                'restaurantID' =>
+                    'RESTO-001',
+
+                'receiptType' =>
+                    'NORMAL',
+
+                'tableCode' =>
+                    'T-05',
+
+                'customerName' =>
+                    'Restolution Customer 3',
+
+                'timestamp' =>
+                    $now
+                        ->copy()
+                        ->subDays(2)
+                        ->toIso8601String(),
+
+                'receiptRows' => [
+                    [
+                        'saleID' =>
+                            'SALE-1003-1',
+
+                        'articleID' =>
+                            'RESTO-ITEM-003',
+
+                        'articleName' =>
+                            'Caesar Salad',
+
+                        'quantity' =>
+                            1000,
+
+                        'price' =>
+                            1290,
+
+                        'amount' =>
+                            1290,
+                    ],
+
+                    [
+                        'saleID' =>
+                            'SALE-1003-2',
+
+                        'articleID' =>
+                            'RESTO-ITEM-002',
+
+                        'articleName' =>
+                            'Margherita Pizza',
+
+                        'quantity' =>
+                            1000,
+
+                        'price' =>
+                            1590,
+
+                        'amount' =>
+                            1590,
+                    ],
+                ],
+
+                'paymentRows' => [
+                    [
+                        'transactionId' =>
+                            'RESTO-PAY-1003',
+
+                        'paymentName' =>
+                            'card',
+
+                        'paymentCode' =>
+                            'CARD',
+
+                        'amount' =>
+                            2880,
+
+                        'tip' =>
+                            150,
+
+                        'transactionTimestamp' =>
+                            $now
+                                ->copy()
+                                ->subDays(2)
+                                ->toIso8601String(),
+                    ],
+                ],
+            ],
+        ];
+
+        return response()->json([
+            'success' =>
+                true,
+
+            'response' => [
+                'receipts' =>
+                    $receipts,
+            ],
+        ]);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | UNKNOWN METHOD
+    |--------------------------------------------------------------------------
+    */
+
+    return response()->json([
+        'success' =>
+            false,
+
+        'error' => [
+            'message' =>
+                "Unsupported Mock Restolution method: {$method}",
+        ],
+    ], 422);
+}
 }

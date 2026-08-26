@@ -23,19 +23,17 @@ class PosManager
         return match ($provider) {
             'toast',
             'toast pos' =>
-                $this->resolve(
-                    ToastProvider::class
-                ),
+                app()->environment(['local', 'testing'])
+                    ? $this->resolve(
+                        CustomApiProvider::class
+                    )
+                    : $this->resolve(
+                        ToastProvider::class
+                    ),
 
             'restolution' =>
                 $this->resolve(
                     RestolutionProvider::class
-                ),
-
-            'custom',
-            'custom api' =>
-                $this->resolve(
-                    CustomApiProvider::class
                 ),
 
             default =>

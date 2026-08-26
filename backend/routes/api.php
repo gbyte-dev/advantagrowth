@@ -246,3 +246,17 @@ Route::prefix('mock-pos')->group(function () {
         'orders'
     ]);
 });
+
+/*
+|--------------------------------------------------------------------------
+| MOCK RESTOLUTION API
+|--------------------------------------------------------------------------
+|
+| Development/testing only.
+|
+*/
+
+Route::post('/mock-restolution', [
+    MockPosController::class,
+    'restolution'
+]);
