@@ -79,7 +79,7 @@ export default function SearchableSelect({
                             className="box-border w-full rounded-lg border-0 bg-gray-50 py-1.5 pl-8 pr-2 text-sm text-gray-900 outline-none focus:bg-gray-100"
                         />
                     </div>
-                    <ul className="m-0 max-h-56 list-none overflow-y-auto py-1 pl-0">
+                    <ul className="scrollbar-hide m-0 max-h-56 list-none overflow-y-auto py-1 pl-0">
                         {filtered.length === 0 && (
                             <li className="m-0 px-3 py-2 text-sm text-gray-400">No results found.</li>
                         )}

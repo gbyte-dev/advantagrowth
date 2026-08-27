@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api\SupAdmin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Restaurant;
-use App\Models\Subscription;
 use App\Models\Order;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Http;
@@ -103,9 +102,10 @@ class RestaurantsController extends Controller
     }
 
     /**
-     * Revenue trend for the dashboard chart — for each day in the range,
-     * the total price of subscriptions created on or before that day
-     * (that are still active), compared against the same point one period earlier.
+     * Revenue trend for the dashboard chart — for each day in the range, the
+     * total real paid-order revenue placed on or before that day, compared
+     * against the same point one period earlier. Same revenue basis as
+     * stats() / topPerforming() so all three stay consistent.
      */
     public function revenueTrend(Request $request)
     {
@@ -114,12 +114,15 @@ class RestaurantsController extends Controller
             $targetCurrency = strtoupper($request->query('currency', 'INR'));
             $rates = $this->getExchangeRates();
 
-            $subscriptions = Subscription::where('is_active', true)->get(['price', 'currency', 'created_at']);
+            $restaurantCurrencies = Restaurant::pluck('currency', 'id');
+            $paidOrders = Order::where('payment_status', 'paid')->get(['restaurant_id', 'total', 'created_at']);
 
-            $convertedPrice = function ($subscription) use ($targetCurrency, $rates) {
+            $convertedTotal = function ($order) use ($restaurantCurrencies, $targetCurrency, $rates) {
+                $fromCurrency = strtoupper($restaurantCurrencies->get($order->restaurant_id) ?: 'INR');
+
                 return $this->convertCurrency(
-                    (float) $subscription->price,
-                    strtoupper($subscription->currency ?? 'USD'),
+                    (float) $order->total,
+                    $fromCurrency,
                     $targetCurrency,
                     $rates
                 );
@@ -133,13 +136,13 @@ class RestaurantsController extends Controller
                 $cutoff = $date->copy()->endOfDay();
                 $previousCutoff = $date->copy()->subDays($days)->endOfDay();
 
-                $currentTotal = $subscriptions
-                    ->filter(fn ($s) => $s->created_at->lte($cutoff))
-                    ->sum($convertedPrice);
+                $currentTotal = $paidOrders
+                    ->filter(fn ($o) => $o->created_at->lte($cutoff))
+                    ->sum($convertedTotal);
 
-                $previousTotal = $subscriptions
-                    ->filter(fn ($s) => $s->created_at->lte($previousCutoff))
-                    ->sum($convertedPrice);
+                $previousTotal = $paidOrders
+                    ->filter(fn ($o) => $o->created_at->lte($previousCutoff))
+                    ->sum($convertedTotal);
 
                 $series[] = [
                     'date' => $date->format('Y-m-d'),
