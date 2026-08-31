@@ -76,4 +76,16 @@ public function posSyncLogs(): HasMany
     return $this->hasMany(PosSyncLog::class);
 }
 
+public function subscriptions(): HasMany
+{
+    return $this->hasMany(RestaurantSubscription::class);
+}
+
+public function currentSubscription(): HasOne
+{
+    return $this->hasOne(RestaurantSubscription::class)
+        ->where('status', 'active')
+        ->latestOfMany();
+}
+
 }

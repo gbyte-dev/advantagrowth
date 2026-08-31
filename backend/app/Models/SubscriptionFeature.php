@@ -6,31 +6,22 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Subscription extends Model
+class SubscriptionFeature extends Model
 {
     protected $fillable = [
+        'key',
         'name',
-        'slug',
-        'price',
-        'currency',
-        'interval',
-        'interval_count',
-        'is_active',
         'description',
+        'value_type',
+        'unit',
+        'sort_order',
+        'is_active',
     ];
 
     protected $casts = [
+        'sort_order' => 'integer',
         'is_active' => 'boolean',
-        'price' => 'decimal:2',
-        'interval_count' => 'integer',
     ];
-
-    public function restaurantSubscriptions(): HasMany
-    {
-        return $this->hasMany(
-            RestaurantSubscription::class
-        );
-    }
 
     public function planFeatures(): HasMany
     {
@@ -39,11 +30,11 @@ class Subscription extends Model
         );
     }
 
-    public function features(): BelongsToMany
+    public function subscriptions(): BelongsToMany
     {
         return $this
             ->belongsToMany(
-                SubscriptionFeature::class,
+                Subscription::class,
                 'subscription_plan_features'
             )
             ->withPivot([

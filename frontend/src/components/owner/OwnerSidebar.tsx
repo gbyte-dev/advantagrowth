@@ -17,6 +17,11 @@ const menus = [
     icon: "fa-building",
   },
   {
+    name: "Subscription",
+    href: "/dashboard/subscriptions",
+    icon: "fa-credit-card",
+  },
+  {
     name: "Integrations",
     href: "/dashboard/integrations",
     icon: "fa-bolt",

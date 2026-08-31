@@ -128,7 +128,7 @@ class RestolutionProvider implements PosProviderInterface
                 $connection,
                 false
             );
-
+    
         if (empty($restaurants)) {
             throw new RuntimeException(
                 'No Restolution restaurant was found for these credentials.'
@@ -224,6 +224,19 @@ class RestolutionProvider implements PosProviderInterface
                 $connection,
                 false
             );
+
+
+        if (
+            $connection
+                ->external_merchant_id
+        ) {
+            $restaurants = [
+                $this->selectedRestaurant(
+                    $connection,
+                    $restaurants
+                ),
+            ];
+        }
 
         return collect(
             $restaurants
@@ -853,56 +866,65 @@ class RestolutionProvider implements PosProviderInterface
     }
 
     private function selectedRestaurant(
-        PosConnection $connection,
-        array $restaurants
-    ): array {
-        if (
-            !$connection
-                ->external_merchant_id
-        ) {
+    PosConnection $connection,
+    array $restaurants
+): array {
+    if (empty($restaurants)) {
+        throw new RuntimeException(
+            'No Restolution restaurant was found.'
+        );
+    }
+
+    if (
+        !$connection
+            ->external_merchant_id
+    ) {
+        if (count($restaurants) === 1) {
             return $restaurants[0];
         }
 
-        foreach (
-            $restaurants
-            as $restaurant
-        ) {
-            if (
-                !is_array(
-                    $restaurant
-                )
-            ) {
-                continue;
-            }
-
-            if (
-                (
-                    $restaurant[
-                        'businessUnitUUID'
-                    ]
-                    ?? null
-                )
-                ===
-                $connection
-                    ->external_merchant_id
-                ||
-                (
-                    $restaurant[
-                        'restaurantID'
-                    ]
-                    ?? null
-                )
-                ===
-                $connection
-                    ->external_merchant_id
-            ) {
-                return $restaurant;
-            }
-        }
-
-        return $restaurants[0];
+        throw new RuntimeException(
+            'Please select a Restolution restaurant.'
+        );
     }
 
+    foreach (
+        $restaurants
+        as $restaurant
+    ) {
+        if (!is_array($restaurant)) {
+            continue;
+        }
+
+        $businessUnitUuid =
+            $restaurant[
+                'businessUnitUUID'
+            ]
+            ?? null;
+
+        $restaurantId =
+            $restaurant[
+                'restaurantID'
+            ]
+            ?? null;
+
+        if (
+            $businessUnitUuid ===
+                $connection
+                    ->external_merchant_id
+            ||
+            $restaurantId ===
+                $connection
+                    ->external_merchant_id
+        ) {
+            return $restaurant;
+        }
+    }
+
+    throw new RuntimeException(
+        'Selected Restolution restaurant was not found.'
+    );
+}
     /*
     |--------------------------------------------------------------------------
     | RECEIPT NORMALIZATION
