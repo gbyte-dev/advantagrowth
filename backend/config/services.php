@@ -38,8 +38,8 @@ return [
     'razorpay' => [
     'key' => env('RAZORPAY_KEY_ID'),
     'secret' => env('RAZORPAY_KEY_SECRET'),
-    ],
-    'calendarific' => [
-        'api_key' => env('CALENDARIFIC_API_KEY'),
-    ],
+    'webhook_secret' => env(
+        'RAZORPAY_WEBHOOK_SECRET'
+    ),
+],
 ];

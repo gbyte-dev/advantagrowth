@@ -16,6 +16,9 @@ use App\Http\Controllers\Api\Owner\WeatherController;
 use App\Http\Controllers\Api\Owner\HolidayController;
 use App\Http\Controllers\Api\POS\PosConnectionController;
 use App\Http\Controllers\Api\Owner\OwnerSubscriptionController;
+use App\Http\Controllers\Api\Owner\OwnerSubscriptionPaymentController;
+
+
 
 /*
 |--------------------------------------------------------------------------
@@ -353,5 +356,19 @@ Route::middleware('auth:sanctum')->group(function () {
 
 Route::get('/owner/subscriptions', [OwnerSubscriptionController::class, 'index']);
 Route::post('/owner/subscriptions/subscribe', [OwnerSubscriptionController::class, 'subscribe']);
+Route::post(
+    '/owner/subscriptions/payment/order',
+    [
+        OwnerSubscriptionPaymentController::class,
+        'createOrder',
+    ]
+);
 
+Route::post(
+    '/owner/subscriptions/payment/verify',
+    [
+        OwnerSubscriptionPaymentController::class,
+        'verifyPayment',
+    ]
+);
 });

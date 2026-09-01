@@ -110,6 +110,16 @@ class OwnerSubscriptionController extends Controller
             ], 422);
         }
 
+// Paid plans require verified Razorpay payment
+
+        if ((float) $plan->price > 0) {
+            return response()->json([
+                'success' => false,
+                'message' =>
+                    'Payment is required before activating this subscription plan.',
+            ], 422);
+        }
+
         /*
         |--------------------------------------------------------------------------
         | Prevent duplicate subscription to same currently active plan

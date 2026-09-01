@@ -3,10 +3,9 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\SupAdmin\RestaurantsController;
 use App\Http\Controllers\Api\SupAdmin\SubscriptionController;
-use App\Http\Controllers\Api\SupAdmin\SubscriptionFeatureController;
 use App\Http\Controllers\Api\SupAdmin\SettingsController;
 use App\Http\Controllers\Api\SupAdmin\WeatherController;
-
+use App\Http\Controllers\Api\SupAdmin\SubscriptionPaymentController;
 /*
 |--------------------------------------------------------------------------
 | SUPER ADMIN - RESTAURANTS
@@ -76,38 +75,38 @@ Route::middleware([
         */
 
         Route::prefix('subscription')
-            ->group(function () {
+    ->group(function () {
 
-                Route::get('/', [
-                    SubscriptionController::class,
-                    'index',
-                ]);
+        Route::get('/', [
+            SubscriptionController::class,
+            'index',
+        ]);
 
-                Route::post('/', [
-                    SubscriptionController::class,
-                    'store',
-                ]);
+        Route::post('/', [
+            SubscriptionController::class,
+            'store',
+        ]);
 
-                Route::get('/{id}', [
-                    SubscriptionController::class,
-                    'show',
-                ]);
+        Route::get('/{id}', [
+            SubscriptionController::class,
+            'show',
+        ]);
 
-                Route::put('/{id}', [
-                    SubscriptionController::class,
-                    'update',
-                ]);
+        Route::put('/{id}', [
+            SubscriptionController::class,
+            'update',
+        ]);
 
-                Route::delete('/{id}', [
-                    SubscriptionController::class,
-                    'destroy',
-                ]);
+        Route::delete('/{id}', [
+            SubscriptionController::class,
+            'destroy',
+        ]);
 
-                Route::patch('/{id}/toggle-status', [
-                    SubscriptionController::class,
-                    'toggleStatus',
-                ]);
-            });
+        Route::patch('/{id}/toggle-status', [
+            SubscriptionController::class,
+            'toggleStatus',
+        ]);
+    });
 
         /*
         |--------------------------------------------------------------------------
@@ -115,39 +114,6 @@ Route::middleware([
         |--------------------------------------------------------------------------
         */
 
-        Route::prefix('subscription-features')
-            ->group(function () {
-
-                Route::get('/', [
-                    SubscriptionFeatureController::class,
-                    'index',
-                ]);
-
-                Route::post('/', [
-                    SubscriptionFeatureController::class,
-                    'store',
-                ]);
-
-                Route::get('/{id}', [
-                    SubscriptionFeatureController::class,
-                    'show',
-                ]);
-
-                Route::put('/{id}', [
-                    SubscriptionFeatureController::class,
-                    'update',
-                ]);
-
-                Route::patch('/{id}/toggle-status', [
-                    SubscriptionFeatureController::class,
-                    'toggleStatus',
-                ]);
-
-                Route::delete('/{id}', [
-                    SubscriptionFeatureController::class,
-                    'destroy',
-                ]);
-            });
 
         Route::prefix('settings')
             ->group(function () {
@@ -167,4 +133,18 @@ Route::middleware([
             WeatherController::class,
             'overview',
         ]);
-    });
+    Route::prefix('subscription-payments')
+        ->group(function () {
+
+            Route::get('/', [
+                SubscriptionPaymentController::class,
+                'index',
+            ]);
+
+            Route::get('/{id}', [
+                SubscriptionPaymentController::class,
+                'show',
+            ]);
+        });
+
+});

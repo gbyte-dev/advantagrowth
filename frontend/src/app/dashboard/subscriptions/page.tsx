@@ -7,6 +7,10 @@ import {
   showError,
   showSuccess,
 } from "@/lib/feedback";
+import {
+  openRazorpayCheckout,
+} from "@/lib/razorpay";
+
 
 type SubscriptionPlan = {
   id: number;
@@ -164,36 +168,54 @@ export default function OwnerSubscriptionsPage() {
     loadSubscriptions();
   }, [loadSubscriptions]);
 
-  const handleSubscribe = async (
-    plan: SubscriptionPlan
-  ) => {
-    const switchingPlan =
-      currentSubscription !== null;
+ const handleSubscribe = async (
+  plan: SubscriptionPlan
+) => {
+  const isPaidPlan =
+    Number(plan.price) > 0;
 
-    const confirmed =
-      await confirmDialog({
-        title: switchingPlan
+  const switchingPlan =
+    currentSubscription !== null;
+
+  const confirmed =
+    await confirmDialog({
+      title: isPaidPlan
+        ? "Continue to payment?"
+        : switchingPlan
           ? "Switch subscription plan?"
-          : "Activate subscription plan?",
+          : "Activate free plan?",
 
-        message: switchingPlan
+      message: isPaidPlan
+        ? switchingPlan
+          ? `Complete the payment to switch your current plan to ${plan.name}.`
+          : `Complete the payment to activate ${plan.name}.`
+        : switchingPlan
           ? `Your current plan will be cancelled and ${plan.name} will become active.`
           : `${plan.name} will become your active subscription plan.`,
 
-        confirmText: switchingPlan
+      confirmText: isPaidPlan
+        ? "Continue to Payment"
+        : switchingPlan
           ? "Switch Plan"
           : "Activate Plan",
 
-        cancelText: "Cancel",
-      });
+      cancelText: "Cancel",
+    });
 
-    if (!confirmed) {
-      return;
-    }
+  if (!confirmed) {
+    return;
+  }
 
-    try {
-      setSubscribingPlanId(plan.id);
+  setSubscribingPlanId(plan.id);
 
+  try {
+    /*
+    |--------------------------------------------------------------------------
+    | Free plan activation
+    |--------------------------------------------------------------------------
+    */
+
+    if (!isPaidPlan) {
       const response = await api.post(
         "/owner/subscriptions/subscribe",
         {
@@ -213,17 +235,112 @@ export default function OwnerSubscriptionsPage() {
         response.data.message ||
           "Subscription activated successfully."
       );
-    } catch (requestError) {
-      showError(
-        getErrorMessage(
-          requestError,
-          "Unable to activate subscription."
-        )
+
+      setSubscribingPlanId(null);
+
+      return;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Create pending Razorpay order
+    |--------------------------------------------------------------------------
+    */
+
+    const orderResponse =
+      await api.post(
+        "/owner/subscriptions/payment/order",
+        {
+          subscription_id: plan.id,
+        }
       );
-    } finally {
+
+    const order =
+      orderResponse.data.data;
+
+    /*
+    |--------------------------------------------------------------------------
+    | Open Razorpay Checkout
+    |--------------------------------------------------------------------------
+    */
+
+    const opened =
+      await openRazorpayCheckout({
+        key: order.key,
+        amount: order.amount,
+        currency: order.currency,
+        order_id: order.order_id,
+        name: "Advanta Growth",
+        description:
+          `${plan.name} subscription`,
+        prefill: order.prefill,
+
+        handler: async (
+          paymentResponse
+        ) => {
+          try {
+            const verifyResponse =
+              await api.post(
+                "/owner/subscriptions/payment/verify",
+                paymentResponse
+              );
+
+            const activatedSubscription:
+              RestaurantSubscription =
+                verifyResponse.data.data
+                  .subscription;
+
+            setCurrentSubscription(
+              activatedSubscription
+            );
+
+            showSuccess(
+              verifyResponse.data.message ||
+                "Payment successful and subscription activated."
+            );
+          } catch (
+            verificationError
+          ) {
+            showError(
+              getErrorMessage(
+                verificationError,
+                "Payment was completed but subscription verification failed."
+              )
+            );
+          } finally {
+            setSubscribingPlanId(
+              null
+            );
+          }
+        },
+
+        onDismiss: () => {
+          setSubscribingPlanId(
+            null
+          );
+        },
+      });
+
+    if (!opened) {
+      showError(
+        "Unable to load Razorpay Checkout. Please try again."
+      );
+
       setSubscribingPlanId(null);
     }
-  };
+  } catch (requestError) {
+    showError(
+      getErrorMessage(
+        requestError,
+        isPaidPlan
+          ? "Unable to start subscription payment."
+          : "Unable to activate subscription."
+      )
+    );
+
+    setSubscribingPlanId(null);
+  }
+};
 
   return (
     <div className="min-h-screen bg-slate-50 px-4 py-6 sm:px-6 lg:px-8">
@@ -439,7 +556,6 @@ export default function OwnerSubscriptionsPage() {
                             {intervalLabel(plan)}
                           </p>
                         </div>
-
                         <button
                           type="button"
                           disabled={
@@ -462,10 +578,14 @@ export default function OwnerSubscriptionsPage() {
                             </>
                           ) : isCurrent ? (
                             "Active Plan"
+                          ) : Number(plan.price) > 0 ? (
+                            currentSubscription
+                              ? "Pay & Switch Plan"
+                              : "Buy Plan"
                           ) : currentSubscription ? (
-                            "Switch to This Plan"
+                            "Switch to Free Plan"
                           ) : (
-                            "Choose Plan"
+                            "Activate Free Plan"
                           )}
                         </button>
                       </article>

@@ -50,7 +50,7 @@ class OwnerSubscriptionTest extends TestCase
         return Subscription::create(array_merge([
             'name' => 'Starter Plan',
             'slug' => 'starter-plan',
-            'price' => 19.99,
+            'price' => 0.00,
             'currency' => 'EUR',
             'interval' => 'month',
             'interval_count' => 1,
@@ -95,7 +95,7 @@ class OwnerSubscriptionTest extends TestCase
             );
     }
 
-    public function test_owner_can_activate_a_subscription_plan(): void
+    public function test_owner_can_activate_a_free_subscription_plan(): void
     {
         Carbon::setTestNow(
             '2026-08-31 10:00:00'
@@ -209,7 +209,7 @@ class OwnerSubscriptionTest extends TestCase
         $newPlan = $this->createPlan([
             'name' => 'Growth Plan',
             'slug' => 'growth-plan',
-            'price' => 39.99,
+            'price' => 0.00,
         ]);
 
         Sanctum::actingAs($user);
@@ -318,6 +318,49 @@ class OwnerSubscriptionTest extends TestCase
             'restaurant_id' => $restaurant->id,
             'subscription_id' => $plan->id,
             'status' => 'expired',
+        ]
+    );
+}
+
+public function test_paid_plan_cannot_be_activated_without_payment(): void
+{
+    [$restaurant, $user] =
+        $this->createOwner();
+
+    $plan = $this->createPlan([
+        'name' => 'Paid Plan',
+        'slug' => 'paid-plan',
+        'price' => 19.99,
+    ]);
+
+    Sanctum::actingAs($user);
+
+    $this->postJson(
+        '/api/owner/subscriptions/subscribe',
+        [
+            'subscription_id' => $plan->id,
+        ]
+    )
+        ->assertStatus(422)
+        ->assertJsonPath(
+            'success',
+            false
+        )
+        ->assertJsonPath(
+            'message',
+            'Payment is required before activating this subscription plan.'
+        );
+
+    $this->assertDatabaseMissing(
+        'restaurant_subscriptions',
+        [
+            'restaurant_id' =>
+                $restaurant->id,
+
+            'subscription_id' =>
+                $plan->id,
+
+            'status' => 'active',
         ]
     );
 }

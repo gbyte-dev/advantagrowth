@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Subscription extends Model
@@ -30,26 +29,5 @@ class Subscription extends Model
         return $this->hasMany(
             RestaurantSubscription::class
         );
-    }
-
-    public function planFeatures(): HasMany
-    {
-        return $this->hasMany(
-            SubscriptionPlanFeature::class
-        );
-    }
-
-    public function features(): BelongsToMany
-    {
-        return $this
-            ->belongsToMany(
-                SubscriptionFeature::class,
-                'subscription_plan_features'
-            )
-            ->withPivot([
-                'is_enabled',
-                'limit_value',
-            ])
-            ->withTimestamps();
     }
 }
