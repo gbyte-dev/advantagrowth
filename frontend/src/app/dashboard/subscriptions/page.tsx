@@ -346,10 +346,6 @@ export default function OwnerSubscriptionsPage() {
     <div className="min-h-screen bg-slate-50 px-4 py-6 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
         <div className="mb-8">
-          <p className="mb-2 text-sm font-semibold uppercase tracking-wider text-emerald-600">
-            Billing & subscription
-          </p>
-
           <h1 className="text-3xl font-bold text-slate-900">
             Subscription Plans
           </h1>

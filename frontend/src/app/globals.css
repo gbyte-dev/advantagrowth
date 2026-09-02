@@ -4420,7 +4420,7 @@ html {
 
 /* ----- ROOT VARIABLES ----- */
 :root {
-  --sidebar-width: 260px;
+  --sidebar-width: 180px;
   --sidebar-collapsed-width: 72px;
   --sidebar-bg: #040a17;
   --sidebar-bg-hover: rgba(251, 250, 255, 0.04);
@@ -4586,6 +4586,12 @@ html {
   padding: 0;
 }
 
+.sidebar-collapsed .sidebar-header {
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 1rem 0.5rem;
+}
+
 /* ============================================
    SIDEBAR TOGGLE BUTTON
    ============================================ */
@@ -4622,6 +4628,7 @@ html {
 
 .sidebar-nav {
   flex: 1;
+  padding: 0.8rem 0.6rem;
   overflow-y: auto;
   overflow-x: hidden;
   display: flex;
@@ -4730,6 +4737,12 @@ html {
 .sidebar-collapsed .sidebar-link {
   justify-content: center;
   padding: 0.6rem;
+  width: 100%;
+  gap: 0;
+}
+
+.sidebar-collapsed .sidebar-link-icon {
+  width: auto;
 }
 
 .sidebar-collapsed .sidebar-link span:not(.sidebar-link-icon) {
