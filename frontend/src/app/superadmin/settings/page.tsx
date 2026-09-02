@@ -53,22 +53,15 @@ export default function SuperAdminSettingsPage() {
         <div className="superadmin-layout">
             <SuperAdminSidebar />
             <main
-                className={`superadmin-main-content ${sidebarCollapsed ? "sidebar-collapsed-main" : "sidebar-expanded-main"}`}
-                style={{ height: "calc(100vh - 48px)", overflow: "hidden", padding: 0 }}
+                className={`superadmin-main-content scrollbar-hide ${sidebarCollapsed ? "sidebar-collapsed-main" : "sidebar-expanded-main"}`}
+                style={{ height: "calc(100vh - 48px)", overflowY: "auto", padding: 0 }}
             >
-                {/* The native scrollbar can't be reliably hidden via CSS on some browsers,
-                    so instead this inner box is made wider than its clipped parent (via the
-                    negative margin) and scrolls internally — its scrollbar renders past the
-                    parent's right edge where "overflow: hidden" above clips it from view. */}
                 <div
                     style={{
-                        height: "100%",
-                        overflowY: "auto",
-                        marginRight: "-20px",
-                        paddingRight: "calc(2rem + 20px)",
                         paddingLeft: "2rem",
+                        paddingRight: "2rem",
                         paddingTop: "1.5rem",
-                        paddingBottom: "500px",
+                        paddingBottom: "2rem",
                     }}
                 >
                 <div className="mx-auto max-w-5xl overflow-x-hidden pt-20 sm:pt-24 lg:pt-3" style={{ fontFamily: "'Inter', sans-serif" }}>

@@ -1,17 +1,20 @@
 "use client";
 
+import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import {
-  useCallback,
-  useEffect,
-  useState,
-} from "react";
+  ArrowLeft,
+  RefreshCw,
+  AlertTriangle,
+  CheckCircle2,
+  Clock,
+  XCircle,
+  RotateCcw,
+} from "lucide-react";
 import api from "@/lib/axios";
+import SuperAdminSidebar from "@/components/SuperAdminSidebar";
 
-type PaymentStatus =
-  | "pending"
-  | "paid"
-  | "failed"
-  | "refunded";
+type PaymentStatus = "pending" | "paid" | "failed" | "refunded";
 
 type Payment = {
   id: number;
@@ -66,92 +69,86 @@ type PaymentApiResponse = {
   summary: PaymentSummary;
 };
 
-function formatAmount(
-  amount: string,
-  currency: string
-): string {
+const PER_PAGE = 20;
+
+function formatAmount(amount: string, currency: string): string {
   try {
-    return new Intl.NumberFormat(
-      "en",
-      {
-        style: "currency",
-        currency,
-      }
-    ).format(Number(amount));
+    return new Intl.NumberFormat("en", {
+      style: "currency",
+      currency,
+    }).format(Number(amount));
   } catch {
     return `${currency} ${amount}`;
   }
 }
 
-function formatDate(
-  value: string | null
-): string {
+function formatDate(value: string | null): string {
   if (!value) {
     return "—";
   }
 
-  return new Intl.DateTimeFormat(
-    "en-GB",
-    {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    }
-  ).format(new Date(value));
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(value));
 }
 
-function statusClasses(
-  status: PaymentStatus
-): string {
+function statusClasses(status: PaymentStatus): string {
   if (status === "paid") {
-    return "bg-emerald-100 text-emerald-700";
+    return "bg-green-50 text-green-700";
   }
 
   if (status === "pending") {
-    return "bg-amber-100 text-amber-700";
+    return "bg-amber-50 text-amber-700";
   }
 
   if (status === "refunded") {
-    return "bg-blue-100 text-blue-700";
+    return "bg-blue-50 text-blue-700";
   }
 
-  return "bg-red-100 text-red-700";
+  return "bg-red-50 text-red-700";
 }
 
 export default function SubscriptionPaymentsPage() {
-  const [payments, setPayments] =
-    useState<Payment[]>([]);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [payments, setPayments] = useState<Payment[]>([]);
 
-  const [summary, setSummary] =
-    useState<PaymentSummary>({
-      status_counts: {
-        pending: 0,
-        paid: 0,
-        failed: 0,
-        refunded: 0,
-      },
-      paid_totals_by_currency: [],
-    });
+  const [summary, setSummary] = useState<PaymentSummary>({
+    status_counts: { pending: 0, paid: 0, failed: 0, refunded: 0 },
+    paid_totals_by_currency: [],
+  });
 
-  const [status, setStatus] =
-    useState("");
+  const [status, setStatus] = useState("");
+  const [page, setPage] = useState(1);
+  const [lastPage, setLastPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const [page, setPage] =
-    useState(1);
+  useEffect(() => {
+    const saved = localStorage.getItem("superAdminSidebarCollapsed");
 
-  const [lastPage, setLastPage] =
-    useState(1);
+    if (saved === "true") {
+      setSidebarCollapsed(true);
+    }
 
-  const [total, setTotal] =
-    useState(0);
+    const handleSidebarToggle = (event: Event) => {
+      const customEvent = event as CustomEvent<{ collapsed: boolean }>;
+      setSidebarCollapsed(customEvent.detail.collapsed);
+    };
 
-  const [loading, setLoading] =
-    useState(true);
+    window.addEventListener("superAdminSidebarToggle", handleSidebarToggle);
 
-  const [error, setError] =
-    useState("");
+    return () => {
+      window.removeEventListener(
+        "superAdminSidebarToggle",
+        handleSidebarToggle
+      );
+    };
+  }, []);
 
   const loadPayments = useCallback(
     async (requestedPage: number) => {
@@ -159,48 +156,25 @@ export default function SubscriptionPaymentsPage() {
         setLoading(true);
         setError("");
 
-        const response =
-          await api.get<PaymentApiResponse>(
-            "/superadmin/subscription-payments",
-            {
-              params: {
-                page: requestedPage,
-                per_page: 20,
-                status:
-                  status || undefined,
-              },
-            }
-          );
-
-        setPayments(
-          response.data.data.data
+        const response = await api.get<PaymentApiResponse>(
+          "/superadmin/subscription-payments",
+          {
+            params: {
+              page: requestedPage,
+              per_page: PER_PAGE,
+              status: status || undefined,
+            },
+          }
         );
 
-        setSummary(
-          response.data.summary
-        );
-
-        setPage(
-          response.data.data
-            .current_page
-        );
-
-        setLastPage(
-          response.data.data.last_page
-        );
-
-        setTotal(
-          response.data.data.total
-        );
+        setPayments(response.data.data.data);
+        setSummary(response.data.summary);
+        setPage(response.data.data.current_page);
+        setLastPage(response.data.data.last_page);
+        setTotal(response.data.data.total);
       } catch (requestError) {
-        console.error(
-          "Payment history error:",
-          requestError
-        );
-
-        setError(
-          "Unable to load subscription payments."
-        );
+        console.error("Payment history error:", requestError);
+        setError("Unable to load subscription payments.");
       } finally {
         setLoading(false);
       }
@@ -215,244 +189,221 @@ export default function SubscriptionPaymentsPage() {
   const cards = [
     {
       label: "Paid",
-      value:
-        summary.status_counts.paid,
-      icon: "fa-circle-check",
-      color:
-        "bg-emerald-50 text-emerald-700",
+      value: summary.status_counts.paid,
+      icon: CheckCircle2,
+      color: "bg-green-50 text-green-700",
     },
     {
       label: "Pending",
-      value:
-        summary.status_counts.pending,
-      icon: "fa-clock",
-      color:
-        "bg-amber-50 text-amber-700",
+      value: summary.status_counts.pending,
+      icon: Clock,
+      color: "bg-amber-50 text-amber-700",
     },
     {
       label: "Failed",
-      value:
-        summary.status_counts.failed,
-      icon: "fa-circle-xmark",
-      color:
-        "bg-red-50 text-red-700",
+      value: summary.status_counts.failed,
+      icon: XCircle,
+      color: "bg-red-50 text-red-700",
     },
     {
       label: "Refunded",
-      value:
-        summary.status_counts.refunded,
-      icon: "fa-rotate-left",
-      color:
-        "bg-blue-50 text-blue-700",
+      value: summary.status_counts.refunded,
+      icon: RotateCcw,
+      color: "bg-blue-50 text-blue-700",
     },
   ];
 
+  const rangeStart = total === 0 ? 0 : (page - 1) * PER_PAGE + 1;
+  const rangeEnd = Math.min(page * PER_PAGE, total);
+
   return (
-    <div className="min-h-screen bg-slate-50 px-4 py-6 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-7xl">
-        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="mb-2 text-sm font-semibold uppercase tracking-wider text-violet-600">
-              Subscription billing
-            </p>
+    <div className="superadmin-layout">
+      <SuperAdminSidebar />
 
-            <h1 className="text-3xl font-bold text-slate-900">
-              Payments
-            </h1>
-
-            <p className="mt-2 text-sm text-slate-600">
-              View Razorpay subscription
-              payments received from
-              restaurants.
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={() =>
-              loadPayments(page)
-            }
-            className="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-violet-600"
-          >
-            <i className="fas fa-rotate mr-2" />
-            Refresh
-          </button>
-        </div>
-
-        <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {cards.map((card) => (
-            <div
-              key={card.label}
-              className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
-            >
-              <div
-                className={`mb-4 flex h-10 w-10 items-center justify-center rounded-xl ${card.color}`}
-              >
-                <i
-                  className={`fas ${card.icon}`}
-                />
-              </div>
-
-              <p className="text-sm text-slate-500">
-                {card.label}
+      <main
+        className={`superadmin-main-content ${
+          sidebarCollapsed ? "sidebar-collapsed-main" : "sidebar-expanded-main"
+        }`}
+      >
+        <div
+          className="overflow-x-hidden pt-20 sm:pt-24 lg:pt-3"
+          style={{ fontFamily: "'Inter', sans-serif" }}
+        >
+          <div className="mb-6 flex flex-col items-start gap-3 border-b border-gray-200 pb-5 md:flex-row md:items-center md:justify-between">
+            <div className="pl-px">
+              <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-violet-600">
+                Subscription billing
               </p>
 
-              <p className="mt-1 text-2xl font-bold text-slate-900">
-                {card.value}
+              <h1 className="text-xl font-bold text-gray-900 sm:text-2xl">
+                Payments
+              </h1>
+
+              <p className="mt-1 text-sm text-gray-500">
+                Razorpay subscription payments received from restaurants.
               </p>
             </div>
-          ))}
-        </div>
 
-        {summary
-          .paid_totals_by_currency
-          .length > 0 && (
-          <div className="mb-6 flex flex-wrap gap-3">
-            {summary
-              .paid_totals_by_currency
-              .map((item) => (
+            <div className="flex flex-wrap items-center gap-2">
+              <Link
+                href="/superadmin/subscriptions"
+                className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 no-underline shadow-sm transition-colors hover:border-violet-300 hover:bg-violet-50 hover:text-violet-700"
+              >
+                <ArrowLeft size={16} />
+                Back to Subscriptions
+              </Link>
+
+              <button
+                type="button"
+                onClick={() => loadPayments(page)}
+                disabled={loading}
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <RefreshCw
+                  size={16}
+                  className={loading ? "animate-spin" : ""}
+                />
+                Refresh
+              </button>
+            </div>
+          </div>
+
+          <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {cards.map((card) => {
+              const Icon = card.icon;
+
+              return (
+                <div
+                  key={card.label}
+                  className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm"
+                >
+                  <div
+                    className={`mb-4 flex h-10 w-10 items-center justify-center rounded-xl ${card.color}`}
+                  >
+                    <Icon size={18} />
+                  </div>
+
+                  <p className="text-sm text-gray-500">{card.label}</p>
+
+                  <p className="mt-1 text-2xl font-bold text-gray-900">
+                    {card.value}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+
+          {summary.paid_totals_by_currency.length > 0 && (
+            <div className="mb-6 flex flex-wrap gap-3">
+              {summary.paid_totals_by_currency.map((item) => (
                 <div
                   key={item.currency}
-                  className="rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-3"
+                  className="rounded-xl border border-green-200 bg-green-50 px-5 py-3"
                 >
-                  <p className="text-xs font-semibold uppercase text-emerald-600">
-                    Received in{" "}
-                    {item.currency}
+                  <p className="text-xs font-semibold uppercase text-green-600">
+                    Received in {item.currency}
                   </p>
 
-                  <p className="mt-1 text-xl font-bold text-emerald-800">
-                    {formatAmount(
-                      item.total_amount,
-                      item.currency
-                    )}
+                  <p className="mt-1 text-xl font-bold text-green-800">
+                    {formatAmount(item.total_amount, item.currency)}
                   </p>
                 </div>
               ))}
-          </div>
-        )}
+            </div>
+          )}
 
-        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <div className="flex flex-col gap-3 border-b border-slate-200 p-5 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h2 className="font-bold text-slate-900">
-                Payment History
-              </h2>
+          <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-md">
+            <div className="flex flex-col gap-3 border-b border-gray-100 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="font-semibold text-gray-900">
+                  Payment History
+                </h2>
 
-              <p className="mt-1 text-sm text-slate-500">
-                {total} payment records
-              </p>
+                <p className="mt-0.5 text-sm text-gray-500">
+                  {total} payment record{total === 1 ? "" : "s"}
+                </p>
+              </div>
+
+              <select
+                value={status}
+                onChange={(event) => setStatus(event.target.value)}
+                className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 outline-none focus:border-violet-500 focus:ring-4 focus:ring-violet-100"
+              >
+                <option value="">All statuses</option>
+                <option value="paid">Paid</option>
+                <option value="pending">Pending</option>
+                <option value="failed">Failed</option>
+                <option value="refunded">Refunded</option>
+              </select>
             </div>
 
-            <select
-              value={status}
-              onChange={(event) =>
-                setStatus(
-                    event.target.value
-                )
-                }
-              className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-violet-500"
-            >
-              <option value="">
-                All statuses
-              </option>
-              <option value="paid">
-                Paid
-              </option>
-              <option value="pending">
-                Pending
-              </option>
-              <option value="failed">
-                Failed
-              </option>
-              <option value="refunded">
-                Refunded
-              </option>
-            </select>
-          </div>
+            {loading ? (
+              <div className="flex flex-col items-center justify-center gap-3 p-16">
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-violet-200 border-t-violet-600" />
+                <p className="text-sm text-gray-500">Loading payments...</p>
+              </div>
+            ) : error ? (
+              <div className="flex flex-col items-center justify-center gap-3 p-16 text-center">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-50">
+                  <AlertTriangle size={22} className="text-red-500" />
+                </div>
+                <p className="text-sm text-gray-600">{error}</p>
+                <button
+                  type="button"
+                  onClick={() => loadPayments(page)}
+                  className="inline-flex items-center gap-2 rounded-lg bg-violet-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-violet-700"
+                >
+                  <RefreshCw size={15} />
+                  Retry
+                </button>
+              </div>
+            ) : payments.length === 0 ? (
+              <div className="p-16 text-center text-sm text-gray-500">
+                No payments found.
+              </div>
+            ) : (
+              <div className="scrollbar-hide overflow-x-auto">
+                <table className="w-full min-w-[950px] text-left text-sm">
+                  <thead>
+                    <tr className="border-b-2 border-gray-200 bg-gray-50 text-xs uppercase tracking-wider text-gray-500">
+                      <th className="px-5 py-3.5 font-semibold">
+                        Restaurant
+                      </th>
+                      <th className="px-5 py-3.5 font-semibold">Plan</th>
+                      <th className="px-5 py-3.5 font-semibold">Amount</th>
+                      <th className="px-5 py-3.5 font-semibold">Status</th>
+                      <th className="px-5 py-3.5 font-semibold">Method</th>
+                      <th className="px-5 py-3.5 font-semibold">
+                        Payment ID
+                      </th>
+                      <th className="px-5 py-3.5 font-semibold">Date</th>
+                    </tr>
+                  </thead>
 
-          {loading ? (
-            <div className="p-12 text-center text-slate-500">
-              <i className="fas fa-spinner fa-spin mr-2" />
-              Loading payments...
-            </div>
-          ) : error ? (
-            <div className="p-12 text-center text-red-600">
-              {error}
-            </div>
-          ) : payments.length === 0 ? (
-            <div className="p-12 text-center text-slate-500">
-              No payments found.
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[950px] text-left">
-                <thead className="bg-slate-50 text-xs uppercase text-slate-500">
-                  <tr>
-                    <th className="px-5 py-4">
-                      Restaurant
-                    </th>
-                    <th className="px-5 py-4">
-                      Plan
-                    </th>
-                    <th className="px-5 py-4">
-                      Amount
-                    </th>
-                    <th className="px-5 py-4">
-                      Status
-                    </th>
-                    <th className="px-5 py-4">
-                      Method
-                    </th>
-                    <th className="px-5 py-4">
-                      Payment ID
-                    </th>
-                    <th className="px-5 py-4">
-                      Date
-                    </th>
-                  </tr>
-                </thead>
-
-                <tbody className="divide-y divide-slate-100">
-                  {payments.map(
-                    (payment) => (
+                  <tbody className="divide-y divide-gray-100">
+                    {payments.map((payment) => (
                       <tr
                         key={payment.id}
-                        className="hover:bg-slate-50"
+                        className="transition-colors hover:bg-gray-50/80"
                       >
-                        <td className="px-5 py-4">
-                          <p className="font-semibold text-slate-900">
-                            {
-                              payment
-                                .restaurant
-                                .name
-                            }
+                        <td className="px-5 py-3.5">
+                          <p className="font-semibold text-gray-900">
+                            {payment.restaurant.name}
                           </p>
-
-                          <p className="text-xs text-slate-500">
-                            {
-                              payment
-                                .restaurant
-                                .email
-                            }
+                          <p className="text-xs text-gray-500">
+                            {payment.restaurant.email}
                           </p>
                         </td>
 
-                        <td className="px-5 py-4 font-medium text-slate-700">
-                          {
-                            payment
-                              .subscription
-                              .name
-                          }
+                        <td className="px-5 py-3.5 font-medium text-gray-700">
+                          {payment.subscription.name}
                         </td>
 
-                        <td className="px-5 py-4 font-bold text-slate-900">
-                          {formatAmount(
-                            payment.amount,
-                            payment.currency
-                          )}
+                        <td className="px-5 py-3.5 font-bold text-gray-900">
+                          {formatAmount(payment.amount, payment.currency)}
                         </td>
 
-                        <td className="px-5 py-4">
+                        <td className="px-5 py-3.5">
                           <span
                             className={`rounded-full px-3 py-1 text-xs font-bold uppercase ${statusClasses(
                               payment.status
@@ -462,61 +413,59 @@ export default function SubscriptionPaymentsPage() {
                           </span>
                         </td>
 
-                        <td className="px-5 py-4 text-sm capitalize text-slate-600">
-                          {payment.payment_method ||
-                            "—"}
+                        <td className="px-5 py-3.5 capitalize text-gray-600">
+                          {payment.payment_method || "—"}
                         </td>
 
-                        <td className="px-5 py-4 font-mono text-xs text-slate-500">
+                        <td className="px-5 py-3.5 font-mono text-xs text-gray-500">
                           {payment.provider_payment_id ||
                             payment.provider_order_id}
                         </td>
 
-                        <td className="px-5 py-4 text-sm text-slate-600">
-                          {formatDate(
-                            payment.paid_at ||
-                              payment.created_at
-                          )}
+                        <td className="px-5 py-3.5 text-gray-600">
+                          {formatDate(payment.paid_at || payment.created_at)}
                         </td>
                       </tr>
-                    )
-                  )}
-                </tbody>
-              </table>
-            </div>
-          )}
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
 
-          <div className="flex items-center justify-between border-t border-slate-200 p-4">
-            <button
-              type="button"
-              disabled={page <= 1}
-              onClick={() =>
-                loadPayments(page - 1)
-              }
-              className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              Previous
-            </button>
+            {!loading && !error && payments.length > 0 && (
+              <div className="flex flex-col items-center justify-between gap-3 border-t border-gray-100 px-4 py-3 sm:flex-row">
+                <p className="text-sm text-gray-500">
+                  Showing {rangeStart} to {rangeEnd} of {total} entries
+                </p>
 
-            <span className="text-sm text-slate-500">
-              Page {page} of {lastPage}
-            </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    disabled={page <= 1}
+                    onClick={() => loadPayments(page - 1)}
+                    className="inline-flex h-8 items-center justify-center rounded-lg border border-gray-200 bg-white px-3 text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    Previous
+                  </button>
 
-            <button
-              type="button"
-              disabled={
-                page >= lastPage
-              }
-              onClick={() =>
-                loadPayments(page + 1)
-              }
-              className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              Next
-            </button>
+                  <span className="px-1 text-sm text-gray-500">
+                    Page {page} of {lastPage}
+                  </span>
+
+                  <button
+                    type="button"
+                    disabled={page >= lastPage}
+                    onClick={() => loadPayments(page + 1)}
+                    className="inline-flex h-8 items-center justify-center rounded-lg border border-gray-200 bg-white px-3 text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

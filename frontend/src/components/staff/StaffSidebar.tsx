@@ -295,21 +295,41 @@ export default function StaffSidebar() {
     useState<StaffRole>("waiter");
 
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth <= 1024);
-    };
+    const mobileNow = window.innerWidth <= 1024;
 
-    checkMobile();
-
-    window.addEventListener("resize", checkMobile);
+    setIsMobile(mobileNow);
 
     const saved = localStorage.getItem(
       "staffSidebarCollapsed"
     );
 
-    if (saved === "true") {
+    /*
+    |--------------------------------------------------------------------------
+    | On mobile, the sidebar must start closed — otherwise the fixed
+    | full-screen overlay covers the dashboard on first load. Desktop
+    | respects the saved collapse preference instead.
+    |--------------------------------------------------------------------------
+    */
+
+    if (mobileNow) {
+      setCollapsed(true);
+    } else if (saved === "true") {
       setCollapsed(true);
     }
+
+    const checkMobile = () => {
+      setIsMobile((prevIsMobile) => {
+        const nowMobile = window.innerWidth <= 1024;
+
+        if (nowMobile && !prevIsMobile) {
+          setCollapsed(true);
+        }
+
+        return nowMobile;
+      });
+    };
+
+    window.addEventListener("resize", checkMobile);
 
     const user = localStorage.getItem("user");
 
@@ -407,6 +427,19 @@ export default function StaffSidebar() {
 
   return (
     <>
+      {/* Mobile menu trigger — lives outside the sidebar so it stays reachable
+          even when the sidebar is slid off-screen. */}
+      {isMobile && collapsed && (
+        <button
+          type="button"
+          className="owner-mobile-toggle"
+          onClick={toggleSidebar}
+          aria-label="Open menu"
+        >
+          <i className="fas fa-bars" />
+        </button>
+      )}
+
       {/* Mobile Overlay */}
       <div
         className={`sidebar-overlay ${
