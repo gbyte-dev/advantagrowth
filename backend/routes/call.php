@@ -17,7 +17,7 @@ use App\Http\Controllers\Api\Owner\HolidayController;
 use App\Http\Controllers\Api\POS\PosConnectionController;
 use App\Http\Controllers\Api\Owner\OwnerSubscriptionController;
 use App\Http\Controllers\Api\Owner\OwnerSubscriptionPaymentController;
-
+use App\Http\Controllers\Api\Owner\RecommendationController;
 
 
 /*
@@ -29,7 +29,10 @@ use App\Http\Controllers\Api\Owner\OwnerSubscriptionPaymentController;
 |
 */
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware([
+    'auth:sanctum',
+    'active.subscription',
+])->group(function () {
 
     /*
     |--------------------------------------------------------------------------
@@ -314,6 +317,27 @@ Route::middleware('auth:sanctum')->group(function () {
         'overview'
     ]);
 
+        /*
+    |--------------------------------------------------------------------------
+    | OWNER AI RECOMMENDATIONS
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get(
+        '/owner/recommendations',
+        [
+            RecommendationController::class,
+            'index',
+        ]
+    );
+
+    Route::post(
+        '/owner/recommendations/generate',
+        [
+            RecommendationController::class,
+            'generate',
+        ]
+    )->middleware('throttle:3,60');
 
     /*
     |--------------------------------------------------------------------------

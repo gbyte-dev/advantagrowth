@@ -13,6 +13,42 @@ return [
     | a conventional file to locate the various service credentials.
     |
     */
+        'openai' => [
+        'api_key' => env('OPENAI_API_KEY'),
+
+        'model' => env(
+            'OPENAI_MODEL',
+            'gpt-5.6-luna'
+        ),
+
+        'timeout' => (int) env(
+            'OPENAI_TIMEOUT',
+            90
+        ),
+    ],
+
+            'gemini' => [
+        'api_key' => env(
+            'GEMINI_API_KEY'
+        ),
+
+        'model' => env(
+            'GEMINI_MODEL',
+            'gemini-3.6-flash'
+        ),
+
+        'timeout' => (int) env(
+            'GEMINI_TIMEOUT',
+            180
+        ),
+    ],
+
+    'recommendation_ai' => [
+        'provider' => env(
+            'RECOMMENDATION_AI_PROVIDER',
+            'gemini'
+        ),
+    ],
 
     'postmark' => [
         'key' => env('POSTMARK_API_KEY'),

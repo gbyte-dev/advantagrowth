@@ -1,6 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import api from "@/lib/axios";
 import {
   confirmDialog,
@@ -133,6 +138,39 @@ export default function OwnerSubscriptionsPage() {
     setSubscribingPlanId,
   ] = useState<number | null>(null);
 
+  const plansTrackRef =
+    useRef<HTMLDivElement | null>(null);
+
+  const [plansScrollable, setPlansScrollable] =
+    useState(false);
+
+  const updatePlansScrollable =
+    useCallback(() => {
+      const el = plansTrackRef.current;
+
+      if (!el) {
+        return;
+      }
+
+      setPlansScrollable(
+        el.scrollWidth - el.clientWidth > 4
+      );
+    }, []);
+
+  const scrollPlans = (direction: 1 | -1) => {
+    const el = plansTrackRef.current;
+
+    if (!el) {
+      return;
+    }
+
+    el.scrollBy({
+      left:
+        direction * el.clientWidth * 0.8,
+      behavior: "smooth",
+    });
+  };
+
   const loadSubscriptions =
     useCallback(async () => {
       try {
@@ -167,6 +205,22 @@ export default function OwnerSubscriptionsPage() {
   useEffect(() => {
     loadSubscriptions();
   }, [loadSubscriptions]);
+
+  useEffect(() => {
+    updatePlansScrollable();
+
+    window.addEventListener(
+      "resize",
+      updatePlansScrollable
+    );
+
+    return () => {
+      window.removeEventListener(
+        "resize",
+        updatePlansScrollable
+      );
+    };
+  }, [plans, loading, error, updatePlansScrollable]);
 
  const handleSubscribe = async (
   plan: SubscriptionPlan
@@ -231,6 +285,17 @@ export default function OwnerSubscriptionsPage() {
         activatedSubscription
       );
 
+      window.dispatchEvent(
+      new CustomEvent(
+        "subscriptionUpdated",
+        {
+          detail: {
+            active: true,
+          },
+        }
+      )
+    );
+    
       showSuccess(
         response.data.message ||
           "Subscription activated successfully."
@@ -293,7 +358,16 @@ export default function OwnerSubscriptionsPage() {
             setCurrentSubscription(
               activatedSubscription
             );
-
+            window.dispatchEvent(
+            new CustomEvent(
+              "subscriptionUpdated",
+              {
+                detail: {
+                  active: true,
+                },
+              }
+            )
+          );
             showSuccess(
               verifyResponse.data.message ||
                 "Payment successful and subscription activated."
@@ -343,161 +417,195 @@ export default function OwnerSubscriptionsPage() {
 };
 
   return (
-    <div className="min-h-screen bg-slate-50 px-4 py-6 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-7xl">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-900">
-            Subscription Plans
-          </h1>
+    <div className="dashboard-page subscriptions-page">
+      <div className="dashboard-container">
+        <div className="subscriptions-header">
+          <div>
+            <h1>Subscription Plans</h1>
 
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-            View your current subscription and
-            choose the plan that fits your
-            restaurant.
-          </p>
+            <p>
+              View your current subscription and
+              choose the plan that fits your
+              restaurant.
+            </p>
+          </div>
         </div>
 
         {loading && (
-          <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-            <i className="fas fa-spinner fa-spin text-2xl text-emerald-600" />
+          <div className="subs-state-card">
+            <i className="fas fa-spinner fa-spin" />
 
-            <p className="mt-3 text-sm text-slate-600">
-              Loading subscription plans...
-            </p>
+            <p>Loading subscription plans...</p>
           </div>
         )}
 
         {!loading && error && (
-          <div className="rounded-2xl border border-red-200 bg-red-50 p-6">
-            <div className="flex items-start gap-3">
-              <i className="fas fa-circle-exclamation mt-1 text-red-600" />
+          <div className="subs-error-card">
+            <i className="fas fa-circle-exclamation" />
 
-              <div>
-                <h2 className="font-semibold text-red-900">
-                  Unable to load subscriptions
-                </h2>
+            <div>
+              <h2>Unable to load subscriptions</h2>
 
-                <p className="mt-1 text-sm text-red-700">
-                  {error}
-                </p>
+              <p>{error}</p>
 
-                <button
-                  type="button"
-                  onClick={loadSubscriptions}
-                  className="mt-4 rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700"
-                >
-                  Try Again
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={loadSubscriptions}
+                className="subs-retry-btn"
+              >
+                Try Again
+              </button>
             </div>
           </div>
         )}
 
         {!loading && !error && (
           <>
-            <section className="mb-10">
-              <div className="mb-4 flex items-center gap-2">
-                <i className="fas fa-crown text-amber-500" />
-
-                <h2 className="text-xl font-bold text-slate-900">
+            <section className="subs-section">
+              <div className="subs-section-head">
+                <h2>
+                  <i className="fas fa-crown" />
                   Current Plan
                 </h2>
               </div>
 
               {currentSubscription ? (
-                <div className="overflow-hidden rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-600 to-teal-700 text-white shadow-lg">
-                  <div className="grid gap-6 p-6 md:grid-cols-[1fr_auto] md:items-center lg:p-8">
-                    <div>
-                      <div className="mb-3 flex flex-wrap items-center gap-3">
-                        <h3 className="text-2xl font-bold">
+                <div className="current-plan-card">
+                  <div className="current-plan-main">
+                    <div className="current-plan-badge-row">
+                      <span className="current-plan-icon">
+                        <i className="fas fa-gem" />
+                      </span>
+
+                      <div>
+                        <h3>
                           {
                             currentSubscription
                               .subscription.name
                           }
                         </h3>
 
-                        <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-semibold uppercase tracking-wide">
-                          {
-                            currentSubscription.status
-                          }
+                        <span className="current-plan-status">
+                          {currentSubscription.status}
                         </span>
                       </div>
-
-                      <p className="max-w-2xl text-sm leading-6 text-emerald-50">
-                        {currentSubscription
-                          .subscription.description ||
-                          "Your restaurant subscription is currently active."}
-                      </p>
                     </div>
 
-                    <div className="min-w-52 rounded-xl bg-white/10 p-4 backdrop-blur">
-                      <div className="mb-3">
-                        <p className="text-xs uppercase tracking-wide text-emerald-100">
-                          Started
-                        </p>
+                    <p className="current-plan-desc">
+                      {currentSubscription
+                        .subscription.description ||
+                        "Your restaurant subscription is currently active."}
+                    </p>
 
-                        <p className="mt-1 font-semibold">
-                          {formatDate(
-                            currentSubscription.starts_at
-                          )}
-                        </p>
-                      </div>
+                    <div className="current-plan-price">
+                      <span className="amount">
+                        {formatPrice(
+                          currentSubscription
+                            .subscription.price,
+                          currentSubscription
+                            .subscription.currency
+                        )}
+                      </span>
 
-                      <div>
-                        <p className="text-xs uppercase tracking-wide text-emerald-100">
-                          Valid until
-                        </p>
+                      <span className="interval">
+                        {intervalLabel(
+                          currentSubscription.subscription
+                        )}
+                      </span>
+                    </div>
+                  </div>
 
-                        <p className="mt-1 font-semibold">
-                          {formatDate(
-                            currentSubscription.expires_at
-                          )}
-                        </p>
-                      </div>
+                  <div className="current-plan-meta">
+                    <div className="current-plan-meta-item">
+                      <span className="label">
+                        <i className="fas fa-calendar-check" />
+                        Started
+                      </span>
+
+                      <span className="value">
+                        {formatDate(
+                          currentSubscription.starts_at
+                        )}
+                      </span>
+                    </div>
+
+                    <div className="current-plan-meta-item">
+                      <span className="label">
+                        <i className="fas fa-hourglass-half" />
+                        Valid until
+                      </span>
+
+                      <span className="value">
+                        {formatDate(
+                          currentSubscription.expires_at
+                        )}
+                      </span>
+                    </div>
+
+                    <div className="current-plan-meta-item">
+                      <span className="label">
+                        <i className="fas fa-rotate" />
+                        Auto renew
+                      </span>
+
+                      <span className="value">
+                        {currentSubscription.auto_renew
+                          ? "On"
+                          : "Off"}
+                      </span>
                     </div>
                   </div>
                 </div>
               ) : (
-                <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center">
-                  <i className="fas fa-receipt text-3xl text-slate-300" />
+                <div className="subs-empty-card">
+                  <i className="fas fa-receipt" />
 
-                  <h3 className="mt-3 font-semibold text-slate-900">
-                    No active subscription
-                  </h3>
+                  <h3>No active subscription</h3>
 
-                  <p className="mt-1 text-sm text-slate-500">
-                    Select one of the available
-                    plans below.
+                  <p>
+                    Select one of the available plans
+                    below.
                   </p>
                 </div>
               )}
             </section>
 
-            <section>
-              <div className="mb-5">
-                <h2 className="text-xl font-bold text-slate-900">
+            <section className="subs-section">
+              <div className="subs-section-head">
+                <h2>
+                  <i className="fas fa-layer-group" />
                   Available Plans
                 </h2>
 
-                <p className="mt-1 text-sm text-slate-600">
-                  Only active plans are shown here.
-                </p>
+                <p>Only active plans are shown here.</p>
               </div>
 
               {plans.length === 0 ? (
-                <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-                  <i className="fas fa-box-open text-3xl text-slate-300" />
+                <div className="subs-empty-card">
+                  <i className="fas fa-box-open" />
 
-                  <h3 className="mt-3 font-semibold text-slate-900">
-                    No plans available
-                  </h3>
+                  <h3>No plans available</h3>
 
-                  <p className="mt-1 text-sm text-slate-500">
-                    Please check again later.
-                  </p>
+                  <p>Please check again later.</p>
                 </div>
               ) : (
-                <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                <div
+                  className="plan-carousel"
+                  data-scrollable={plansScrollable}
+                >
+                  <button
+                    type="button"
+                    className="plan-carousel-nav plan-carousel-prev"
+                    onClick={() => scrollPlans(-1)}
+                    aria-label="Previous plans"
+                  >
+                    <i className="fas fa-chevron-left" />
+                  </button>
+
+                  <div
+                    className="plan-track"
+                    ref={plansTrackRef}
+                  >
                   {plans.map((plan) => {
                     const isCurrent =
                       currentSubscription
@@ -511,47 +619,44 @@ export default function OwnerSubscriptionsPage() {
                     return (
                       <article
                         key={plan.id}
-                        className={`relative flex flex-col rounded-2xl border bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg ${
+                        className={`plan-card ${
                           isCurrent
-                            ? "border-emerald-400 ring-2 ring-emerald-100"
-                            : "border-slate-200"
+                            ? "plan-card-current"
+                            : ""
                         }`}
                       >
                         {isCurrent && (
-                          <span className="absolute right-4 top-4 rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-700">
+                          <span className="plan-card-tag">
                             Current Plan
                           </span>
                         )}
 
-                        <div className="mb-5">
-                          <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
-                            <i className="fas fa-gem" />
-                          </div>
-
-                          <h3 className="pr-24 text-xl font-bold text-slate-900">
-                            {plan.name}
-                          </h3>
-
-                          <p className="mt-3 min-h-12 text-sm leading-6 text-slate-600">
-                            {plan.description ||
-                              "Subscription plan for your restaurant."}
-                          </p>
+                        <div className="plan-card-icon">
+                          <i className="fas fa-gem" />
                         </div>
 
-                        <div className="mb-6">
-                          <div className="flex items-end gap-2">
-                            <span className="text-3xl font-bold text-slate-900">
-                              {formatPrice(
-                                plan.price,
-                                plan.currency
-                              )}
-                            </span>
-                          </div>
+                        <h3 className="plan-card-name">
+                          {plan.name}
+                        </h3>
 
-                          <p className="mt-1 text-sm text-slate-500">
+                        <p className="plan-card-desc">
+                          {plan.description ||
+                            "Subscription plan for your restaurant."}
+                        </p>
+
+                        <div className="plan-card-price">
+                          <span className="amount">
+                            {formatPrice(
+                              plan.price,
+                              plan.currency
+                            )}
+                          </span>
+
+                          <span className="interval">
                             {intervalLabel(plan)}
-                          </p>
+                          </span>
                         </div>
+
                         <button
                           type="button"
                           disabled={
@@ -561,10 +666,10 @@ export default function OwnerSubscriptionsPage() {
                           onClick={() =>
                             handleSubscribe(plan)
                           }
-                          className={`mt-auto w-full rounded-xl px-4 py-3 text-sm font-bold transition ${
+                          className={`plan-card-btn ${
                             isCurrent
-                              ? "cursor-not-allowed bg-emerald-50 text-emerald-700"
-                              : "bg-slate-900 text-white hover:bg-emerald-600 disabled:cursor-not-allowed disabled:opacity-60"
+                              ? "plan-card-btn-current"
+                              : ""
                           }`}
                         >
                           {isSubmitting ? (
@@ -587,6 +692,16 @@ export default function OwnerSubscriptionsPage() {
                       </article>
                     );
                   })}
+                  </div>
+
+                  <button
+                    type="button"
+                    className="plan-carousel-nav plan-carousel-next"
+                    onClick={() => scrollPlans(1)}
+                    aria-label="Next plans"
+                  >
+                    <i className="fas fa-chevron-right" />
+                  </button>
                 </div>
               )}
             </section>
