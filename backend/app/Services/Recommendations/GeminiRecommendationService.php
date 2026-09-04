@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use JsonException;
 use RuntimeException;
+use Illuminate\Http\Client\RequestException;
+
 
 class GeminiRecommendationService
 {
@@ -33,7 +35,7 @@ class GeminiRecommendationService
             30,
             (int) config(
                 'services.gemini.timeout',
-                90
+                180
             )
         );
 
@@ -61,6 +63,37 @@ class GeminiRecommendationService
             ->asJson()
             ->connectTimeout(15)
             ->timeout($timeout)
+            ->retry(
+                [
+                    2000,
+                    5000,
+                ],
+                function (
+                    \Exception $exception
+                ): bool {
+                    if (
+                        !$exception instanceof
+                            RequestException
+                    ) {
+                        return false;
+                    }
+
+                    return in_array(
+                        $exception
+                            ->response
+                            ->status(),
+                        [
+                            429,
+                            500,
+                            502,
+                            503,
+                            504,
+                        ],
+                        true
+                    );
+                },
+                throw: false
+            )
             ->post(
                 $endpoint,
                 [

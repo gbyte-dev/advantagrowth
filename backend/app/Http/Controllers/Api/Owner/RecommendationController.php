@@ -29,88 +29,197 @@ class RecommendationController extends Controller
     */
 
     public function index(
-        Request $request
-    ): JsonResponse {
-        $restaurantId =
-            $this->restaurantId(
-                $request
-            );
+    Request $request
+): JsonResponse {
+    $restaurantId =
+        $this->restaurantId(
+            $request
+        );
 
-        if (!$restaurantId) {
-            return response()->json([
-                'success' => false,
-                'message' =>
-                    'Restaurant not found for this owner.',
-            ], 422);
-        }
-
-        $latestGeneration =
-            RecommendationGeneration::query()
-                ->where(
-                    'restaurant_id',
-                    $restaurantId
-                )
-                ->where(
-                    'status',
-                    RecommendationGeneration::STATUS_COMPLETED
-                )
-                ->with([
-                    'recommendations' =>
-                        function ($query) {
-                            $query
-                                ->orderByRaw(
-                                    "CASE priority
-                                        WHEN 'high' THEN 1
-                                        WHEN 'medium' THEN 2
-                                        WHEN 'low' THEN 3
-                                        ELSE 4
-                                    END"
-                                )
-                                ->orderByDesc(
-                                    'confidence'
-                                )
-                                ->orderBy('id');
-                        },
-                ])
-                ->latest('generated_at')
-                ->latest('id')
-                ->first();
-
-        $latestAttempt =
-            RecommendationGeneration::query()
-                ->where(
-                    'restaurant_id',
-                    $restaurantId
-                )
-                ->latest('id')
-                ->first([
-                    'id',
-                    'status',
-                    'generated_at',
-                    'failed_at',
-                    'failure_reason',
-                    'created_at',
-                ]);
-
+    if (!$restaurantId) {
         return response()->json([
-            'success' => true,
+            'success' => false,
 
             'message' =>
-                $latestGeneration
-                    ? 'Recommendations fetched successfully.'
-                    : 'No recommendations have been generated yet.',
-
-            'data' => [
-                'generation' =>
-                    $this->formatGeneration(
-                        $latestGeneration
-                    ),
-
-                'latest_attempt' =>
-                    $latestAttempt,
-            ],
-        ]);
+                'Restaurant not found for this owner.',
+        ], 422);
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Pagination
+    |--------------------------------------------------------------------------
+    */
+
+    $request->validate([
+        'page' => [
+            'nullable',
+            'integer',
+            'min:1',
+        ],
+
+        'per_page' => [
+            'nullable',
+            'integer',
+            'min:1',
+            'max:20',
+        ],
+    ]);
+
+    $page = max(
+        1,
+        (int) $request->query(
+            'page',
+            1
+        )
+    );
+
+    $perPage = min(
+        20,
+        max(
+            1,
+            (int) $request->query(
+                'per_page',
+                5
+            )
+        )
+    );
+
+    /*
+    |--------------------------------------------------------------------------
+    | Successful generation history
+    |--------------------------------------------------------------------------
+    */
+
+    $paginator =
+        RecommendationGeneration::query()
+            ->where(
+                'restaurant_id',
+                $restaurantId
+            )
+            ->where(
+                'status',
+                RecommendationGeneration::STATUS_COMPLETED
+            )
+            ->with([
+                'recommendations' =>
+                    function ($query) {
+                        $query
+                            ->orderByRaw(
+                                "CASE priority
+                                    WHEN 'high' THEN 1
+                                    WHEN 'medium' THEN 2
+                                    WHEN 'low' THEN 3
+                                    ELSE 4
+                                END"
+                            )
+                            ->orderByDesc(
+                                'confidence'
+                            )
+                            ->orderBy('id');
+                    },
+            ])
+            ->latest(
+                'generated_at'
+            )
+            ->latest('id')
+            ->paginate(
+                $perPage,
+                ['*'],
+                'page',
+                $page
+            );
+
+    $generations =
+        $paginator
+            ->getCollection()
+            ->map(
+                fn (
+                    RecommendationGeneration $generation
+                ) =>
+                    $this->formatGeneration(
+                        $generation
+                    )
+            )
+            ->values()
+            ->all();
+
+    /*
+    |--------------------------------------------------------------------------
+    | Latest attempt including failed/pending
+    |--------------------------------------------------------------------------
+    */
+
+    $latestAttempt =
+        RecommendationGeneration::query()
+            ->where(
+                'restaurant_id',
+                $restaurantId
+            )
+            ->latest('id')
+            ->first([
+                'id',
+                'status',
+                'generated_at',
+                'failed_at',
+                'failure_reason',
+                'created_at',
+            ]);
+
+    return response()->json([
+        'success' => true,
+
+        'message' =>
+            count($generations) > 0
+                ? 'Recommendation history fetched successfully.'
+                : 'No recommendations have been generated yet.',
+
+        'data' => [
+            /*
+             * Backward compatibility:
+             * existing frontend/tests can still read
+             * data.generation.
+             */
+
+            'generation' =>
+                $generations[0]
+                ?? null,
+
+            /*
+             * Complete page of history:
+             * newest generation first.
+             */
+
+            'generations' =>
+                $generations,
+
+            'pagination' => [
+                'current_page' =>
+                    $paginator
+                        ->currentPage(),
+
+                'last_page' =>
+                    $paginator
+                        ->lastPage(),
+
+                'per_page' =>
+                    $paginator
+                        ->perPage(),
+
+                'total' =>
+                    $paginator
+                        ->total(),
+
+                'has_more' =>
+                    $paginator
+                        ->hasMorePages(),
+            ],
+
+            'latest_attempt' =>
+                $latestAttempt,
+        ],
+    ]);
+}
 
     /*
     |--------------------------------------------------------------------------

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import api from "@/lib/axios";
+import Link from "next/link";
 
 // =========================================================
 // TYPES
@@ -85,27 +86,35 @@ type AnalyticsResponse = {
 };
 
 // =========================================================
-// TEMP AI RECOMMENDATIONS
+// AI RECOMMENDATION TYPES
 // =========================================================
 
-const recommendations = [
-  {
-    title:
-      "AI recommendations coming soon",
+type DashboardRecommendation = {
+  id: number;
+  title: string;
+  category:
+  | "Operations"
+  | "Menu"
+  | "Marketing"
+  | "Inventory";
+  description: string;
+  problem: string;
+  solution: string;
+  expected_impact: string;
+};
 
-    confidence:
-      "medium",
+type RecommendationApiResponse = {
+  success: boolean;
 
-    description:
-      "Your real sales and menu data is now being collected for analytics.",
+  data: {
+    generation: {
+      id: number;
 
-    action:
-      "Continue syncing POS data so AI can identify meaningful patterns.",
-
-    impact:
-      "More historical data will improve the quality of future recommendations.",
-  },
-];
+      recommendations:
+      DashboardRecommendation[];
+    } | null;
+  };
+};
 
 // =========================================================
 // DATE HELPERS
@@ -209,6 +218,22 @@ export default function DashboardPage() {
     useState(
       getToday()
     );
+
+  // =========================================================
+  // AI RECOMMENDATION STATE
+  // =========================================================
+
+  const [
+    aiRecommendations,
+    setAiRecommendations,
+  ] = useState<
+    DashboardRecommendation[]
+  >([]);
+
+  const [
+    recommendationsLoading,
+    setRecommendationsLoading,
+  ] = useState(true);
 
   // =========================================================
   // LOAD ANALYTICS
@@ -349,10 +374,67 @@ export default function DashboardPage() {
     }
   }, [activeTab]);
 
+    // =========================================================
+  // LOAD LATEST AI RECOMMENDATIONS
+  // =========================================================
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadRecommendations =
+      async () => {
+        try {
+          setRecommendationsLoading(
+            true
+          );
+
+          const response =
+            await api.get<RecommendationApiResponse>(
+              "/owner/recommendations"
+            );
+
+          const items =
+            response.data.data
+              ?.generation
+              ?.recommendations ||
+            [];
+
+          if (!cancelled) {
+            setAiRecommendations(
+              items.slice(0, 3)
+            );
+          }
+        } catch (requestError) {
+          console.error(
+            "Dashboard AI recommendation error:",
+            requestError
+          );
+
+          if (!cancelled) {
+            setAiRecommendations(
+              []
+            );
+          }
+        } finally {
+          if (!cancelled) {
+            setRecommendationsLoading(
+              false
+            );
+          }
+        }
+      };
+
+    loadRecommendations();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   // =========================================================
   // CUSTOM DATE RANGE
   // =========================================================
-
+  
   const applyCustomRange =
     () => {
       if (
@@ -662,9 +744,9 @@ export default function DashboardPage() {
               <button
                 type="button"
                 className={`tab ${activeTab ===
-                    "day"
-                    ? "active"
-                    : ""
+                  "day"
+                  ? "active"
+                  : ""
                   }`}
                 onClick={() => {
                   setShowDateFilter(
@@ -682,9 +764,9 @@ export default function DashboardPage() {
               <button
                 type="button"
                 className={`tab ${activeTab ===
-                    "week"
-                    ? "active"
-                    : ""
+                  "week"
+                  ? "active"
+                  : ""
                   }`}
                 onClick={() => {
                   setShowDateFilter(
@@ -702,9 +784,9 @@ export default function DashboardPage() {
               <button
                 type="button"
                 className={`tab ${activeTab ===
-                    "month"
-                    ? "active"
-                    : ""
+                  "month"
+                  ? "active"
+                  : ""
                   }`}
                 onClick={() => {
                   setShowDateFilter(
@@ -728,9 +810,9 @@ export default function DashboardPage() {
               <button
                 type="button"
                 className={`dashboard-date-button ${activeTab ===
-                    "custom"
-                    ? "dashboard-date-button-active"
-                    : ""
+                  "custom"
+                  ? "dashboard-date-button-active"
+                  : ""
                   }`}
                 onClick={() =>
                   setShowDateFilter(
@@ -980,10 +1062,10 @@ export default function DashboardPage() {
 
             <div
               className={`stat-change ${currentStats
-                  .revenue_change >=
-                  0
-                  ? "positive"
-                  : "negative"
+                .revenue_change >=
+                0
+                ? "positive"
+                : "negative"
                 }`}
             >
               {currentStats
@@ -1018,10 +1100,10 @@ export default function DashboardPage() {
 
             <div
               className={`stat-change ${currentStats
-                  .orders_change >=
-                  0
-                  ? "positive"
-                  : "negative"
+                .orders_change >=
+                0
+                ? "positive"
+                : "negative"
                 }`}
             >
               {currentStats
@@ -1056,10 +1138,10 @@ export default function DashboardPage() {
 
             <div
               className={`stat-change ${currentStats
-                  .average_order_value_change >=
-                  0
-                  ? "positive"
-                  : "negative"
+                .average_order_value_change >=
+                0
+                ? "positive"
+                : "negative"
                 }`}
             >
               {currentStats
@@ -1537,95 +1619,119 @@ export default function DashboardPage() {
 
         </div>
 
-        {/* =====================================================
+                {/* =====================================================
             AI RECOMMENDATIONS
         ===================================================== */}
 
         <div className="ai-recommendations-section">
-
           <div className="ai-recommendations-header">
+            <div>
+              <h2 className="section-title">
+                AI Recommendations
+              </h2>
 
-            <h2 className="section-title">
-              AI Recommendations
-            </h2>
+              <p className="dashboard-subtitle">
+                Latest insights generated from your
+               cis restaurant&apos;s performance data.
+              </p>
+            </div>
 
-            <span className="ai-badge">
-              AI Powered
-            </span>
+            <div className="flex items-center gap-3">
+              <span className="ai-badge">
+                AI Powered
+              </span>
 
+              <Link
+                href="/dashboard/recommendations"
+                className="primary-btn"
+              >
+                View All
+
+                <i className="fas fa-arrow-right" />
+              </Link>
+            </div>
           </div>
 
           <div className="recommendations-grid-full">
-
-            {recommendations.map(
-              (
-                rec,
-                index
-              ) => (
-
-                <div
-                  className="recommendation-card-full"
-                  key={
-                    index
-                  }
-                >
-
-                  <div className="recommendation-header">
-
-                    <h4 className="recommendation-title">
-                      {
-                        rec.title
-                      }
-                    </h4>
-
-                    <span
-                      className={`confidence-badge ${rec.confidence}`}
-                    >
-                      {
-                        rec.confidence
-                      }{" "}
-                      confidence
-                    </span>
-
-                  </div>
-
-                  <p className="recommendation-description">
-                    {
-                      rec.description
-                    }
-                  </p>
-
-                  <div className="recommendation-action">
-
-                    <strong>
-                      Suggested Action:
-                    </strong>{" "}
-
-                    {
-                      rec.action
-                    }
-
-                  </div>
-
-                  <div className="recommendation-impact">
-
-                    <strong>
-                      Expected Impact:
-                    </strong>{" "}
-
-                    {
-                      rec.impact
-                    }
-
-                  </div>
-
+            {recommendationsLoading ? (
+              <div className="recommendation-card-full">
+                <div className="recommendation-header">
+                  <h4 className="recommendation Insurance-title">
+                    <i className="fas fa-spinner fa-spin" />{" "}
+                    Loading recommendations
+                  </h4>
                 </div>
 
+                <p className="recommendation-description">
+                  Fetching your latest saved AI
+                  recommendations.
+                </p>
+              </div>
+            ) : aiRecommendations.length === 0 ? (
+              <div className="recommendation-card-full">
+                <div className="recommendation-header">
+                  <h4 className="recommendation-title">
+                    No recommendations yet
+                  </h4>
+                </div>
+
+                <p className="recommendation-description">
+                  Generate recommendations after syncing
+                  enough POS order data.
+                </p>
+
+                <Link
+                  href="/dashboard/recommendations"
+                  className="primary-btn"
+                >
+                  Open Recommendations
+
+                  <i className="fas fa-arrow-right" />
+                </Link>
+              </div>
+            ) : (
+              aiRecommendations.map(
+                (recommendation) => (
+                  <article
+                    key={recommendation.id}
+                    className="recommendation-card-full"
+                  >
+                    <div className="recommendation-header">
+                      <h4 className="recommendation-title">
+                        {recommendation.title}
+                      </h4>
+
+                      <span
+                        className={`recommendation-category category-${recommendation.category.toLowerCase()}`}
+                      >
+                        {recommendation.category}
+                      </span>
+                    </div>
+
+                    <p className="recommendation-description">
+                      {recommendation.description}
+                    </p>
+
+                    <div className="recommendation-action">
+                      <strong>
+                        Problem:
+                      </strong>{" "}
+
+                      {recommendation.problem}
+                    </div>
+
+                    <div className="recommendation-impact">
+                      <strong>
+                        Solution:
+                      </strong>{" "}
+
+                      {recommendation.solution}
+                    </div>
+                  </article>
+                )
               )
             )}
-
           </div>
-
         </div>
 
       </div>
