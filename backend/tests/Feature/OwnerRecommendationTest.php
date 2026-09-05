@@ -140,6 +140,77 @@ class OwnerRecommendationTest extends TestCase
         ];
     }
 
+    private function createRecommendation(
+        Restaurant $restaurant,
+        string $suffix = 'one'
+    ): Recommendation {
+        $generation =
+            RecommendationGeneration::create([
+                'restaurant_id' =>
+                    $restaurant->id,
+
+                'status' =>
+                    RecommendationGeneration::STATUS_COMPLETED,
+
+                'period_start' =>
+                    '2026-08-05',
+
+                'period_end' =>
+                    '2026-09-03',
+
+                'model' =>
+                    'gemini-3.6-flash',
+
+                'summary' => [
+                    'headline' =>
+                        "Feedback headline {$suffix}",
+
+                    'overview' =>
+                        "Feedback overview {$suffix}",
+
+                    'focus_area' =>
+                        'Operations',
+                ],
+
+                'generated_at' =>
+                    now(),
+            ]);
+
+        return $generation
+            ->recommendations()
+            ->create([
+                'restaurant_id' =>
+                    $restaurant->id,
+
+                'category' =>
+                    'Operations',
+
+                'priority' =>
+                    'high',
+
+                'confidence' =>
+                    85,
+
+                'title' =>
+                    "Feedback recommendation {$suffix}",
+
+                'description' =>
+                    'Feedback recommendation description.',
+
+                'problem' =>
+                    'Feedback recommendation problem.',
+
+                'solution' =>
+                    'Feedback recommendation solution.',
+
+                'expected_impact' =>
+                    'Feedback recommendation impact.',
+
+                'status' =>
+                    Recommendation::STATUS_ACTIVE,
+            ]);
+    }
+
     private function analyticsSnapshot(
         bool $hasEnoughData = true
     ): array {
@@ -354,6 +425,18 @@ class OwnerRecommendationTest extends TestCase
 
                     'expected_impact' =>
                         'More orders can reach completion.',
+                                            'evidence' => [
+                        [
+                            'source_path' =>
+                                'order_status.cancelled',
+
+                            'label' =>
+                                'Cancelled orders',
+
+                            'value' =>
+                                '2',
+                        ],
+                    ],
                 ],
                 [
                     'title' =>
@@ -379,6 +462,18 @@ class OwnerRecommendationTest extends TestCase
 
                     'expected_impact' =>
                         'Improved visibility for complementary products.',
+                                            'evidence' => [
+                        [
+                            'source_path' =>
+                                'top_products.0.name',
+
+                            'label' =>
+                                'Top product',
+
+                            'value' =>
+                                'Cheeseburger',
+                        ],
+                    ],
                 ],
                 [
                     'title' =>
@@ -404,6 +499,18 @@ class OwnerRecommendationTest extends TestCase
 
                     'expected_impact' =>
                         'A clearer and more effective menu.',
+                                            'evidence' => [
+                        [
+                            'source_path' =>
+                                'low_products.0.name',
+
+                            'label' =>
+                                'Low-selling product',
+
+                            'value' =>
+                                'Waffle Fries',
+                        ],
+                    ],
                 ],
             ],
 
@@ -936,4 +1043,181 @@ class OwnerRecommendationTest extends TestCase
                     'Other restaurant recommendation',
             ]);
     }
+
+        public function test_owner_can_save_recommendation_feedback(): void
+    {
+        [$restaurant, $user] =
+            $this->createOwner(
+                'fs'
+            );
+
+        $recommendation =
+            $this->createRecommendation(
+                $restaurant,
+                'fs'
+            );
+
+        Sanctum::actingAs(
+            $user
+        );
+
+        $this->putJson(
+            "/api/owner/recommendations/{$recommendation->id}/feedback",
+            [
+                'feedback' =>
+                    'useful',
+            ]
+        )
+            ->assertOk()
+            ->assertJsonPath(
+                'success',
+                true
+            )
+            ->assertJsonPath(
+                'data.feedback.recommendation_id',
+                $recommendation->id
+            )
+            ->assertJsonPath(
+                'data.feedback.value',
+                'useful'
+            );
+
+        $this->assertDatabaseHas(
+            'recommendation_feedback',
+            [
+                'restaurant_id' =>
+                    $restaurant->id,
+
+                'recommendation_id' =>
+                    $recommendation->id,
+
+                'user_id' =>
+                    $user->id,
+
+                'feedback' =>
+                    'useful',
+            ]
+        );
+
+        /*
+         * Saved feedback must be returned
+         * with recommendation history.
+         */
+
+        $this->getJson(
+            '/api/owner/recommendations'
+        )
+            ->assertOk()
+            ->assertJsonPath(
+                'data.generation.recommendations.0.user_feedback',
+                'useful'
+            );
+    }
+
+    public function test_repeated_feedback_updates_the_existing_record(): void
+    {
+        [$restaurant, $user] =
+            $this->createOwner(
+                'fu'
+            );
+
+        $recommendation =
+            $this->createRecommendation(
+                $restaurant,
+                'fu'
+            );
+
+        Sanctum::actingAs(
+            $user
+        );
+
+        $url =
+            "/api/owner/recommendations/{$recommendation->id}/feedback";
+
+        $this->putJson(
+            $url,
+            [
+                'feedback' =>
+                    'useful',
+            ]
+        )->assertOk();
+
+        $this->putJson(
+            $url,
+            [
+                'feedback' =>
+                    'not_useful',
+            ]
+        )
+            ->assertOk()
+            ->assertJsonPath(
+                'data.feedback.value',
+                'not_useful'
+            );
+
+        $this->assertDatabaseCount(
+            'recommendation_feedback',
+            1
+        );
+
+        $this->assertDatabaseHas(
+            'recommendation_feedback',
+            [
+                'recommendation_id' =>
+                    $recommendation->id,
+
+                'user_id' =>
+                    $user->id,
+
+                'feedback' =>
+                    'not_useful',
+            ]
+        );
+    }
+
+    public function test_owner_cannot_feedback_on_another_restaurants_recommendation(): void
+    {
+        [, $user] =
+            $this->createOwner(
+                'fp'
+            );
+
+        [$otherRestaurant] =
+            $this->createOwner(
+                'fo'
+            );
+
+        $otherRecommendation =
+            $this->createRecommendation(
+                $otherRestaurant,
+                'fo'
+            );
+
+        Sanctum::actingAs(
+            $user
+        );
+
+        $this->putJson(
+            "/api/owner/recommendations/{$otherRecommendation->id}/feedback",
+            [
+                'feedback' =>
+                    'useful',
+            ]
+        )
+            ->assertNotFound()
+            ->assertJsonPath(
+                'success',
+                false
+            )
+            ->assertJsonPath(
+                'message',
+                'Recommendation not found.'
+            );
+
+        $this->assertDatabaseCount(
+            'recommendation_feedback',
+            0
+        );
+    }
+
 }

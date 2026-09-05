@@ -26,6 +26,11 @@ type RecommendationPriority =
 type RecommendationFeedbackValue =
   | "useful"
   | "not_useful";
+type RecommendationEvidence = {
+  source_path: string;
+  label: string;
+  value: string;
+};
 
 type Recommendation = {
   id: number;
@@ -37,8 +42,9 @@ type Recommendation = {
   problem: string;
   solution: string;
   expected_impact: string;
+  evidence: RecommendationEvidence[];
+  evidence_verified: boolean;
   status: string;
-
   user_feedback:
   | RecommendationFeedbackValue
   | null;
@@ -306,6 +312,15 @@ function RecommendationDetails({
         </div>
       </div>
 
+        {data.recommendation
+          .evidence_verified && (
+          <div className="mt-3 inline-flex items-center gap-2 rounded-lg bg-emerald-50 px-2.5 py-1.5 text-xs font-bold text-emerald-700">
+            <i className="fas fa-check-circle" />
+
+            Verified against business data
+          </div>
+        )}
+            
       {/* Reason / supporting data */}
 
       <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4">

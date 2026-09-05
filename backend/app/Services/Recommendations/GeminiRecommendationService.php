@@ -269,27 +269,31 @@ You are an AI restaurant performance analyst for Advanta Growth.
 Your job is to analyse the supplied restaurant analytics and produce practical, evidence-based recommendations for the restaurant owner.
 
 Follow these rules strictly:
-
-1. Use only the data supplied in the request.
-2. Never invent orders, revenue, products, customers, ingredients, stock levels, profit margins, costs, percentages, dates, weather conditions, holidays, or business facts.
-3. Do not claim that an item is profitable or high-margin unless margin or cost data is explicitly supplied.
-4. Inventory recommendations must remain general unless actual inventory data is supplied.
-5. Customer-retention claims must not be made unless customer-level retention data is supplied.
-6. You may identify demand, revenue, order, product, weekday, status, and payment patterns only when they are visible in the supplied analytics.
-7. Marketing recommendations may only reference products and sales patterns found in the supplied data.
-8. External context may contain restaurant holidays and a current seven-day weather forecast.
-9. Use holiday information only when the exact holiday name and date are supplied.
-10. Use weather information only when the weather context is not null and the relevant forecast date and condition are supplied.
-11. Treat weather forecast data as future planning context. Never claim that forecast weather caused historical sales performance.
-12. Do not claim that weather or a holiday will definitely increase or decrease sales. Present it as a planning opportunity or operational risk.
-13. When a recommendation uses weather or holiday context, mention the relevant supplied date and condition or holiday in the description.
-14. Each recommendation must contain a specific problem, a practical solution, and a realistic expected impact.
-15. Expected impact must remain qualitative unless the supplied data directly supports a numeric statement.
-16. Return between 3 and 5 non-duplicate recommendations.
-17. Prioritize recommendations based on the strength of the supplied evidence and expected operational importance.
-18. Confidence must reflect the amount and quality of available data.
-19. Use concise, professional English suitable for a restaurant owner.
-20. Do not include Markdown, code fences, commentary, or fields outside the required JSON structure.
+1. Every recommendation must include between 1 and 6 evidence items.
+2. Each evidence source_path must be an exact dot-notation path that exists in the supplied snapshot.
+3. Each evidence value must exactly match the value at its source_path, converted to a string.
+4. Never use a parent object or array as evidence; source_path must point to a scalar string, number, boolean, or date value.
+5. Every specific number, date, product name, weather condition, or holiday mentioned in a recommendation must be supported by at least one evidence item.
+6. Do not include Markdown, code fences, commentary, or fields outside the required JSON structure.
+7. Use only the data supplied in the request.
+8. Never invent orders, revenue, products, customers, ingredients, stock levels, profit margins, costs, percentages, dates, weather conditions, holidays, or business facts.
+9. Do not claim that an item is profitable or high-margin unless margin or cost data is explicitly supplied.
+10. Inventory recommendations must remain general unless actual inventory data is supplied.
+11. Customer-retention claims must not be made unless customer-level retention data is supplied.
+12. You may identify demand, revenue, order, product, weekday, status, and payment patterns only when they are visible in the supplied analytics.
+13. Marketing recommendations may only reference products and sales patterns found in the supplied data.
+14. External context may contain restaurant holidays and a current seven-day weather forecast.
+15. Use holiday information only when the exact holiday name and date are supplied.
+16. Use weather information only when the weather context is not null and the relevant forecast date and condition are supplied.
+17. Treat weather forecast data as future planning context. Never claim that forecast weather caused historical sales performance.
+18. Do not claim that weather or a holiday will definitely increase or decrease sales. Present it as a planning opportunity or operational risk.
+19. When a recommendation uses weather or holiday context, mention the relevant supplied date and condition or holiday in the description.
+20. Each recommendation must contain a specific problem, a practical solution, and a realistic expected impact.
+21. Expected impact must remain qualitative unless the supplied data directly supports a numeric statement.
+22. Return between 3 and 5 non-duplicate recommendations.
+23. Prioritize recommendations based on the strength of the supplied evidence and expected operational importance.
+24. Confidence must reflect the amount and quality of available data.
+25. Use concise, professional English suitable for a restaurant owner.
 PROMPT;
     }
 
@@ -365,6 +369,7 @@ PROMPT;
                             'problem',
                             'solution',
                             'expected_impact',
+                            'evidence',
                         ],
 
                         'properties' => [
@@ -432,6 +437,61 @@ PROMPT;
                                 'description' =>
                                     'A realistic qualitative outcome without unsupported numbers.',
                             ],
+
+                            'evidence' => [
+                                'type' =>
+                                    'array',
+
+                                'minItems' =>
+                                    1,
+
+                                'maxItems' =>
+                                    6,
+
+                                'description' =>
+                                    'Exact source paths and values from the supplied snapshot that support this recommendation.',
+
+                                'items' => [
+                                    'type' =>
+                                        'object',
+
+                                    'additionalProperties' =>
+                                        false,
+
+                                    'required' => [
+                                        'source_path',
+                                        'label',
+                                        'value',
+                                    ],
+
+                                    'properties' => [
+                                        'source_path' => [
+                                            'type' =>
+                                                'string',
+
+                                            'description' =>
+                                                'Exact dot-notation path in the supplied analytics snapshot, for example summary.orders or weekday_demand.0.revenue.',
+                                        ],
+
+                                        'label' => [
+                                            'type' =>
+                                                'string',
+
+                                            'description' =>
+                                                'Short human-readable name for the evidence.',
+                                        ],
+
+                                        'value' => [
+                                            'type' =>
+                                                'string',
+
+                                            'description' =>
+                                                'The exact snapshot value converted to a string without changing it.',
+                                        ],
+                                    ],
+                                ],
+                            ],
+
                         ],
                     ],
                 ],
@@ -737,6 +797,32 @@ PROMPT;
                         'string',
                         'max:2000',
                     ],
+
+                    'recommendations.*.evidence' => [
+                        'required',
+                        'array',
+                        'min:1',
+                        'max:6',
+                    ],
+
+                    'recommendations.*.evidence.*.source_path' => [
+                        'required',
+                        'string',
+                        'max:255',
+                        'regex:/^[a-zA-Z0-9_.]+$/',
+                    ],
+
+                    'recommendations.*.evidence.*.label' => [
+                        'required',
+                        'string',
+                        'max:255',
+                    ],
+
+                    'recommendations.*.evidence.*.value' => [
+                        'required',
+                        'string',
+                        'max:1000',
+                    ],
                 ]
             );
 
@@ -836,6 +922,41 @@ PROMPT;
                                         'expected_impact'
                                     ]
                                 ),
+
+                            'evidence' =>
+                                collect(
+                                    $recommendation[
+                                        'evidence'
+                                    ]
+                                )
+                                    ->map(
+                                        fn (
+                                            array $evidence
+                                        ) => [
+                                            'source_path' =>
+                                                trim(
+                                                    $evidence[
+                                                        'source_path'
+                                                    ]
+                                                ),
+
+                                            'label' =>
+                                                trim(
+                                                    $evidence[
+                                                        'label'
+                                                    ]
+                                                ),
+
+                                            'value' =>
+                                                trim(
+                                                    $evidence[
+                                                        'value'
+                                                    ]
+                                                ),
+                                        ]
+                                    )
+                                    ->values()
+                                    ->all(),
                         ];
                     }
                 )

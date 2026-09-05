@@ -8,6 +8,7 @@ use App\Models\RecommendationFeedback;
 use App\Models\RecommendationGeneration;
 use App\Services\Recommendations\RecommendationAiManager;
 use App\Services\Recommendations\RecommendationDataService;
+use App\Services\Recommendations\RecommendationEvidenceValidator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -17,9 +18,10 @@ use Throwable;
 
 class RecommendationController extends Controller
 {
-    public function __construct(
+        public function __construct(
         private readonly RecommendationDataService $dataService,
-        private readonly RecommendationAiManager $aiManager
+        private readonly RecommendationAiManager $aiManager,
+        private readonly RecommendationEvidenceValidator $evidenceValidator
     ) {
     }
 
@@ -454,6 +456,24 @@ class RecommendationController extends Controller
 
             /*
             |--------------------------------------------------------------------------
+            | Verify AI evidence against actual snapshot
+            |--------------------------------------------------------------------------
+            */
+
+            $aiResult[
+                'recommendations'
+            ] =
+                $this
+                    ->evidenceValidator
+                    ->validate(
+                        $aiResult[
+                            'recommendations'
+                        ],
+                        $snapshot
+                    );
+
+            /*
+            |--------------------------------------------------------------------------
             | Save successful result atomically
             |--------------------------------------------------------------------------
             */
@@ -531,6 +551,10 @@ class RecommendationController extends Controller
                                 'expected_impact' =>
                                     $item[
                                         'expected_impact'
+                                    ],
+                                'evidence' =>
+                                    $item[
+                                        'evidence'
                                     ],
 
                                 'status' =>
@@ -884,6 +908,18 @@ class RecommendationController extends Controller
                             'expected_impact' =>
                                 $item
                                     ->expected_impact,
+
+                                                'evidence' =>
+                                $item->evidence
+                                ?? [],
+
+                            'evidence_verified' =>
+                                is_array(
+                                    $item->evidence
+                                ) &&
+                                count(
+                                    $item->evidence
+                                ) > 0,
 
                             'status' =>
                                 $item->status,

@@ -23,11 +23,16 @@ class Recommendation extends Model
         'problem',
         'solution',
         'expected_impact',
+        'evidence',
         'status',
     ];
 
     protected $casts = [
-        'confidence' => 'integer',
+        'confidence' =>
+            'integer',
+
+        'evidence' =>
+            'array',
     ];
 
     public function generation(): BelongsTo
