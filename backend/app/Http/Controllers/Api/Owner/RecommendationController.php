@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Owner;
 
 use App\Http\Controllers\Controller;
 use App\Models\Recommendation;
+use App\Models\RecommendationFeedback;
 use App\Models\RecommendationGeneration;
 use App\Services\Recommendations\RecommendationAiManager;
 use App\Services\Recommendations\RecommendationDataService;
@@ -44,7 +45,11 @@ class RecommendationController extends Controller
                 'Restaurant not found for this owner.',
         ], 422);
     }
-
+        $userId =
+        (int)
+            $request
+                ->user()
+                ->id;
     /*
     |--------------------------------------------------------------------------
     | Pagination
@@ -101,10 +106,31 @@ class RecommendationController extends Controller
                 'status',
                 RecommendationGeneration::STATUS_COMPLETED
             )
-            ->with([
+                        ->with([
                 'recommendations' =>
-                    function ($query) {
+                    function (
                         $query
+                    ) use (
+                        $userId
+                    ) {
+                        $query
+                            ->with([
+                                'feedback' =>
+                                    function (
+                                        $feedbackQuery
+                                    ) use (
+                                        $userId
+                                    ) {
+                                        $feedbackQuery
+                                            ->where(
+                                                'user_id',
+                                                $userId
+                                            )
+                                            ->latest(
+                                                'id'
+                                            );
+                                    },
+                            ])
                             ->orderByRaw(
                                 "CASE priority
                                     WHEN 'high' THEN 1
@@ -578,16 +604,203 @@ class RecommendationController extends Controller
                 ]
             );
 
+                        return $this
+                ->generationFailureResponse(
+                    $exception
+                );
+        }
+    }
+
+        /*
+    |--------------------------------------------------------------------------
+    | Save or update recommendation feedback
+    |--------------------------------------------------------------------------
+    */
+
+    public function storeFeedback(
+        Request $request,
+        Recommendation $recommendation
+    ): JsonResponse {
+        $user =
+            $request->user();
+
+        if (
+            !$user ||
+            !$user->restaurant_id ||
+            (int)
+                $recommendation
+                    ->restaurant_id !==
+                (int)
+                    $user
+                        ->restaurant_id
+        ) {
+            /*
+             * Return 404 so one restaurant cannot
+             * discover another restaurant's
+             * recommendation IDs.
+             */
+
             return response()->json([
                 'success' => false,
 
                 'message' =>
-                    'Unable to generate AI recommendations. Please try again.',
+                    'Recommendation not found.',
+            ], 404);
+        }
+
+        $validated =
+            $request->validate([
+                'feedback' => [
+                    'required',
+                    'string',
+                    'in:useful,not_useful',
+                ],
+            ]);
+
+        $feedback =
+            RecommendationFeedback::updateOrCreate(
+                [
+                    'recommendation_id' =>
+                        $recommendation->id,
+
+                    'user_id' =>
+                        $user->id,
+                ],
+                [
+                    'restaurant_id' =>
+                        $user
+                            ->restaurant_id,
+
+                    'feedback' =>
+                        $validated[
+                            'feedback'
+                        ],
+                ]
+            );
+
+        return response()->json([
+            'success' => true,
+
+            'message' =>
+                'Recommendation feedback saved successfully.',
+
+            'data' => [
+                'feedback' => [
+                    'id' =>
+                        $feedback->id,
+
+                    'recommendation_id' =>
+                        $feedback
+                            ->recommendation_id,
+
+                    'value' =>
+                        $feedback
+                            ->feedback,
+
+                    'updated_at' =>
+                        $feedback
+                            ->updated_at
+                            ?->toIso8601String(),
+                ],
+            ],
+        ]);
+    }
+
+        /**
+     * Return a safe and useful AI failure response.
+     */
+    private function generationFailureResponse(
+        Throwable $exception
+    ): JsonResponse {
+        $message =
+            strtolower(
+                $exception->getMessage()
+            );
+
+        if (
+            str_contains(
+                $message,
+                'http 429'
+            ) ||
+            str_contains(
+                $message,
+                'rate limit'
+            ) ||
+            str_contains(
+                $message,
+                'quota'
+            )
+        ) {
+            return response()->json([
+                'success' => false,
+
+                'message' =>
+                    'AI generation limit has been reached. Please try again later.',
 
                 'code' =>
-                    'RECOMMENDATION_GENERATION_FAILED',
-            ], 502);
+                    'AI_PROVIDER_RATE_LIMITED',
+            ], 429);
         }
+
+        if (
+            str_contains(
+                $message,
+                'http 503'
+            ) ||
+            str_contains(
+                $message,
+                'high demand'
+            ) ||
+            str_contains(
+                $message,
+                'service unavailable'
+            )
+        ) {
+            return response()->json([
+                'success' => false,
+
+                'message' =>
+                    'AI service is temporarily busy. Your previous recommendations are still available. Please try again shortly.',
+
+                'code' =>
+                    'AI_PROVIDER_UNAVAILABLE',
+            ], 503);
+        }
+
+        if (
+            str_contains(
+                $message,
+                'timed out'
+            ) ||
+            str_contains(
+                $message,
+                'timeout'
+            ) ||
+            str_contains(
+                $message,
+                'curl error 28'
+            )
+        ) {
+            return response()->json([
+                'success' => false,
+
+                'message' =>
+                    'AI generation took too long. Your previous recommendations are still available. Please try again.',
+
+                'code' =>
+                    'AI_PROVIDER_TIMEOUT',
+            ], 504);
+        }
+
+        return response()->json([
+            'success' => false,
+
+            'message' =>
+                'Unable to generate AI recommendations. Your previous recommendations are still available.',
+
+            'code' =>
+                'RECOMMENDATION_GENERATION_FAILED',
+        ], 502);
     }
 
     private function restaurantId(
@@ -674,6 +887,17 @@ class RecommendationController extends Controller
 
                             'status' =>
                                 $item->status,
+
+                                                            'user_feedback' =>
+                                $item
+                                    ->relationLoaded(
+                                        'feedback'
+                                    )
+                                    ? $item
+                                        ->feedback
+                                        ->first()
+                                        ?->feedback
+                                    : null,
                         ]
                     )
                     ->values()

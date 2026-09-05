@@ -339,6 +339,16 @@ Route::middleware([
         ]
     )->middleware('throttle:3,60');
 
+        Route::put(
+        '/owner/recommendations/{recommendation}/feedback',
+        [
+            RecommendationController::class,
+            'storeFeedback',
+        ]
+    )->middleware(
+        'throttle:30,1'
+    );
+    
     /*
     |--------------------------------------------------------------------------
     | OWNER WEATHER

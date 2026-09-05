@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Recommendation extends Model
 {
@@ -41,6 +42,12 @@ class Recommendation extends Model
     {
         return $this->belongsTo(
             Restaurant::class
+        );
+    }
+        public function feedback(): HasMany
+    {
+        return $this->hasMany(
+            RecommendationFeedback::class
         );
     }
 }

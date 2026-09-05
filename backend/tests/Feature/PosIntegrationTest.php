@@ -6,6 +6,8 @@ use App\Models\Order;
 use App\Models\PosConnection;
 use App\Models\PosPayment;
 use App\Models\Restaurant;
+use App\Models\RestaurantSubscription;
+use App\Models\Subscription;
 use App\Models\User;
 use App\Services\POS\PosOrderSyncService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -282,8 +284,58 @@ class PosIntegrationTest extends TestCase
 
     public function test_owner_orders_api_returns_pos_order_with_items_payments_and_connection(): void
     {
-        [$restaurant, $user] =
+               [$restaurant, $user] =
             $this->createRestaurantOwner();
+
+        $plan =
+            Subscription::create([
+                'name' =>
+                    'POS Test Plan',
+
+                'slug' =>
+                    'pos-test-plan',
+
+                'price' =>
+                    0,
+
+                'currency' =>
+                    'INR',
+
+                'interval' =>
+                    'month',
+
+                'interval_count' =>
+                    1,
+
+                'is_active' =>
+                    true,
+
+                'description' =>
+                    'Plan used for POS API tests.',
+            ]);
+
+        RestaurantSubscription::create([
+            'restaurant_id' =>
+                $restaurant->id,
+
+            'subscription_id' =>
+                $plan->id,
+
+            'status' =>
+                'active',
+
+            'starts_at' =>
+                now()->subDay(),
+
+            'expires_at' =>
+                now()->addMonth(),
+
+            'cancelled_at' =>
+                null,
+
+            'auto_renew' =>
+                false,
+        ]);
 
         $connection =
             $this->createConnection(

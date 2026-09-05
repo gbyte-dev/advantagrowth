@@ -23,6 +23,10 @@ type RecommendationPriority =
   | "medium"
   | "low";
 
+type RecommendationFeedbackValue =
+  | "useful"
+  | "not_useful";
+
 type Recommendation = {
   id: number;
   title: string;
@@ -34,6 +38,10 @@ type Recommendation = {
   solution: string;
   expected_impact: string;
   status: string;
+
+  user_feedback:
+  | RecommendationFeedbackValue
+  | null;
 };
 
 type RecommendationGeneration = {
@@ -216,11 +224,21 @@ function categoryDesign(
 
 function RecommendationDetails({
   data,
+  saving,
+  onFeedback,
 }: {
   data: {
     generation: RecommendationGeneration;
     recommendation: Recommendation;
   } | null;
+
+  saving: boolean;
+
+  onFeedback: (
+    recommendationId: number,
+    value:
+      RecommendationFeedbackValue
+  ) => Promise<void>;
 }) {
   if (!data) {
     return (
@@ -234,23 +252,77 @@ function RecommendationDetails({
     );
   }
 
+  const priorityClasses =
+    data.recommendation.priority ===
+      "high"
+      ? "bg-red-50 text-red-700"
+      : data.recommendation
+        .priority ===
+        "medium"
+        ? "bg-amber-50 text-amber-700"
+        : "bg-slate-100 text-slate-700";
+
   return (
     <>
+      {/* Selected recommendation */}
+
       <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
         <p className="text-xs font-bold uppercase tracking-wider text-violet-600">
           Selected Recommendation
         </p>
 
         <h2 className="mt-2 text-lg font-bold leading-6 text-slate-900">
-          {data.recommendation.title}
+          {
+            data.recommendation
+              .title
+          }
         </h2>
 
-        <div className="mt-3">
+        <div className="mt-3 flex flex-wrap items-center gap-2">
           <span className="rounded-full bg-violet-50 px-2.5 py-1 text-xs font-bold text-violet-700">
-            {data.recommendation.category}
+            {
+              data.recommendation
+                .category
+            }
+          </span>
+
+          <span
+            className={`rounded-full px-2.5 py-1 text-xs font-bold capitalize ${priorityClasses}`}
+          >
+            {
+              data.recommendation
+                .priority
+            }{" "}
+            priority
+          </span>
+
+          <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-700">
+            {
+              data.recommendation
+                .confidence
+            }
+            % confidence
           </span>
         </div>
       </div>
+
+      {/* Reason / supporting data */}
+
+      <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4">
+        <p className="text-xs font-bold uppercase tracking-wide text-blue-700">
+          <i className="fas fa-chart-column mr-2" />
+          Reason / Supporting Data
+        </p>
+
+        <p className="mt-2 text-sm leading-6 text-blue-950">
+          {
+            data.recommendation
+              .description
+          }
+        </p>
+      </div>
+
+      {/* Problem and action */}
 
       <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
         <div className="mb-4">
@@ -260,7 +332,10 @@ function RecommendationDetails({
           </p>
 
           <p className="mt-2 text-sm leading-6 text-slate-700">
-            {data.recommendation.problem}
+            {
+              data.recommendation
+                .problem
+            }
           </p>
         </div>
 
@@ -271,20 +346,113 @@ function RecommendationDetails({
           </p>
 
           <p className="mt-2 text-sm leading-6 text-slate-700">
-            {data.recommendation.solution}
+            {
+              data.recommendation
+                .solution
+            }
           </p>
         </div>
       </div>
 
+      {/* Expected impact */}
+
       <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
         <p className="text-sm font-bold text-emerald-800">
           <i className="fas fa-arrow-trend-up mr-2" />
-          Expected Impact
+          Expected Business Impact
         </p>
 
         <p className="mt-2 text-sm leading-6 text-emerald-900">
-          {data.recommendation.expected_impact}
+          {
+            data.recommendation
+              .expected_impact
+          }
         </p>
+      </div>
+
+      {/* Owner feedback */}
+
+      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <p className="text-sm font-bold text-slate-900">
+          Was this recommendation useful?
+        </p>
+
+        <p className="mt-1 text-xs leading-5 text-slate-500">
+          Your feedback helps improve future
+          recommendations.
+        </p>
+
+                {data.recommendation
+          .user_feedback ? (
+          <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-3">
+            <div className="flex items-center gap-2 text-sm font-bold text-emerald-700">
+              <i className="fas fa-circle-check" />
+
+              Feedback submitted
+            </div>
+
+            <p className="mt-1 text-xs text-emerald-700">
+              You marked this recommendation as{" "}
+              <strong>
+                {data.recommendation
+                  .user_feedback ===
+                "useful"
+                  ? "Useful"
+                  : "Not Useful"}
+              </strong>
+              .
+            </p>
+          </div>
+        ) : (
+          <div className="mt-4 grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              disabled={saving}
+              onClick={() =>
+                onFeedback(
+                  data.recommendation.id,
+                  "useful"
+                )
+              }
+              className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-bold text-slate-600 transition hover:border-emerald-300 hover:text-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {saving ? (
+                <i className="fas fa-spinner fa-spin mr-2" />
+              ) : (
+                <i className="fas fa-thumbs-up mr-2" />
+              )}
+
+              Useful
+            </button>
+
+            <button
+              type="button"
+              disabled={saving}
+              onClick={() =>
+                onFeedback(
+                  data.recommendation.id,
+                  "not_useful"
+                )
+              }
+              className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-bold text-slate-600 transition hover:border-red-300 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {saving ? (
+                <i className="fas fa-spinner fa-spin mr-2" />
+              ) : (
+                <i className="fas fa-thumbs-down mr-2" />
+              )}
+
+              Not Useful
+            </button>
+                   </div>
+        )}
+        {saving && (
+          <p className="mt-3 text-center text-xs font-semibold text-violet-600">
+            <i className="fas fa-spinner fa-spin mr-2" />
+
+            Saving feedback...
+          </p>
+        )}
       </div>
     </>
   );
@@ -323,6 +491,13 @@ export default function RecommendationsPage() {
 
   const [generating, setGenerating] =
     useState(false);
+
+  const [
+    feedbackSavingId,
+    setFeedbackSavingId,
+  ] = useState<number | null>(
+    null
+  );
 
   const [error, setError] =
     useState("");
@@ -558,6 +733,90 @@ export default function RecommendationsPage() {
         showError(message);
       } finally {
         setGenerating(false);
+      }
+    };
+
+  /*
+|--------------------------------------------------------------------------
+| Save recommendation feedback
+|--------------------------------------------------------------------------
+*/
+
+  const handleFeedback =
+    async (
+      recommendationId: number,
+      value:
+        RecommendationFeedbackValue
+    ) => {
+      if (
+        feedbackSavingId !==
+        null
+      ) {
+        return;
+      }
+
+      try {
+        setFeedbackSavingId(
+          recommendationId
+        );
+
+        const response =
+          await api.put(
+            `/owner/recommendations/${recommendationId}/feedback`,
+            {
+              feedback:
+                value,
+            }
+          );
+
+        /*
+         * Update the selected recommendation and
+         * every visible history batch locally.
+         */
+
+        setGenerations(
+          (current) =>
+            current.map(
+              (generation) => ({
+                ...generation,
+
+                recommendations:
+                  generation
+                    .recommendations
+                    .map(
+                      (
+                        recommendation
+                      ) =>
+                        recommendation.id ===
+                          recommendationId
+                          ? {
+                            ...recommendation,
+
+                            user_feedback:
+                              value,
+                          }
+                          : recommendation
+                    ),
+              })
+            )
+        );
+
+        showSuccess(
+          response.data
+            ?.message ||
+          "Feedback saved successfully."
+        );
+      } catch (requestError) {
+        showError(
+          getErrorMessage(
+            requestError,
+            "Unable to save recommendation feedback."
+          )
+        );
+      } finally {
+        setFeedbackSavingId(
+          null
+        );
       }
     };
 
@@ -893,7 +1152,7 @@ export default function RecommendationsPage() {
             {/* Right: selected details (desktop) */}
 
             <aside className="hidden space-y-3 scrollbar-hide lg:block lg:h-full lg:overflow-y-auto lg:pr-1">
-              <RecommendationDetails data={selectedData} />
+              <RecommendationDetails data={selectedData} saving={feedbackSavingId === selectedData?.recommendation.id} onFeedback={handleFeedback} />
             </aside>
           </div>
         )}
@@ -929,7 +1188,7 @@ export default function RecommendationsPage() {
               </div>
 
               <div className="space-y-3 pb-2">
-                <RecommendationDetails data={selectedData} />
+                <RecommendationDetails data={selectedData} saving={feedbackSavingId === selectedData?.recommendation.id} onFeedback={handleFeedback} />
               </div>
             </div>
           </div>
