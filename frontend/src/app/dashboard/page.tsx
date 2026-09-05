@@ -1632,7 +1632,7 @@ export default function DashboardPage() {
 
               <p className="dashboard-subtitle">
                 Latest insights generated from your
-               cis restaurant&apos;s performance data.
+                restaurant&apos;s performance data.
               </p>
             </div>
 

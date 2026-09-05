@@ -4,12 +4,18 @@ namespace App\Services\Recommendations;
 
 use App\Models\Order;
 use App\Models\Restaurant;
+use App\Models\RestaurantHoliday;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 
 class RecommendationDataService
 {
+    public function __construct(
+        private readonly RecommendationWeatherContextService $weatherContextService
+    ) {
+    }
+
     public function build(
         Restaurant $restaurant
     ): array {
@@ -154,6 +160,22 @@ class RecommendationDataService
                     $start,
                     $end
                 ),
+
+                        'external_context' => [
+                'holidays' =>
+                    $this->holidays(
+                        $restaurant->id,
+                        $start,
+                        $end
+                    ),
+
+                'weather' =>
+                    $this
+                        ->weatherContextService
+                        ->build(
+                            $restaurant
+                        ),
+            ],
 
             'data_quality' => [
                 'paid_orders_available' =>
@@ -496,5 +518,57 @@ class RecommendationDataService
             ) * 100,
             1
         );
+    }
+
+    /**
+     * Restaurant holidays inside the analytics period.
+     */
+    private function holidays(
+        int $restaurantId,
+        Carbon $start,
+        Carbon $end
+    ): array {
+        return RestaurantHoliday::query()
+            ->where(
+                'restaurant_id',
+                $restaurantId
+            )
+            ->whereBetween(
+                'holiday_date',
+                [
+                    $start->toDateString(),
+                    $end->toDateString(),
+                ]
+            )
+            ->orderBy(
+                'holiday_date'
+            )
+            ->get([
+                'name',
+                'holiday_date',
+                'type',
+                'is_closed',
+            ])
+            ->map(
+                fn (
+                    RestaurantHoliday $holiday
+                ) => [
+                    'name' =>
+                        $holiday->name,
+
+                    'date' =>
+                        $holiday
+                            ->holiday_date
+                            ->toDateString(),
+
+                    'type' =>
+                        $holiday->type,
+
+                    'restaurant_closed' =>
+                        $holiday->is_closed,
+                ]
+            )
+            ->values()
+            ->all();
     }
 }
