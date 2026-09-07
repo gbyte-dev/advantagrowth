@@ -311,10 +311,11 @@ class MockPosController extends Controller
     /**
      * Mock POS orders.
      *
-     * 35 orders are distributed across:
+     * ~430 orders are distributed across:
      * - today
      * - last 7 days
      * - current month
+     * - previous ~45 days (extended history for richer analytics/reporting)
      *
      * pos_created_at controls analytics date.
      * pos_updated_at stays recent so new demo data
@@ -565,14 +566,14 @@ class MockPosController extends Controller
     }
 
     /**
-     * 35 realistic demo orders.
+     * ~430 realistic demo orders.
      *
      * days_ago controls analytics date.
      * hour controls the Day chart.
      */
     private function orderBlueprints(): array
     {
-        return [
+        $orders = [
             /*
             |--------------------------------------------------------------------------
             | TODAY - 10 ORDERS
@@ -1078,6 +1079,228 @@ class MockPosController extends Controller
                 'type' => 'dine_in',
             ],
         ];
+
+        /*
+        |--------------------------------------------------------------------------
+        | EXTRA 30-DAY ANALYTICS DATA - 145 ORDERS
+        |--------------------------------------------------------------------------
+        |
+        | These orders add stable lunch/dinner, product, payment and cancellation
+        | patterns without changing any of the original mock order IDs above.
+        |
+        */
+
+        $itemPatterns = [
+            [
+                ['MENU-101', 2],
+                ['MENU-105', 4],
+                ['MENU-202', 2],
+            ],
+            [
+                ['MENU-102', 2],
+                ['MENU-105', 3],
+                ['MENU-301', 1],
+            ],
+            [
+                ['MENU-103', 1],
+                ['MENU-105', 2],
+                ['MENU-201', 1],
+            ],
+            [
+                ['MENU-104', 1],
+                ['MENU-203', 2],
+            ],
+            [
+                ['MENU-101', 1],
+                ['MENU-102', 1],
+                ['MENU-105', 4],
+                ['MENU-302', 1],
+            ],
+            [
+                ['MENU-103', 2],
+                ['MENU-202', 2],
+            ],
+        ];
+
+        $payments = [
+            'upi',
+            'card',
+            'card',
+            'cash',
+        ];
+
+        for ($extraIndex = 0; $extraIndex < 145; $extraIndex++) {
+            $day =
+                7 +
+                ($extraIndex % 23);
+
+            $isDinner =
+                $extraIndex % 3 !== 0;
+
+            $orders[] = [
+                'days_ago' =>
+                    $day,
+
+                'hour' =>
+                    $isDinner
+                        ? 19 + ($extraIndex % 3)
+                        : 12 + ($extraIndex % 3),
+
+                'minute' =>
+                    ($extraIndex * 7) % 60,
+
+                'items' =>
+                    $itemPatterns[
+                        $extraIndex % count($itemPatterns)
+                    ],
+
+                'payment' =>
+                    $payments[
+                        $extraIndex % count($payments)
+                    ],
+
+                'status' =>
+                    in_array(
+                        $extraIndex,
+                        [8, 19, 27],
+                        true
+                    )
+                        ? 'cancelled'
+                        : 'completed',
+
+                'type' =>
+                    $extraIndex % 4 === 0
+                        ? 'takeaway'
+                        : 'dine_in',
+            ];
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | EXTRA EXTENDED HISTORY - 250 MORE ORDERS (DAYS 27-52)
+        |--------------------------------------------------------------------------
+        |
+        | Pushes total volume up and stretches the history window further back
+        | so month-over-month / trend-style reports have more to chew on.
+        | Adds a couple of extra item combos and a small "refunded" / "no_show"
+        | slice for status-distribution testing.
+        |
+        */
+
+        $extendedItemPatterns = [
+            [
+                ['MENU-101', 1],
+                ['MENU-105', 2],
+            ],
+            [
+                ['MENU-102', 1],
+                ['MENU-202', 1],
+            ],
+            [
+                ['MENU-103', 1],
+                ['MENU-301', 1],
+            ],
+            [
+                ['MENU-104', 2],
+                ['MENU-105', 2],
+                ['MENU-201', 1],
+            ],
+            [
+                ['MENU-101', 2],
+                ['MENU-102', 1],
+                ['MENU-105', 5],
+                ['MENU-202', 2],
+                ['MENU-302', 1],
+            ],
+            [
+                ['MENU-105', 6],
+                ['MENU-203', 3],
+            ],
+            [
+                ['MENU-103', 2],
+                ['MENU-104', 1],
+                ['MENU-105', 3],
+            ],
+            [
+                ['MENU-201', 2],
+                ['MENU-301', 2],
+            ],
+        ];
+
+        $extendedPayments = [
+            'card',
+            'upi',
+            'upi',
+            'cash',
+            'card',
+        ];
+
+        $extendedStatuses = [
+            'completed',
+            'completed',
+            'completed',
+            'completed',
+            'completed',
+            'completed',
+            'completed',
+            'cancelled',
+            'completed',
+            'completed',
+            'completed',
+            'completed',
+            'completed',
+            'completed',
+            'completed',
+            'completed',
+            'completed',
+            'completed',
+            'completed',
+            'refunded',
+        ];
+
+        for ($histIndex = 0; $histIndex < 250; $histIndex++) {
+            $day =
+                27 +
+                ($histIndex % 26);
+
+            $isDinner =
+                $histIndex % 5 < 3;
+
+            $orders[] = [
+                'days_ago' =>
+                    $day,
+
+                'hour' =>
+                    $isDinner
+                        ? 18 + ($histIndex % 4)
+                        : 11 + ($histIndex % 4),
+
+                'minute' =>
+                    ($histIndex * 11) % 60,
+
+                'items' =>
+                    $extendedItemPatterns[
+                        $histIndex % count($extendedItemPatterns)
+                    ],
+
+                'payment' =>
+                    $extendedPayments[
+                        $histIndex % count($extendedPayments)
+                    ],
+
+                'status' =>
+                    $extendedStatuses[
+                        $histIndex % count($extendedStatuses)
+                    ],
+
+                'type' =>
+                    $histIndex % 3 === 0
+                        ? 'takeaway'
+                        : 'dine_in',
+            ];
+        }
+
+        return $orders;
     }
 
     /**

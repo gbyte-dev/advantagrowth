@@ -13,54 +13,140 @@ use Illuminate\Support\Str;
 class AuthController extends Controller
 {
     public function register(Request $request)
-    {
+{
+    $validated =
         $request->validate([
-            'restaurant_name' => 'required|string|max:255',
-            'owner_name'      => 'required|string|max:255',
-            'email'           => 'required|email|unique:users,email|unique:restaurants,email',
-            'phone'           => 'required|string|max:20',
-            'password'        => 'required|min:6',
+            'restaurant_name' => [
+                'required',
+                'string',
+                'max:255',
+            ],
+
+            'owner_name' => [
+                'required',
+                'string',
+                'max:255',
+            ],
+
+            'email' => [
+                'required',
+                'email',
+                'max:255',
+                'unique:users,email',
+                'unique:restaurants,email',
+            ],
+
+            'phone' => [
+                'required',
+                'string',
+                'max:20',
+            ],
+
+            'password' => [
+                'required',
+                'string',
+                'min:6',
+            ],
+
+            'confirm_password' => [
+                'required',
+                'same:password',
+            ],
         ]);
 
-        DB::beginTransaction();
+    DB::beginTransaction();
 
-        try {
+    try {
+        $restaurant =
+            Restaurant::create([
+                'name' =>
+                    trim(
+                        $validated['restaurant_name']
+                    ),
 
-            $restaurant = Restaurant::create([
-                'name'      => $request->restaurant_name,
-                'slug'      => Str::slug($request->restaurant_name) . '-' . time(),
-                'phone'     => $request->phone,
-                'email'     => $request->email,
-                'is_active' => true,
+                'slug' =>
+                    Str::slug(
+                        $validated['restaurant_name']
+                    )
+                    . '-'
+                    . Str::lower(
+                        Str::random(8)
+                    ),
+
+                'phone' =>
+                    trim(
+                        $validated['phone']
+                    ),
+
+                'email' =>
+                    strtolower(
+                        trim(
+                            $validated['email']
+                        )
+                    ),
+
+                'is_active' =>
+                    true,
             ]);
 
-            $user = User::create([
-                'restaurant_id' => $restaurant->id,
-                'owner_name'    => $request->owner_name,
-                'email'         => $request->email,
-                'phone'         => $request->phone,
-                'password'      => Hash::make($request->password),
-                'role'          => 'owner',
-                'is_active'     => true,
+        $user =
+            User::create([
+                'restaurant_id' =>
+                    $restaurant->id,
+
+                'owner_name' =>
+                    trim(
+                        $validated['owner_name']
+                    ),
+
+                'email' =>
+                    strtolower(
+                        trim(
+                            $validated['email']
+                        )
+                    ),
+
+                'phone' =>
+                    trim(
+                        $validated['phone']
+                    ),
+
+                'password' =>
+                    Hash::make(
+                        $validated['password']
+                    ),
+
+                'role' =>
+                    'owner',
+
+                'is_active' =>
+                    true,
             ]);
 
-            DB::commit();
+        DB::commit();
 
-            return response()->json([
-                'message' => 'Registration Successful',
-                'user'    => $user,
-            ], 201);
+        return response()->json([
+            'success' =>
+                true,
 
-        } catch (\Exception $e) {
+            'message' =>
+                'Registration successful. Please login.',
 
-            DB::rollBack();
+            'user' =>
+                $user,
+        ], 201);
+    } catch (\Throwable $exception) {
+        DB::rollBack();
 
-            return response()->json([
-                'message' => $e->getMessage(),
-            ], 500);
-        }
+        return response()->json([
+            'success' =>
+                false,
+
+            'message' =>
+                'Unable to create the account. Please try again.',
+        ], 500);
     }
-
+}
     public function login(Request $request)
 {
     $request->validate([
@@ -111,6 +197,7 @@ class AuthController extends Controller
             'message' => 'Account is inactive.',
         ], 403);
     }
+
 
     /*
     |--------------------------------------------------------------------------

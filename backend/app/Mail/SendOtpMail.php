@@ -2,10 +2,9 @@
 
 namespace App\Mail;
 
+use App\Models\EmailOtp;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
-use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
@@ -14,39 +13,66 @@ class SendOtpMail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    /**
-     * Create a new message instance.
-     */
-    public function __construct()
-    {
-        //
+    public function __construct(
+        public readonly string $otp,
+        public readonly string $accountName,
+        public readonly int $expiresInMinutes,
+        public readonly string $purpose
+    ) {
     }
 
-    /**
-     * Get the message envelope.
-     */
     public function envelope(): Envelope
     {
+        $subject =
+            $this->purpose ===
+            EmailOtp::PURPOSE_EMAIL_VERIFICATION
+                ? 'Verify your Advanta Growth email'
+                : 'Your Advanta Growth password reset code';
+
         return new Envelope(
-            subject: 'Send Otp Mail',
+            subject:
+                $subject
         );
     }
 
-    /**
-     * Get the message content definition.
-     */
     public function content(): Content
     {
+        $isEmailVerification =
+            $this->purpose ===
+            EmailOtp::PURPOSE_EMAIL_VERIFICATION;
+
         return new Content(
-            view: 'view.name',
+            view:
+                'emails.password-reset-otp',
+
+            with: [
+                'otp' =>
+                    $this->otp,
+
+                'accountName' =>
+                    $this->accountName,
+
+                'expiresInMinutes' =>
+                    $this->expiresInMinutes,
+
+                'heading' =>
+                    $isEmailVerification
+                        ? 'Verify your email address'
+                        : 'Reset your password',
+
+                'instruction' =>
+                    $isEmailVerification
+                        ? 'Use the verification code below to activate your Advanta Growth account.'
+                        : 'Use the verification code below to continue resetting your Advanta Growth password.',
+
+                'ignoreMessage' =>
+                    $isEmailVerification
+                        ? 'If you did not create this account, you can safely ignore this email.'
+                        : 'If you did not request a password reset, you can safely ignore this email.',
+            ]
         );
     }
 
-    /**
-     * Get the attachments for the message.
-     *
-     * @return array<int, Attachment>
-     */
     public function attachments(): array
     {
         return [];
