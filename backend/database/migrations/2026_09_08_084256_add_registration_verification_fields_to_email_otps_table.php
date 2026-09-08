@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -12,8 +13,8 @@ return new class extends Migration
             'email_otps',
             function (Blueprint $table) {
                 /*
-                 * Hashed OTP requires more than the original
-                 * six-character column length.
+                 * Secure hashes require more than
+                 * the original six-character length.
                  */
                 $table
                     ->string('otp', 255)
@@ -21,7 +22,9 @@ return new class extends Migration
 
                 $table
                     ->string('purpose', 50)
-                    ->default('password_reset')
+                    ->default(
+                        'email_verification'
+                    )
                     ->after('user_id');
 
                 $table
@@ -44,33 +47,37 @@ return new class extends Migration
                     ->nullable()
                     ->after('verified_at');
 
-                $table
-                    ->string('reset_token_hash', 64)
-                    ->nullable()
-                    ->unique()
-                    ->after('consumed_at');
-
-                $table->index([
-                    'user_id',
-                    'purpose',
-                ]);
+                /*
+                 * A separate user_id index already
+                 * supports the foreign key.
+                 */
+                $table->index(
+                    [
+                        'user_id',
+                        'purpose',
+                    ],
+                    'email_otps_user_purpose_lookup'
+                );
             }
         );
     }
 
     public function down(): void
     {
+        /*
+         * OTPs are temporary security records.
+         * They cannot remain usable after the
+         * verification feature is rolled back.
+         */
+        DB::table('email_otps')
+            ->delete();
+
         Schema::table(
             'email_otps',
             function (Blueprint $table) {
-                $table->dropIndex([
-                    'user_id',
-                    'purpose',
-                ]);
-
-                $table->dropUnique([
-                    'reset_token_hash',
-                ]);
+                $table->dropIndex(
+                    'email_otps_user_purpose_lookup'
+                );
 
                 $table->dropColumn([
                     'purpose',
@@ -78,7 +85,6 @@ return new class extends Migration
                     'sent_at',
                     'verified_at',
                     'consumed_at',
-                    'reset_token_hash',
                 ]);
 
                 $table

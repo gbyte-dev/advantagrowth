@@ -3,12 +3,11 @@
 namespace App\Http\Controllers\Api\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\EmailOtp;
+use App\Http\Requests\Auth\VerifyOtpRequest;
 use App\Models\User;
 use App\Services\Auth\EmailOtpService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Throwable;
@@ -21,31 +20,13 @@ class EmailVerificationController extends Controller
     }
 
     /**
-     * Verify the registration email OTP.
+     * Verify the OTP and activate owner login.
      */
     public function verify(
-        Request $request
+        VerifyOtpRequest $request
     ): JsonResponse {
         $validated =
-            $request->validate([
-                'email' => [
-                    'required',
-                    'email',
-                    'max:255',
-                ],
-
-                'otp' => [
-                    'required',
-                    'digits:6',
-                ],
-            ]);
-
-        $email =
-            strtolower(
-                trim(
-                    $validated['email']
-                )
-            );
+            $request->validated();
 
         $user =
             User::query()
@@ -55,12 +36,12 @@ class EmailVerificationController extends Controller
                 )
                 ->where(
                     'email',
-                    $email
+                    $validated['email']
                 )
                 ->first();
 
         /*
-         * Do not reveal whether an account exists.
+         * Do not reveal whether the email exists.
          */
         if (!$user) {
             throw ValidationException::
@@ -83,32 +64,12 @@ class EmailVerificationController extends Controller
             ]);
         }
 
-        $emailOtp =
-            $this->otpService
-                ->verifyOtp(
-                    $user,
-                    EmailOtp::
-                        PURPOSE_EMAIL_VERIFICATION,
-                    $validated['otp']
-                );
-
-        DB::transaction(
-            function () use (
-                $user,
-                $emailOtp
-            ): void {
-                $user->forceFill([
-                    'email_verified_at' =>
-                        now(),
-                ])->save();
-
-                $emailOtp->update([
-                    'consumed_at' =>
-                        now(),
-                ]);
-            }
-        );
-
+        $this
+    ->otpService
+    ->verifyOtp(
+        $user,
+        $validated['otp']
+    );
         return response()->json([
             'success' =>
                 true,
@@ -119,7 +80,7 @@ class EmailVerificationController extends Controller
     }
 
     /**
-     * Resend the registration verification OTP.
+     * Resend a registration OTP.
      */
     public function resend(
         Request $request
@@ -161,8 +122,8 @@ class EmailVerificationController extends Controller
         ];
 
         /*
-         * Keep the response identical for unknown
-         * and already-verified accounts.
+         * Same response for unknown and already
+         * verified accounts.
          */
         if (
             !$user ||
@@ -174,25 +135,27 @@ class EmailVerificationController extends Controller
         }
 
         try {
-            $this->otpService
+            $this
+                ->otpService
                 ->sendOtp(
-                    $user,
-                    EmailOtp::
-                        PURPOSE_EMAIL_VERIFICATION
+                    $user
                 );
         } catch (
             ValidationException $exception
         ) {
+            /*
+             * Preserve cooldown validation response.
+             */
             throw $exception;
         } catch (Throwable $exception) {
             Log::error(
-                'Registration verification email failed.',
+                'Registration OTP resend failed.',
                 [
                     'user_id' =>
                         $user->id,
 
-                    'exception' =>
-                        $exception,
+                    'error' =>
+                        $exception->getMessage(),
                 ]
             );
 

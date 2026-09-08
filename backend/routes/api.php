@@ -9,8 +9,8 @@ use App\Http\Controllers\Api\Review\ReviewController;
 use App\Http\Controllers\Api\Contact\ContactController;
 use App\Http\Controllers\Api\ReservationController;
 use App\Http\Controllers\Api\POS\MockPosController;
-
-
+use App\Http\Controllers\Api\Auth\EmailVerificationController;
+use App\Http\Controllers\Api\Auth\PasswordResetController;
 /*
 |--------------------------------------------------------------------------
 | EXTRA ROUTE FILES
@@ -31,23 +31,6 @@ require base_path('routes/superWeb.php');
 
 require base_path('routes/call.php');
 
-
-/*
-|--------------------------------------------------------------------------
-| DEVELOPMENT PASSWORD RESET
-|--------------------------------------------------------------------------
-|
-| No email / OTP yet.
-| Controller itself blocks this endpoint outside local/testing.
-|
-*/
-
-Route::post('/auth/reset-password', [
-    AuthController::class,
-    'resetPasswordDev'
-]);
-
-
 /*
 |--------------------------------------------------------------------------
 | AUTH ROUTES
@@ -55,6 +38,47 @@ Route::post('/auth/reset-password', [
 */
 
 Route::prefix('auth')->group(function () {
+
+    /*
+|--------------------------------------------------------------------------
+| REGISTRATION EMAIL VERIFICATION
+|--------------------------------------------------------------------------
+*/
+
+Route::post('/email/verify', [
+    EmailVerificationController::class,
+    'verify',
+])->middleware(
+    'throttle:10,1'
+);
+
+Route::post('/email/resend', [
+    EmailVerificationController::class,
+    'resend',
+])->middleware(
+    'throttle:3,10'
+);
+
+/*
+|--------------------------------------------------------------------------
+| PASSWORD RECOVERY
+|--------------------------------------------------------------------------
+*/
+
+Route::post('/password/forgot', [
+    PasswordResetController::class,
+    'requestOtp'
+])->middleware(
+
+    'throttle:3,10'
+);
+
+Route::post('/password/reset', [
+    PasswordResetController::class,
+    'reset'
+])->middleware(
+    'throttle:10,1'
+);
 
     /*
     |--------------------------------------------------------------------------

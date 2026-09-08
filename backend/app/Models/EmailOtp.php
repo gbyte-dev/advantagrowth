@@ -6,10 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class EmailOtp extends Model
-{   
+{
     public const PURPOSE_EMAIL_VERIFICATION =
-    'email_verification';
-    
+        'email_verification';
+
     public const PURPOSE_PASSWORD_RESET =
         'password_reset';
 
@@ -31,12 +31,10 @@ class EmailOtp extends Model
         'expires_at',
         'verified_at',
         'consumed_at',
-        'reset_token_hash',
     ];
 
     protected $hidden = [
         'otp',
-        'reset_token_hash',
     ];
 
     protected $casts = [
@@ -65,7 +63,8 @@ class EmailOtp extends Model
 
     public function isExpired(): bool
     {
-        return $this->expires_at
+        return $this
+            ->expires_at
             ->isPast();
     }
 

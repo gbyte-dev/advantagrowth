@@ -17,7 +17,8 @@ class SendOtpMail extends Mailable
         public readonly string $otp,
         public readonly string $accountName,
         public readonly int $expiresInMinutes,
-        public readonly string $purpose
+        public readonly string $purpose =
+            EmailOtp::PURPOSE_EMAIL_VERIFICATION
     ) {
     }
 
@@ -25,9 +26,9 @@ class SendOtpMail extends Mailable
     {
         $subject =
             $this->purpose ===
-            EmailOtp::PURPOSE_EMAIL_VERIFICATION
-                ? 'Verify your Advanta Growth email'
-                : 'Your Advanta Growth password reset code';
+            EmailOtp::PURPOSE_PASSWORD_RESET
+                ? 'Your Advanta Growth password reset code'
+                : 'Verify your Advanta Growth email';
 
         return new Envelope(
             subject:
@@ -37,13 +38,15 @@ class SendOtpMail extends Mailable
 
     public function content(): Content
     {
-        $isEmailVerification =
+        $view =
             $this->purpose ===
-            EmailOtp::PURPOSE_EMAIL_VERIFICATION;
+            EmailOtp::PURPOSE_PASSWORD_RESET
+                ? 'emails.password-reset-otp'
+                : 'emails.account-verification-otp';
 
         return new Content(
             view:
-                'emails.password-reset-otp',
+                $view,
 
             with: [
                 'otp' =>
@@ -54,21 +57,6 @@ class SendOtpMail extends Mailable
 
                 'expiresInMinutes' =>
                     $this->expiresInMinutes,
-
-                'heading' =>
-                    $isEmailVerification
-                        ? 'Verify your email address'
-                        : 'Reset your password',
-
-                'instruction' =>
-                    $isEmailVerification
-                        ? 'Use the verification code below to activate your Advanta Growth account.'
-                        : 'Use the verification code below to continue resetting your Advanta Growth password.',
-
-                'ignoreMessage' =>
-                    $isEmailVerification
-                        ? 'If you did not create this account, you can safely ignore this email.'
-                        : 'If you did not request a password reset, you can safely ignore this email.',
             ]
         );
     }
