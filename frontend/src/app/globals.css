@@ -3890,6 +3890,95 @@ html {
   margin-bottom: 1rem;
 }
 
+/* ============================================
+   OTP / VERIFICATION + FORGOT PASSWORD SHARED
+   (applies to forgot-password page and the
+    register email-verification step)
+   ============================================ */
+
+/* Helper text inside a form group (e.g. "Enter the 6-digit code sent to ...") */
+.auth-page .form-group > p {
+  color: var(--auth-muted);
+  font-size: 0.82rem;
+  line-height: 1.5;
+  margin: -0.1rem 0 0.3rem;
+}
+
+.auth-page .form-group > p strong {
+  color: var(--auth-light);
+  font-weight: 600;
+  word-break: break-all;
+}
+
+/* Give inputs room for the password toggle so text never sits under it */
+.auth-page .form-group .input-wrapper:has(.password-toggle) input {
+  padding-right: 3rem;
+}
+
+/* OTP field – centered, spaced digits, no left icon */
+.auth-page .form-group .input-wrapper:has(#reset-otp) .input-icon,
+.auth-page .form-group .input-wrapper:has(#verification-otp) .input-icon {
+  display: none;
+}
+
+.auth-page #reset-otp,
+.auth-page #verification-otp {
+  text-align: center;
+  letter-spacing: 0.5em;
+  font-size: 1.15rem;
+  font-weight: 600;
+  padding-left: 1rem;
+  text-indent: 0.5em;
+}
+
+.auth-page #reset-otp::placeholder,
+.auth-page #verification-otp::placeholder {
+  letter-spacing: normal;
+  font-size: 0.95rem;
+  font-weight: 400;
+}
+
+/* Link-style buttons in the switch rows (Resend / Change email / Back) */
+.auth-page .auth-switch {
+  margin-top: 0.9rem;
+}
+
+.auth-page .auth-switch button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--auth-accent-light);
+  cursor: pointer;
+  transition: var(--auth-transition);
+}
+
+.auth-page .auth-switch button:hover:not(:disabled) {
+  color: var(--auth-accent);
+  text-decoration: underline;
+}
+
+.auth-page .auth-switch button:disabled {
+  color: var(--auth-muted-dark);
+  cursor: not-allowed;
+}
+
+.auth-page .auth-switch button:focus-visible {
+  outline: 2px solid var(--auth-accent);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.auth-page.forgot-password-page .submit-btn {
+  width: 100%;
+  justify-content: center;
+}
+
 /* Success / Error Banners */
 .auth-banner {
   display: flex;

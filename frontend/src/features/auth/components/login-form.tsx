@@ -157,11 +157,31 @@ export default function OwnerLoginPage() {
 
       alert("Unauthorized account role.");
     } catch (error: any) {
-      alert(
-        error.response?.data?.message ||
-          "Login Failed"
-      );
-    } finally {
+  const responseCode =
+    error?.response?.data?.code;
+
+  const verificationEmail =
+    error?.response?.data?.data?.email;
+
+  if (
+    responseCode ===
+      "EMAIL_NOT_VERIFIED" &&
+    verificationEmail
+  ) {
+    router.push(
+      `/owner/verify-email?email=${encodeURIComponent(
+        verificationEmail
+      )}`
+    );
+
+    return;
+  }
+
+  alert(
+    error?.response?.data?.message ||
+      "Login Failed"
+  );
+} finally {
       setLoading(false);
     }
   };

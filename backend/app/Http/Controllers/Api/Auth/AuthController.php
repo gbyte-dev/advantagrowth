@@ -381,23 +381,94 @@ if (
         ]);
     }
 
-    public function deleteAccount(Request $request)
-    {
-        $user = $request->user();
+   public function deleteAccount(
+    Request $request
+) {
+    $user =
+        $request->user();
 
-        if (!$user) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthenticated.',
-            ], 401);
-        }
-
-        $user->tokens()->delete();
-        $user->delete();
-
+    if (!$user) {
         return response()->json([
-            'success' => true,
-            'message' => 'Account deleted successfully.',
-        ]);
+            'success' =>
+                false,
+
+            'message' =>
+                'Unauthenticated.',
+        ], 401);
     }
+
+    DB::transaction(
+        function () use (
+            $user
+        ): void {
+            $restaurant =
+                Restaurant::query()
+                    ->whereKey(
+                        $user->restaurant_id
+                    )
+                    ->lockForUpdate()
+                    ->first();
+
+            /*
+             * If this user is not connected to
+             * a restaurant, delete only the user.
+             */
+            if (!$restaurant) {
+                $user
+                    ->tokens()
+                    ->delete();
+
+                $user->delete();
+
+                return;
+            }
+
+            /*
+             * Sanctum tokens use a polymorphic
+             * relationship without restaurant FK.
+             * Delete tokens for owner and all staff
+             * before deleting restaurant users.
+             */
+
+            $restaurantUserIds =
+                User::query()
+                    ->where(
+                        'restaurant_id',
+                        $restaurant->id
+                    )
+                    ->pluck(
+                        'id'
+                    );
+
+            DB::table(
+                'personal_access_tokens'
+            )
+                ->where(
+                    'tokenable_type',
+                    User::class
+                )
+                ->whereIn(
+                    'tokenable_id',
+                    $restaurantUserIds
+                )
+                ->delete();
+
+            /*
+             * Database cascade rules delete all
+             * restaurant-related records, including
+             * owner and staff users.
+             */
+
+            $restaurant->delete();
+        }
+    );
+
+    return response()->json([
+        'success' =>
+            true,
+
+        'message' =>
+            'Restaurant account and all related data deleted successfully.',
+    ]);
+}
 }
