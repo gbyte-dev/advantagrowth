@@ -13,18 +13,44 @@ export default function Navbar() {
 
   useEffect(() => {
     const updateAuth = () => {
-      const savedRole = localStorage.getItem("role");
+  const token =
+    sessionStorage.getItem(
+      "token"
+    );
 
-      if (
-        savedRole === "owner" ||
-        savedRole === "super_admin" ||
-        savedRole === "staff"
-      ) {
-        setRole(savedRole);
-      } else {
-        setRole("");
-      }
-    };
+  const savedRole =
+    localStorage.getItem(
+      "role"
+    );
+
+  const validRole =
+    savedRole === "owner" ||
+    savedRole === "super_admin" ||
+    savedRole === "staff";
+
+  if (
+    token &&
+    validRole
+  ) {
+    setRole(savedRole);
+    return;
+  }
+
+  /*
+   * Remove stale browser auth data when
+   * there is no active session token.
+   */
+
+  localStorage.removeItem(
+    "role"
+  );
+
+  localStorage.removeItem(
+    "user"
+  );
+
+  setRole("");
+};
 
     updateAuth();
     window.addEventListener("storage", updateAuth);

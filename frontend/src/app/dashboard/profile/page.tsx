@@ -117,7 +117,7 @@ export default function ProfilePage() {
 
       showError(
         error?.response?.data?.message ||
-          "Unable to load profile."
+        "Unable to load profile."
       );
     } finally {
       setLoading(false);
@@ -205,7 +205,7 @@ export default function ProfilePage() {
 
       showSuccess(
         response.data?.message ||
-          "Profile updated successfully."
+        "Profile updated successfully."
       );
     } catch (error: any) {
       console.error(
@@ -238,7 +238,7 @@ export default function ProfilePage() {
 
       showError(
         error?.response?.data?.message ||
-          "Unable to update profile."
+        "Unable to update profile."
       );
     } finally {
       setSavingProfile(false);
@@ -310,7 +310,7 @@ export default function ProfilePage() {
 
       showSuccess(
         response.data?.message ||
-          "Password updated successfully."
+        "Password updated successfully."
       );
     } catch (error: any) {
       console.error(
@@ -320,7 +320,7 @@ export default function ProfilePage() {
 
       showError(
         error?.response?.data?.message ||
-          "Unable to update password."
+        "Unable to update password."
       );
     } finally {
       setSavingPassword(false);
@@ -386,7 +386,17 @@ export default function ProfilePage() {
         authConfig()
       );
 
-      sessionStorage.clear();
+      sessionStorage.removeItem(
+        "token"
+      );
+
+      localStorage.removeItem(
+        "role"
+      );
+
+      localStorage.removeItem(
+        "user"
+      );
 
       window.dispatchEvent(
         new Event("storage")
@@ -407,7 +417,7 @@ export default function ProfilePage() {
 
       showError(
         error?.response?.data?.message ||
-          "Unable to delete account."
+        "Unable to delete account."
       );
     } finally {
       setDeleting(false);

@@ -81,10 +81,26 @@ export default function SuperAdminSidebar() {
   };
 
   const handleLogout = () => {
-    sessionStorage.clear();
-    window.dispatchEvent(new Event("storage"));
-    router.replace("/superadmin/login");
-  };
+  sessionStorage.removeItem(
+    "token"
+  );
+
+  localStorage.removeItem(
+    "role"
+  );
+
+  localStorage.removeItem(
+    "user"
+  );
+
+  window.dispatchEvent(
+    new Event("storage")
+  );
+
+  router.replace(
+    "/superadmin/login"
+  );
+};
 
   const isActive = (href: string) => {
     if (href === "/superadmin/dashboard") {

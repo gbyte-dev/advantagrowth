@@ -273,18 +273,27 @@ export default function OwnerSidebar() {
   |--------------------------------------------------------------------------
   */
 
-  const handleLogout = () => {
-    sessionStorage.clear();
+ const handleLogout = () => {
+  sessionStorage.removeItem(
+    "token"
+  );
 
-    window.dispatchEvent(
-      new Event("storage")
-    );
+  localStorage.removeItem(
+    "role"
+  );
 
-    router.replace(
-      "/owner/login"
-    );
-  };
+  localStorage.removeItem(
+    "user"
+  );
 
+  window.dispatchEvent(
+    new Event("storage")
+  );
+
+  router.replace(
+    "/owner/login"
+  );
+};
   /*
   |--------------------------------------------------------------------------
   | Active menu

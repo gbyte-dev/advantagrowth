@@ -2984,6 +2984,7 @@ html {
 .auth-page .form-group .input-wrapper .input-icon {
   position: absolute;
   left: 1rem;
+  z-index: 2;
   color: var(--auth-muted-dark);
   font-size: 0.9rem;
   transition: var(--auth-transition);
@@ -3007,14 +3008,31 @@ html {
   color: var(--auth-muted-dark);
 }
 
+/* Browser Autofill Override
+   Chrome/Edge/Safari paint autofilled inputs with an opaque white
+   background + black text, ignoring our dark theme entirely and
+   burying the .input-icon underneath it. The huge inset box-shadow
+   repaints the field in our own colors instead of the UA default,
+   and the long transition-delay defeats the browser's re-apply-on-
+   interaction behavior. */
+.auth-page .form-group .input-wrapper input:-webkit-autofill,
+.auth-page .form-group .input-wrapper input:-webkit-autofill:hover,
+.auth-page .form-group .input-wrapper input:-webkit-autofill:focus,
+.auth-page .form-group .input-wrapper input:-webkit-autofill:active {
+  -webkit-text-fill-color: var(--auth-light);
+  -webkit-box-shadow: 0 0 0 1000px var(--auth-primary) inset;
+  box-shadow: 0 0 0 1000px var(--auth-primary) inset;
+  caret-color: var(--auth-light);
+  transition: background-color 600000s 0s, color 600000s 0s;
+}
+
 .auth-page .form-group .input-wrapper input:focus {
   border-color: var(--auth-accent);
   background: rgba(108, 92, 231, 0.04);
   box-shadow: 0 0 0 4px rgba(108, 92, 231, 0.06);
 }
 
-.auth-page .form-group .input-wrapper input:focus ~ .input-icon,
-.auth-page .form-group .input-wrapper input:focus + .input-icon {
+.auth-page .form-group .input-wrapper:focus-within .input-icon {
   color: var(--auth-accent-light);
 }
 
@@ -8359,8 +8377,7 @@ body:has(.owner-sidebar.sidebar-collapsed) .owner-main-content {
   box-shadow: 0 0 0 4px rgba(108, 92, 231, 0.04);
 }
 
-.form-group .input-wrapper input:focus ~ .input-icon,
-.form-group .input-wrapper select:focus ~ .input-icon {
+.form-group .input-wrapper:focus-within .input-icon {
   color: var(--profile-accent);
 }
 
@@ -8742,14 +8759,6 @@ body:has(.owner-sidebar.sidebar-collapsed) .owner-main-content {
   opacity: 0.6;
   cursor: not-allowed;
   background: rgba(20, 10, 77, 0.02);
-}
-
-/* ============================================
-   ADDITIONAL: Focus Within Support
-   ============================================ */
-
-.form-group .input-wrapper:focus-within .input-icon {
-  color: var(--profile-accent);
 }
 
 /* =========================================================
