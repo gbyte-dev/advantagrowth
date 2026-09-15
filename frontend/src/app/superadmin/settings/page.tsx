@@ -52,19 +52,8 @@ export default function SuperAdminSettingsPage() {
     return (
         <div className="superadmin-layout">
             <SuperAdminSidebar />
-            <main
-                className={`superadmin-main-content scrollbar-hide ${sidebarCollapsed ? "sidebar-collapsed-main" : "sidebar-expanded-main"}`}
-                style={{ height: "calc(100vh - 48px)", overflowY: "auto", padding: 0 }}
-            >
-                <div
-                    style={{
-                        paddingLeft: "2rem",
-                        paddingRight: "2rem",
-                        paddingTop: "1.5rem",
-                        paddingBottom: "2rem",
-                    }}
-                >
-                <div className="mx-auto max-w-5xl overflow-x-hidden pt-20 sm:pt-24 lg:pt-3" style={{ fontFamily: "'Inter', sans-serif" }}>
+            <main className={`superadmin-main-content ${sidebarCollapsed ? "sidebar-collapsed-main" : "sidebar-expanded-main"}`}>
+                <div className="flex min-h-[calc(100vh-140px)] flex-col justify-start overflow-x-hidden pt-20 sm:pt-24 lg:pt-3" style={{ fontFamily: "'Inter', sans-serif" }}>
                     <div className="mb-6 border-b border-gray-200 pb-5 pl-px">
                         <h1 className="text-2xl font-bold text-gray-900">System Settings</h1>
                         <p className="mt-1 text-sm text-gray-500">Configure platform-wide preferences.</p>
@@ -75,7 +64,7 @@ export default function SuperAdminSettingsPage() {
                             <div className="h-10 w-10 animate-spin rounded-full border-4 border-violet-200 border-t-violet-600" />
                         </div>
                     ) : (
-                        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+                        <section className="min-h-[460px] rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
                             <FormSectionHeader icon={<SettingsIcon size={17} />} title="Platform Currency" />
 
                             <p className="mb-4 text-sm text-gray-500">
@@ -100,7 +89,6 @@ export default function SuperAdminSettingsPage() {
                             </div>
                         </section>
                     )}
-                </div>
                 </div>
             </main>
         </div>
